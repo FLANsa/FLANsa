@@ -11,3 +11,4 @@ __MACOSX/
 .env*
 env.local
 firebase-debug.log
+serviceAccountKey.json

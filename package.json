@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "emulators": "firebase emulators:start",
     "deploy": "firebase deploy",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "purge": "node scripts/purge.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.0",
