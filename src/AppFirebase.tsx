@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useFirebase'
-import { seedData, checkDataExists } from './lib/seedData'
 import LoginPageFirebase from './pages/LoginPageFirebase'
 import SalesReportsPage from './pages/SalesReportsPage'
 import DashboardPage from './pages/DashboardPage'
@@ -13,25 +12,7 @@ import PrintPage from './pages/PrintPage'
 function AppFirebase() {
   const { user, loading } = useAuth()
 
-  useEffect(() => {
-    // Seed data on first load
-    const initializeData = async () => {
-      try {
-        const dataExists = await checkDataExists()
-        if (!dataExists) {
-          console.log('No data found, seeding initial data...')
-          await seedData()
-        } else {
-          console.log('Data already exists, skipping seed')
-        }
-      } catch (error) {
-        console.error('Error initializing data:', error)
-        // Continue even if seeding fails
-      }
-    }
-    
-    initializeData()
-  }, [])
+  // Removed automatic data seeding to ensure a clean start with no items
 
   if (loading) {
     return (
