@@ -167,27 +167,27 @@ const ProductsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-5">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 arabic">المنتجات</h1>
-              <p className="text-sm text-gray-500 english">Products Management</p>
+              <h1 className="text-2xl font-extrabold arabic">المنتجات</h1>
+              <p className="text-sm/6 opacity-90 english">Products Management</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900 arabic">
+                <p className="text-sm font-medium arabic">
                   {JSON.parse(localStorage.getItem('user') || '{}').name || 'مستخدم'}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs/5 opacity-90">
                   {JSON.parse(localStorage.getItem('user') || '{}').role || 'role'}
                 </p>
               </div>
               <button
                 onClick={() => window.history.back()}
-                className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 arabic"
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-md text-sm backdrop-blur arabic transition"
               >
                 العودة
               </button>
@@ -198,7 +198,7 @@ const ProductsPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Controls */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 ring-1 ring-gray-100">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
@@ -269,7 +269,7 @@ const ProductsPage: React.FC = () => {
             </div>
           ) : (
             filteredProducts.map(product => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-200">
+              <div key={product.id} className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all duration-200 ring-1 ring-gray-100 hover:-translate-y-1">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 arabic">{product.name}</h3>
@@ -279,7 +279,7 @@ const ProductsPage: React.FC = () => {
                     )}
                   </div>
                   <div className="text-right">
-                    <span className="text-xl font-bold text-blue-600">{formatToEnglish(product.price)}</span>
+                    <span className="text-xl font-bold text-white bg-blue-600 rounded-lg px-2 py-0.5 inline-block">{formatToEnglish(product.price)}</span>
                     <p className="text-xs text-gray-500">SAR (شامل الضريبة)</p>
                   </div>
                 </div>

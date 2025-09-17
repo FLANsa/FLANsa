@@ -78,42 +78,47 @@ export default function SalesReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 arabic">تقارير المبيعات</h1>
-          <p className="text-sm text-gray-500 english">Sales Reports</p>
-        </div>
-        <div>
-          <button
-            onClick={() => (window.location.href = '/dashboard')}
-            className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 arabic"
-          >
-            الصفحة الرئيسية
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-6">
+      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-5">
+            <div>
+              <h1 className="text-2xl font-extrabold arabic">تقارير المبيعات</h1>
+              <p className="text-sm/6 opacity-90 english">Sales Reports</p>
+            </div>
+            <div>
+              <button
+                onClick={() => (window.location.href = '/dashboard')}
+                className="px-3 py-2 text-sm rounded-md bg-white/10 hover:bg-white/20 backdrop-blur text-white arabic transition"
+              >
+                الصفحة الرئيسية
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border p-4 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
           <div className="text-sm text-gray-500 arabic">إجمالي المبيعات</div>
           <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.total.toFixed(2)}<span className="text-sm font-normal text-gray-400 ml-1">SAR</span></div>
         </div>
-        <div className="bg-white rounded-xl border p-4 shadow-sm">
+          <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
           <div className="text-sm text-gray-500 arabic">عدد الفواتير</div>
           <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.count}</div>
         </div>
-        <div className="bg-white rounded-xl border p-4 shadow-sm">
+          <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
           <div className="text-sm text-gray-500 arabic">إجمالي الخصومات</div>
           <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.discount.toFixed(2)}</div>
         </div>
-        <div className="bg-white rounded-xl border p-4 shadow-sm">
+          <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
           <div className="text-sm text-gray-500 arabic">ضريبة القيمة المضافة</div>
           <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.vat.toFixed(2)}</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border p-4 shadow-sm">
+      <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
         <div className="flex flex-wrap items-center gap-3">
           <select value={dateRange} onChange={(e) => setDateRange(e.target.value as DateRange)} className="border rounded-md px-3 py-2 text-sm">
             <option value="today">اليوم</option>
@@ -143,7 +148,7 @@ export default function SalesReportsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border overflow-hidden shadow-sm ring-1 ring-gray-100">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 sticky top-0 z-10">
