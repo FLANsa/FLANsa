@@ -264,8 +264,8 @@ const POSEnhanced: React.FC = () => {
                 {/* Mode Selection */}
                 <div className="flex space-x-2">
                   {[
-                    { value: 'dine-in', label: 'تناول في المطعم', labelEn: 'Dine In', icon: '🍽️' },
-                    { value: 'takeaway', label: 'طلب خارجي', labelEn: 'Takeaway', icon: '🥡' },
+                    { value: 'dine-in', label: 'محلي', labelEn: 'Dine In', icon: '🍽️' },
+                    { value: 'takeaway', label: 'سفري', labelEn: 'Takeaway', icon: '🥡' },
                     { value: 'delivery', label: 'توصيل', labelEn: 'Delivery', icon: '🚚' }
                   ].map(mode => (
                     <button
