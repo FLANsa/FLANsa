@@ -1745,6 +1745,7 @@ function App() {
 
   return (
             <Routes>
+              <Route path="/__reset" element={<ResetPage />} />
               <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
               <Route path="/dashboard" element={isLoggedIn ? <DashboardPage /> : <Navigate to="/" replace />} />
               <Route path="/pos" element={isLoggedIn ? <POSEnhanced /> : <Navigate to="/" replace />} />
@@ -1758,3 +1759,48 @@ function App() {
 }
 
 export default App
+
+function ResetPage() {
+  React.useEffect(() => {
+    (async () => {
+      try {
+        // Clear localStorage
+        localStorage.clear()
+        // Clear IndexedDB (best effort)
+        const anyIndexedDB: any = indexedDB as any
+        if (anyIndexedDB?.databases) {
+          const dbs = await anyIndexedDB.databases()
+          await Promise.all(
+            dbs.map((d: any) => d?.name && new Promise<void>((resolve) => {
+              const req = indexedDB.deleteDatabase(d.name as string)
+              req.onsuccess = req.onerror = req.onblocked = () => resolve()
+            }))
+          )
+        }
+        // Clear caches
+        if ('caches' in window) {
+          const names = await caches.keys()
+          await Promise.all(names.map((n) => caches.delete(n)))
+        }
+        // Unregister service workers
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations()
+          await Promise.all(regs.map((r) => r.unregister()))
+        }
+      } finally {
+        setTimeout(() => {
+          window.location.replace('/')
+        }, 300)
+      }
+    })()
+  }, [])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-top-transparent mx-auto mb-4"></div>
+        <p className="text-gray-700 arabic">يتم تنظيف بيانات التطبيق المحلية...</p>
+      </div>
+    </div>
+  )
+}
