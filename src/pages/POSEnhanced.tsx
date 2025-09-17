@@ -362,7 +362,13 @@ const POSEnhanced: React.FC = () => {
                 <div className="text-center py-12">
                   <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 arabic">السلة فارغة</p>
-                  <p className="text-sm text-gray-400 arabic">أضف أصناف للبدء</p>
+                  <p className="text-sm text-gray-400 arabic mb-4">أضف أصناف للبدء</p>
+                  <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="inline-flex items-center px-4 py-2 rounded-md text-sm bg-emerald-600 text-white hover:bg-emerald-700 arabic"
+                  >
+                    استعرض المنتجات
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">

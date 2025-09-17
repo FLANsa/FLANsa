@@ -186,7 +186,13 @@ export default function SalesReportsPage() {
               )}
               {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">لا توجد فواتير مطابقة للبحث/المرشحات</td>
+                  <td colSpan={6} className="px-4 py-16">
+                    <div className="text-center">
+                      <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">📄</div>
+                      <p className="text-sm text-gray-600 arabic mb-2">لا توجد فواتير مطابقة للبحث/المرشحات</p>
+                      <p className="text-xs text-gray-500 arabic">جرّب تغيير التاريخ أو معايير البحث</p>
+                    </div>
+                  </td>
                 </tr>
               )}
             </tbody>
