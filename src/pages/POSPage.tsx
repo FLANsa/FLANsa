@@ -71,7 +71,7 @@ const POSPage: React.FC = () => {
         } else {
           // Create new customer
           customerId = await addCustomer({
-            name: `عميل ${customerPhone}`,
+            name: `${customerPhone}`,
             phone: customerPhone,
             email: ''
           })
@@ -81,7 +81,7 @@ const POSPage: React.FC = () => {
       // Create order
       const orderData = {
         customerId,
-        customerName: customerPhone ? `عميل ${customerPhone}` : 'عميل بدون رقم',
+        customerName: customerPhone ? `${customerPhone}` : '',
         customerPhone: customerPhone || '',
         items: cart.map(item => ({
           id: item.id,
@@ -293,7 +293,7 @@ const POSPage: React.FC = () => {
                   {/* Discount */}
                   <div className="border-t pt-4">
                     <label className="block text-sm font-medium text-gray-700 arabic mb-2">
-                      خصم
+                      
                     </label>
                     <input
                       type="number"
@@ -317,7 +317,7 @@ const POSPage: React.FC = () => {
                     </div>
                     {discount > 0 && (
                       <div className="flex justify-between text-red-600">
-                        <span className="arabic">خصم:</span>
+                        
                         <span>-{discount.toFixed(2)} SAR</span>
                       </div>
                     )}

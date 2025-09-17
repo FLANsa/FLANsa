@@ -141,12 +141,7 @@ const PrintPage: React.FC = () => {
               <span className="arabic">ضريبة القيمة المضافة (15%):</span>
               <span>{order.vat.toFixed(2)} SAR</span>
             </div>
-            {order.discount > 0 && (
-              <div className="flex justify-between text-sm text-red-600">
-                <span className="arabic">خصم:</span>
-                <span>-{order.discount.toFixed(2)} SAR</span>
-              </div>
-            )}
+            {/* removed discount row */}
             <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 mt-2">
               <span className="arabic">المجموع الكلي:</span>
               <span>{order.total.toFixed(2)} SAR</span>

@@ -138,7 +138,7 @@ export default function SalesReportsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="border rounded-md px-3 py-2 text-sm flex-1 min-w-[220px]"
-            placeholder="بحث برقم الفاتورة أو اسم العميل"
+            placeholder="بحث برقم الفاتورة"
           />
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function SalesReportsPage() {
               <tr>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">رقم الفاتورة</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">التاريخ</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">العميل</th>
+                
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الحالة</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">طريقة الدفع</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الإجمالي</th>
@@ -163,7 +163,7 @@ export default function SalesReportsPage() {
                   <tr key={o.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{o.invoiceNumber}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{created.toLocaleString('ar-SA')}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{o.customerName || 'عميل'}</td>
+                    
                     <td className="px-4 py-3 text-xs">
                       <span className={`inline-flex px-2 py-1 rounded-full ${getStatusClass(o.status)}`}>{o.status || '-'}</span>
                     </td>

@@ -284,38 +284,7 @@ const POSEnhanced: React.FC = () => {
                 </div>
 
                 {/* Quick Buttons */}
-                <button
-                  onClick={() => setShowCustomerModal(true)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 flex items-center space-x-2"
-                >
-                  <User className="h-4 w-4" />
-                  <span className="arabic">عميل</span>
-                </button>
-
-                <button
-                  onClick={() => setShowDiscountModal(true)}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-700 flex items-center space-x-2"
-                >
-                  <Percent className="h-4 w-4" />
-                  <span className="arabic">خصم</span>
-                </button>
-
-                <button
-                  onClick={refreshProducts}
-                  disabled={isRefreshing}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 flex items-center space-x-2 disabled:opacity-50"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  <span className="arabic">تحديث المنتجات</span>
-                </button>
-
-                <button
-                  onClick={() => window.location.href = '/products'}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 flex items-center space-x-2"
-                >
-                  <Package className="h-4 w-4" />
-                  <span className="arabic">إدارة المنتجات</span>
-                </button>
+                {/* removed quick actions: customer, discount, refresh products, manage products */}
 
                 {cart.length > 0 && (
                   <button
@@ -444,12 +413,7 @@ const POSEnhanced: React.FC = () => {
                       <span className="arabic">ضريبة القيمة المضافة (15%):</span>
                       <span className="font-medium">{formatToEnglish(vat)} SAR</span>
                     </div>
-                    {discount > 0 && (
-                      <div className="flex justify-between text-sm text-red-600">
-                        <span className="arabic">خصم:</span>
-                        <span className="font-medium">-{formatToEnglish(discount)} SAR</span>
-                      </div>
-                    )}
+                    {/* removed discount row */}
                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                       <span className="arabic">المجموع الكلي:</span>
                       <span className="text-green-600">{formatToEnglish(total)} SAR</span>
@@ -457,14 +421,7 @@ const POSEnhanced: React.FC = () => {
                   </div>
 
                   {/* Customer Info */}
-                  {customerPhone && (
-                    <div className="bg-blue-50 p-3 rounded-md">
-                      <p className="text-sm text-blue-800 arabic">
-                        <Phone className="h-4 w-4 inline mr-1" />
-                        العميل: {customerPhone}
-                      </p>
-                    </div>
-                  )}
+                  {/* removed customer info row */}
 
                   {/* Checkout Button */}
                   <button
@@ -483,7 +440,7 @@ const POSEnhanced: React.FC = () => {
       </div>
 
       {/* Customer Modal */}
-      {showCustomerModal && (
+      {false && showCustomerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 arabic mb-4">معلومات العميل</h3>
@@ -524,7 +481,7 @@ const POSEnhanced: React.FC = () => {
       )}
 
       {/* Discount Modal */}
-      {showDiscountModal && (
+      {false && showDiscountModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 arabic mb-4">تطبيق خصم</h3>
