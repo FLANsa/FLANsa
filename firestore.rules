@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && 
+             request.auth.token.role == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    function isManager() {
+      return hasRole('manager') || isAdmin();
+    }
+    
+    function isCashier() {
+      return hasRole('cashier') || isManager();
+    }
+    
+    function isValidBranch(branchId) {
+      return isAuthenticated() && 
+             request.auth.token.branchId == branchId;
+    }
+    
+    function isValidTerminal(terminalId) {
+      return isAuthenticated() && 
+             request.auth.token.terminalId == terminalId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isManager();
+    }
+    
+    // Branches collection
+    match /branches/{branchId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Terminals collection
+    match /terminals/{terminalId} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+    
+    // Customers collection
+    match /customers/{customerId} {
+      allow read, write: if isCashier();
+    }
+    
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+    
+    // Items collection
+    match /items/{itemId} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+    
+    // Modifiers collection
+    match /modifiers/{modifierId} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+    
+    // Orders collection
+    match /orders/{orderId} {
+      allow read: if isCashier();
+      allow create: if isCashier() && 
+                       isValidBranch(resource.data.branchId) &&
+                       isValidTerminal(resource.data.terminalId);
+      allow update: if isCashier() && 
+                       isValidBranch(resource.data.branchId) &&
+                       isValidTerminal(resource.data.terminalId);
+    }
+    
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if isCashier();
+      allow create: if isCashier() && 
+                       isValidBranch(resource.data.branchId) &&
+                       isValidTerminal(resource.data.terminalId);
+    }
+    
+    // Invoices collection
+    match /invoices/{invoiceId} {
+      allow read: if isCashier();
+      allow create: if isCashier() && 
+                       isValidBranch(resource.data.branchId) &&
+                       isValidTerminal(resource.data.terminalId);
+    }
+    
+    // Stock moves collection
+    match /stockMoves/{stockMoveId} {
+      allow read: if isManager();
+      allow write: if isManager();
+    }
+    
+    // Print jobs collection
+    match /printJobs/{printJobId} {
+      allow read: if isCashier();
+      allow create: if isCashier() && 
+                       isValidBranch(resource.data.branchId) &&
+                       isValidTerminal(resource.data.terminalId);
+    }
+    
+    // Reports collection
+    match /reports/{reportId} {
+      allow read: if isManager();
+      allow write: if isManager();
+    }
+    
+    // Settings collection
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+functions/node_modules/
+dist/
+functions/lib/
+.cache/
+.vite/
+coverage/
+.DS_Store
+__MACOSX/
+*/._
+.env*
+env.local
+firebase-debug.log

@@ -1,0 +1,198 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="ltr"] {
+  text-align: left;
+}
+
+/* Arabic Font Support */
+.arabic {
+  font-family: 'Noto Sans Arabic', Arial, sans-serif;
+  direction: rtl;
+}
+
+.english {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  direction: ltr;
+}
+
+/* Receipt Styles */
+.receipt {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  color: #000;
+  background: #fff;
+}
+
+.receipt-arabic {
+  font-family: 'Noto Sans Arabic', Arial, sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+.receipt-english {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  direction: ltr;
+  text-align: left;
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+  
+  .receipt-58mm {
+    width: 58mm;
+    max-width: 58mm;
+  }
+  
+  .receipt-80mm {
+    width: 80mm;
+    max-width: 80mm;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading Animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Button Hover Effects */
+.btn-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Grid Item Hover */
+.grid-item-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.grid-item-hover:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Cart Item Animation */
+.cart-item-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.cart-item-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.cart-item-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.cart-item-exit-active {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Toast Notifications */
+.toast-enter {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
+.toast-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.toast-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-exit-active {
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Focus Styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+/* Disabled State */
+.disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Success State */
+.success {
+  @apply bg-success-50 border-success-200 text-success-800;
+}
+
+/* Warning State */
+.warning {
+  @apply bg-warning-50 border-warning-200 text-warning-800;
+}
+
+/* Error State */
+.error {
+  @apply bg-danger-50 border-danger-200 text-danger-800;
+}
+
+/* Info State */
+.info {
+  @apply bg-primary-50 border-primary-200 text-primary-800;
+}

@@ -1,0 +1,41 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && 
+             request.auth.token.role == role;
+    }
+    
+    function isManager() {
+      return hasRole('manager') || hasRole('admin');
+    }
+    
+    // Business logos and assets
+    match /business/{branchId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+    
+    // Receipt templates
+    match /templates/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+    
+    // Backup files
+    match /backups/{allPaths=**} {
+      allow read, write: if hasRole('admin');
+    }
+    
+    // Print configurations
+    match /printers/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isManager();
+    }
+  }
+}
