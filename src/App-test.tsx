@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Eye, EyeOff, Lock, Mail, ShoppingCart, Package, Users, Settings, ChefHat, Receipt, Plus, Minus, Trash2, Search, Filter, Download, Upload, Edit, Save, X, Clock, CheckCircle, AlertCircle, Phone, MapPin, CreditCard, Printer, QrCode, BarChart3 } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, ShoppingCart, Package, Settings, Receipt, Save, Printer, BarChart3 } from 'lucide-react'
 import { generateZATCAQR, formatZATCATimestamp, generateUUID } from './lib/zatca'
 import SalesReportsPageTest from './pages/SalesReportsPageTest'
 import POSEnhanced from './pages/POSEnhanced'
@@ -176,7 +176,7 @@ function LoginPage() {
 }
 
 // POS Page Component
-function POSPage() {
+/* removed: POSPage */
   const [cart, setCart] = useState([])
   const [selectedMode, setSelectedMode] = useState('dine-in')
   const [customerPhone, setCustomerPhone] = useState('')
@@ -496,7 +496,7 @@ function POSPage() {
 }
 
 // Orders Page Component
-function OrdersPage() {
+/* removed: OrdersPage */
   const [orders, setOrders] = useState(() => {
     const savedOrders = localStorage.getItem('orders')
     const defaultOrders = [
@@ -756,7 +756,7 @@ function OrdersPage() {
 }
 
 // Kitchen Page Component
-function KitchenPage() {
+/* removed: KitchenPage */
   const [orders] = useState([
     { id: 'ORD-001', items: ['شاورما دجاج كبير', '7UP'], status: 'preparing', time: '14:30', table: 'T-01' },
     { id: 'ORD-002', items: ['برجر لحم', 'بطاطس مقلية'], status: 'pending', time: '14:25', table: 'T-05' },
@@ -806,7 +806,7 @@ function KitchenPage() {
 }
 
 // Inventory Page Component
-function InventoryPage() {
+/* removed: InventoryPage */
   const [items, setItems] = useState([
     { id: 1, name: 'دجاج', nameEn: 'Chicken', stock: 50, unit: 'كيلو', minStock: 10, price: 25.00, category: 'main' },
     { id: 2, name: 'لحم', nameEn: 'Beef', stock: 30, unit: 'كيلو', minStock: 5, price: 35.00, category: 'main' },
@@ -1067,7 +1067,7 @@ function InventoryPage() {
 }
 
 // Customers Page Component
-function CustomersPage() {
+/* removed: CustomersPage */
   const [customers, setCustomers] = useState([
     { id: 1, name: 'أحمد محمد', phone: '0501234567', email: 'ahmed@example.com', orders: 15, totalSpent: 450.00 },
     { id: 2, name: 'فاطمة أحمد', phone: '0507654321', email: 'fatima@example.com', orders: 8, totalSpent: 280.00 },
