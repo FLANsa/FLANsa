@@ -225,27 +225,27 @@ const POSEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-5">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 arabic">نقطة البيع المحسنة</h1>
-              <p className="text-sm text-gray-500 english">Enhanced Point of Sale</p>
+              <h1 className="text-2xl font-extrabold arabic">نقطة البيع</h1>
+              <p className="text-sm/6 opacity-90 english">Point of Sale</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900 arabic">
+                <p className="text-sm font-medium arabic">
                   {JSON.parse(localStorage.getItem('user') || '{}').name || 'مستخدم'}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs/5 opacity-90">
                   {JSON.parse(localStorage.getItem('user') || '{}').role || 'role'}
                 </p>
               </div>
               <button
                 onClick={() => window.history.back()}
-                className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 arabic"
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-md text-sm backdrop-blur arabic transition"
               >
                 العودة
               </button>
@@ -303,7 +303,7 @@ const POSEnhanced: React.FC = () => {
               {menuItems.map(item => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-blue-300"
+                  className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-lg transition-all duration-200 cursor-pointer ring-1 ring-gray-100 hover:-translate-y-1"
                   onClick={() => addToCart(item)}
                 >
                   <div className="flex justify-between items-start mb-3">
@@ -312,7 +312,7 @@ const POSEnhanced: React.FC = () => {
                       <p className="text-sm text-gray-500 english">{item.nameEn}</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xl font-bold text-blue-600">{formatToEnglish(item.price)}</span>
+                      <span className="text-xl font-bold text-white bg-blue-600 rounded-lg px-2 py-0.5 inline-block">{formatToEnglish(item.price)}</span>
                       <p className="text-xs text-gray-500">SAR (شامل الضريبة)</p>
                     </div>
                   </div>
@@ -345,7 +345,7 @@ const POSEnhanced: React.FC = () => {
 
           {/* Cart */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-4 ring-1 ring-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900 arabic flex items-center">
                   <ShoppingCart className="h-5 w-5 mr-2" />

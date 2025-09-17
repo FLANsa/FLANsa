@@ -31,23 +31,23 @@ const DashboardPage: React.FC = () => {
   const totalItems = items.length
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-5">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 arabic">مطعم Big Diet</h1>
-              <p className="text-sm text-gray-500 english">Big Diet Restaurant POS</p>
+              <h1 className="text-2xl font-extrabold arabic">مطعم Big Diet</h1>
+              <p className="text-sm/6 opacity-90 english">Big Diet Restaurant POS</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900 arabic">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.role}</p>
+                <p className="text-sm font-medium arabic">{user?.name}</p>
+                <p className="text-xs/5 opacity-90">{user?.role}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 arabic"
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-md text-sm backdrop-blur arabic transition"
               >
                 تسجيل الخروج
               </button>
@@ -57,9 +57,9 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 arabic mb-2">
+          <h2 className="text-3xl font-extrabold text-gray-900 arabic mb-2">
             لوحة التحكم
           </h2>
           <p className="text-gray-600 arabic">
@@ -74,13 +74,13 @@ const DashboardPage: React.FC = () => {
             return (
               <div
                 key={index}
-                className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-2xl shadow-sm border p-6 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer ring-1 ring-gray-100"
                 onClick={() => {
                   window.location.href = item.href
                 }}
               >
                 <div className="flex items-center mb-4">
-                  <div className={`p-3 rounded-lg ${item.color}`}>
+                  <div className={`p-3 rounded-xl ${item.color}`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
                   <div className="mr-4">
@@ -105,7 +105,7 @@ const DashboardPage: React.FC = () => {
 
         {/* Quick Stats */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-2xl shadow-sm border p-6 ring-1 ring-gray-100">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <Receipt className="h-6 w-6 text-green-600" />
@@ -116,7 +116,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-2xl shadow-sm border p-6 ring-1 ring-gray-100">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <ShoppingCart className="h-6 w-6 text-blue-600" />
@@ -127,7 +127,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-2xl shadow-sm border p-6 ring-1 ring-gray-100">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Package className="h-6 w-6 text-purple-600" />
