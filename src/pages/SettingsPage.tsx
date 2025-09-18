@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Save } from 'lucide-react'
+import React, { useMemo, useState } from 'react'
+import { Save, CheckCircle, AlertCircle } from 'lucide-react'
 import { useSettings } from '../hooks/useFirebase'
 
 const SettingsPage: React.FC = () => {
@@ -14,17 +14,57 @@ const SettingsPage: React.FC = () => {
     addressAr: settings?.addressAr || 'الرياض، المملكة العربية السعودية',
     email: settings?.email || 'info@bigdiet.com',
     vatRate: settings?.vatRate || 15,
-    currency: settings?.currency || 'SAR',
     language: settings?.language || 'ar'
   })
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validators = useMemo(() => ({
+    vatNumber: (v: string) => (/^\d{15}$/.test(v) ? '' : 'رقم الضريبة يجب أن يكون 15 رقمًا'),
+    crNumber: (v: string) => (/^\d{8,15}$/.test(v) ? '' : 'رقم السجل التجاري غير صحيح'),
+    email: (v: string) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'البريد الإلكتروني غير صحيح'),
+    phone: (v: string) => (/^[+\d][\d\s()-]{6,}$/.test(v) ? '' : 'رقم الهاتف غير صحيح'),
+    vatRate: (v: number) => (v >= 0 && v <= 100 ? '' : 'النسبة يجب أن تكون بين 0 و 100'),
+    restaurantName: (v: string) => (v.trim().length > 0 ? '' : 'اسم المطعم (إنجليزي) مطلوب'),
+    restaurantNameAr: (v: string) => (v.trim().length > 0 ? '' : 'اسم المطعم (عربي) مطلوب'),
+  }), [])
+
+  const validateAll = (): boolean => {
+    const newErrors: Record<string, string> = {}
+    const add = (key: string, msg: string) => { if (msg) newErrors[key] = msg }
+    add('restaurantNameAr', validators.restaurantNameAr(formData.restaurantNameAr))
+    add('restaurantName', validators.restaurantName(formData.restaurantName))
+    add('vatNumber', validators.vatNumber(formData.vatNumber))
+    add('crNumber', validators.crNumber(formData.crNumber))
+    add('email', validators.email(formData.email))
+    add('phone', validators.phone(formData.phone))
+    add('vatRate', validators.vatRate(formData.vatRate))
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSave = async () => {
+    setSuccess(null)
+    setSubmitError(null)
+    if (!validateAll()) return
+    setSaving(true)
     try {
+      // احفظ محلياً فوراً لضمان عدم فقدان التعديلات
+      try {
+        localStorage.setItem('restaurantSettings', JSON.stringify(formData))
+      } catch (_) {}
+
+      // حاول المزامنة مع السحابة
       await updateSettings(formData)
-      alert('تم حفظ الإعدادات بنجاح!')
+      setSuccess('تم حفظ الإعدادات ومزامنتها بنجاح')
     } catch (error) {
       console.error('Error saving settings:', error)
-      alert('حدث خطأ أثناء حفظ الإعدادات')
+      // في حال فشل المزامنة السحابية، نبقي الحفظ المحلي ونبلغ المستخدم
+      setSuccess('تم الحفظ محلياً (تعذّرت المزامنة مع السحابة)')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -41,24 +81,38 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+      <header className="relative overflow-hidden rounded-3xl bg-green-600 text-white shadow-lg">
+        <div aria-hidden className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_-10%,rgba(255,255,255,.15),transparent)]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 arabic">الإعدادات</h1>
-              <p className="text-sm text-gray-500 english">System Settings</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold arabic">الإعدادات</h1>
+              <p className="text-sm/6 opacity-90 english">System Settings</p>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => (window.location.href = '/dashboard')} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 arabic">الصفحة الرئيسية</button>
-              <button onClick={() => window.history.back()} className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 arabic">العودة</button>
+              <button onClick={() => (window.location.href = '/dashboard')} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm arabic transition">الصفحة الرئيسية</button>
+              <button onClick={() => window.history.back()} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm arabic transition">العودة</button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {success && (
+          <div className="mb-4 rounded-md bg-green-50 p-3 text-green-800 flex items-center gap-2 arabic">
+            <CheckCircle className="h-4 w-4" /> {success}
+          </div>
+        )}
+        {submitError && (
+          <div className="mb-4 rounded-md bg-red-50 p-3 text-red-800 flex items-center gap-2 arabic">
+            <AlertCircle className="h-4 w-4" /> {submitError}
+          </div>
+        )}
         <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h2 className="text-lg font-semibold text-gray-900 arabic mb-6">إعدادات المطعم</h2>
+          <h2 className="text-lg font-semibold text-gray-900 arabic mb-2">إعدادات المطعم</h2>
+          <p className="text-sm text-gray-500 mb-6 arabic">تأكد من صحة بيانات الضرائب والاتصال قبل الحفظ.</p>
           
+          {/* Restaurant names */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 arabic mb-2">
@@ -70,6 +124,7 @@ const SettingsPage: React.FC = () => {
                 onChange={(e) => setFormData({...formData, restaurantNameAr: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {errors.restaurantNameAr && <p className="mt-1 text-xs text-red-600 arabic">{errors.restaurantNameAr}</p>}
             </div>
             
             <div>
@@ -82,8 +137,10 @@ const SettingsPage: React.FC = () => {
                 onChange={(e) => setFormData({...formData, restaurantName: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {errors.restaurantName && <p className="mt-1 text-xs text-red-600 arabic">{errors.restaurantName}</p>}
             </div>
             
+            {/* Tax & registry */}
             <div>
               <label className="block text-sm font-medium text-gray-700 arabic mb-2">
                 رقم ضريبة القيمة المضافة
@@ -95,6 +152,7 @@ const SettingsPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
+              {errors.vatNumber && <p className="mt-1 text-xs text-red-600 arabic">{errors.vatNumber}</p>}
             </div>
             
             <div>
@@ -108,8 +166,10 @@ const SettingsPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
+              {errors.crNumber && <p className="mt-1 text-xs text-red-600 arabic">{errors.crNumber}</p>}
             </div>
             
+            {/* Contact */}
             <div>
               <label className="block text-sm font-medium text-gray-700 arabic mb-2">
                 رقم الهاتف
@@ -121,6 +181,7 @@ const SettingsPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
+              {errors.phone && <p className="mt-1 text-xs text-red-600 arabic">{errors.phone}</p>}
             </div>
             
             <div>
@@ -134,8 +195,10 @@ const SettingsPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dir="ltr"
               />
+              {errors.email && <p className="mt-1 text-xs text-red-600 arabic">{errors.email}</p>}
             </div>
             
+            {/* Addresses */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 arabic mb-2">
                 العنوان (عربي)
@@ -160,6 +223,7 @@ const SettingsPage: React.FC = () => {
               />
             </div>
             
+            {/* VAT rate */}
             <div>
               <label className="block text-sm font-medium text-gray-700 arabic mb-2">
                 نسبة ضريبة القيمة المضافة (%)
@@ -172,34 +236,32 @@ const SettingsPage: React.FC = () => {
                 min="0"
                 max="100"
               />
+              {errors.vatRate && <p className="mt-1 text-xs text-red-600 arabic">{errors.vatRate}</p>}
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 arabic mb-2">
-                العملة
-              </label>
-              <select
-                value={formData.currency}
-                onChange={(e) => setFormData({...formData, currency: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="SAR">ريال سعودي (SAR)</option>
-                <option value="USD">دولار أمريكي (USD)</option>
-                <option value="EUR">يورو (EUR)</option>
-              </select>
-            </div>
+            
           </div>
           
           <div className="mt-6 flex justify-end space-x-4">
-            <button className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 arabic">
+            <button disabled={saving} className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 disabled:opacity-60 arabic">
               إلغاء
             </button>
             <button 
               onClick={handleSave}
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 arabic"
+              disabled={saving}
+              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-60 arabic"
             >
-              <Save className="h-4 w-4 inline mr-2" />
-              حفظ الإعدادات
+              {saving ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  جارٍ الحفظ...
+                </span>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 inline mr-2" />
+                  حفظ الإعدادات
+                </>
+              )}
             </button>
           </div>
         </div>

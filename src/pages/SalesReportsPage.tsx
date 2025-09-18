@@ -1,14 +1,56 @@
-import { useMemo, useState } from 'react'
-import { useOrders } from '../hooks/useFirebase'
+import { useEffect, useMemo, useState } from 'react'
+
+type Order = {
+  id: string
+  customer?: string
+  phone?: string
+  items?: Array<{ name: string; nameEn?: string; price?: number; quantity?: number }>
+  subtotal?: number
+  vat?: number
+  discount?: number
+  total: number
+  status?: string
+  mode?: string
+  paymentMethod?: string
+  timestamp?: string
+  invoiceNumber?: string
+}
 
 type DateRange = 'today' | '7d' | '30d' | 'all'
 
-export default function SalesReportsPage() {
-  const { orders, loading } = useOrders()
+export default function SalesReportsPageTest() {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [status, setStatus] = useState<'all' | 'completed' | 'pending' | 'preparing' | 'cancelled'>('all')
   const [payment, setPayment] = useState<'all' | 'cash' | 'card' | 'other'>('all')
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    try {
+      const localOrders = JSON.parse(localStorage.getItem('orders') || '[]')
+      // Map local orders shape to generic shape
+      const mapped: Order[] = localOrders.map((o: any) => ({
+        id: o.id,
+        customer: o.customer,
+        phone: o.phone,
+        total: o.total || 0,
+        status: o.status || 'completed',
+        mode: o.mode,
+        timestamp: o.timestamp,
+        invoiceNumber: o.id,
+        subtotal: o.total ? o.total / 1.15 : 0,
+        vat: o.total ? (o.total * 0.15) / 1.15 : 0,
+        discount: 0,
+        paymentMethod: o.paymentMethod || 'cash'
+      }))
+      setOrders(mapped)
+    } catch (_) {
+      setOrders([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   const { filtered, totals } = useMemo(() => {
     const now = new Date()
@@ -25,12 +67,12 @@ export default function SalesReportsPage() {
     }
 
     const filteredOrders = orders.filter((o) => {
-      const created = (o as any).createdAt?.toDate ? (o as any).createdAt.toDate() : new Date((o as any).createdAt || 0)
+      const created = o.timestamp ? new Date(o.timestamp) : new Date()
       if (start && created < start) return false
-      if (status !== 'all' && o.status !== status) return false
+      if (status !== 'all' && (o.status || 'completed') !== status) return false
       if (payment !== 'all' && (o.paymentMethod || 'other') !== payment) return false
       if (search) {
-        const hay = `${o.invoiceNumber} ${o.customerName || ''} ${(o as any).customerPhone || ''}`.toLowerCase()
+        const hay = `${o.invoiceNumber || o.id} ${o.customer || ''} ${o.phone || ''}`.toLowerCase()
         if (!hay.includes(search.toLowerCase())) return false
       }
       return true
@@ -78,125 +120,124 @@ export default function SalesReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-6">
-      <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-sm mb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-5">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-6">
+      {/* Green gradient header */}
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-700 to-green-600 text-white shadow-lg mb-6">
+        <div aria-hidden className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_-10%,rgba(255,255,255,.25),transparent)]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-extrabold arabic">تقارير المبيعات</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold arabic">تقارير المبيعات</h1>
               <p className="text-sm/6 opacity-90 english">Sales Reports</p>
             </div>
-            <div>
-              <button
-                onClick={() => (window.location.href = '/dashboard')}
-                className="px-3 py-2 text-sm rounded-md bg-white/10 hover:bg-white/20 backdrop-blur text-white arabic transition"
-              >
-                الصفحة الرئيسية
-              </button>
-            </div>
+            <button
+              onClick={() => (window.location.href = '/dashboard')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm arabic transition"
+            >
+              الصفحة الرئيسية
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* KPI row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
-          <div className="text-sm text-gray-500 arabic">إجمالي المبيعات</div>
-          <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.total.toFixed(2)}<span className="text-sm font-normal text-gray-400 ml-1">SAR</span></div>
-        </div>
+            <div className="text-sm text-gray-500 arabic">إجمالي المبيعات</div>
+            <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.total.toFixed(2)}<span className="text-sm font-normal text-gray-400 ml-1">SAR</span></div>
+          </div>
           <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
-          <div className="text-sm text-gray-500 arabic">عدد الفواتير</div>
-          <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.count}</div>
-        </div>
+            <div className="text-sm text-gray-500 arabic">عدد الفواتير</div>
+            <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.count}</div>
+          </div>
           <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
-          <div className="text-sm text-gray-500 arabic">إجمالي الخصومات</div>
-          <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.discount.toFixed(2)}</div>
-        </div>
+            <div className="text-sm text-gray-500 arabic">إجمالي الخصومات</div>
+            <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.discount.toFixed(2)}</div>
+          </div>
           <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
-          <div className="text-sm text-gray-500 arabic">ضريبة القيمة المضافة</div>
-          <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.vat.toFixed(2)}</div>
+            <div className="text-sm text-gray-500 arabic">ضريبة القيمة المضافة</div>
+            <div className="mt-1 text-3xl font-semibold text-gray-900">{totals.vat.toFixed(2)}</div>
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <select value={dateRange} onChange={(e) => setDateRange(e.target.value as DateRange)} className="border rounded-md px-3 py-2 text-sm">
-            <option value="today">اليوم</option>
-            <option value="7d">آخر 7 أيام</option>
-            <option value="30d">آخر 30 يوم</option>
-            <option value="all">الكل</option>
-          </select>
-          <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="border rounded-md px-3 py-2 text-sm">
-            <option value="all">كل الحالات</option>
-            <option value="completed">مكتمل</option>
-            <option value="pending">معلق</option>
-            <option value="preparing">جارٍ التحضير</option>
-            <option value="cancelled">ملغي</option>
-          </select>
-          <select value={payment} onChange={(e) => setPayment(e.target.value as any)} className="border rounded-md px-3 py-2 text-sm">
-            <option value="all">كل طرق الدفع</option>
-            <option value="cash">نقدي</option>
-            <option value="card">شبكة/بطاقة</option>
-            <option value="other">أخرى</option>
-          </select>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm flex-1 min-w-[220px]"
-            placeholder="بحث برقم الفاتورة"
-          />
+        {/* Filters */}
+        <div className="bg-white rounded-2xl border p-4 shadow-sm ring-1 ring-gray-100">
+          <div className="flex flex-wrap items-center gap-3">
+            <select value={dateRange} onChange={(e) => setDateRange(e.target.value as DateRange)} className="border rounded-md px-3 py-2 text-sm">
+              <option value="today">اليوم</option>
+              <option value="7d">آخر 7 أيام</option>
+              <option value="30d">آخر 30 يوم</option>
+              <option value="all">الكل</option>
+            </select>
+            <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="border rounded-md px-3 py-2 text-sm">
+              <option value="all">كل الحالات</option>
+              <option value="completed">مكتمل</option>
+              <option value="pending">معلق</option>
+              <option value="preparing">جارٍ التحضير</option>
+              <option value="cancelled">ملغي</option>
+            </select>
+            <select value={payment} onChange={(e) => setPayment(e.target.value as any)} className="border rounded-md px-3 py-2 text-sm">
+              <option value="all">كل طرق الدفع</option>
+              <option value="cash">نقدي</option>
+              <option value="card">شبكة/بطاقة</option>
+              <option value="other">أخرى</option>
+            </select>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm flex-1 min-w-[220px]"
+              placeholder="بحث برقم الفاتورة"
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border overflow-hidden shadow-sm ring-1 ring-gray-100">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">رقم الفاتورة</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">التاريخ</th>
-                
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الحالة</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">طريقة الدفع</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الإجمالي</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {!loading && filtered.map((o) => {
-                const created = (o as any).createdAt?.toDate ? (o as any).createdAt.toDate() : new Date((o as any).createdAt || 0)
-                return (
-                  <tr key={o.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{o.invoiceNumber}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{created.toLocaleString('ar-SA')}</td>
-                    
-                    <td className="px-4 py-3 text-xs">
-                      <span className={`inline-flex px-2 py-1 rounded-full ${getStatusClass(o.status)}`}>{o.status || '-'}</span>
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      <span className={`inline-flex px-2 py-1 rounded-full ${getPaymentClass(o.paymentMethod)}`}>{o.paymentMethod || '-'}</span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{o.total.toFixed(2)} <span className="text-gray-400">SAR</span></td>
+        {/* Table */}
+        <div className="bg-white rounded-2xl border overflow-hidden shadow-sm ring-1 ring-gray-100">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-emerald-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-emerald-800">رقم الفاتورة</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-emerald-800">التاريخ</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-emerald-800">الحالة</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-emerald-800">طريقة الدفع</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-emerald-800">الإجمالي</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {!loading && filtered.map((o) => {
+                  const created = o.timestamp ? new Date(o.timestamp) : new Date()
+                  return (
+                    <tr key={o.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{o.invoiceNumber || o.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{created.toLocaleString('ar-SA')}</td>
+                      <td className="px-4 py-3 text-xs">
+                        <span className={`inline-flex px-2 py-1 rounded-full ${getStatusClass(o.status)}`}>{o.status || '-'}</span>
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        <span className={`inline-flex px-2 py-1 rounded-full ${getPaymentClass(o.paymentMethod)}`}>{o.paymentMethod || '-'}</span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{o.total.toFixed(2)} <span className="text-gray-400">SAR</span></td>
+                    </tr>
+                  )
+                })}
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500">جارٍ التحميل...</td>
                   </tr>
-                )
-              })}
-              {loading && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500">جارٍ التحميل...</td>
-                </tr>
-              )}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-16">
-                    <div className="text-center">
-                      <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">📄</div>
-                      <p className="text-sm text-gray-600 arabic mb-2">لا توجد فواتير مطابقة للبحث/المرشحات</p>
-                      <p className="text-xs text-gray-500 arabic">جرّب تغيير التاريخ أو معايير البحث</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+                {!loading && filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">
+                      <div className="text-gray-400 arabic">لا توجد فواتير مطابقة للبحث/المرشحات</div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -17,7 +17,7 @@ interface LayoutProps {
 }
 
 const navigation = [
-  { name: 'نقطة البيع', nameEn: 'POS', href: '/sell', icon: ShoppingCart, roles: ['cashier', 'manager', 'admin'] },
+  { name: 'نقطة البيع', nameEn: 'POS', href: '/pos', icon: ShoppingCart, roles: ['cashier', 'manager', 'admin'] },
   { name: 'المنتجات', nameEn: 'Products', href: '/products', icon: Package, roles: ['manager', 'admin'] },
   { name: 'التقارير', nameEn: 'Reports', href: '/reports', icon: BarChart3, roles: ['manager', 'admin'] },
   { name: 'الإعدادات', nameEn: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },

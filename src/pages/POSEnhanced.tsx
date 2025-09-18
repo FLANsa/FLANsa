@@ -25,20 +25,8 @@ const POSEnhanced: React.FC = () => {
       if (savedInventory) {
         setMenuItems(JSON.parse(savedInventory))
       } else {
-        // Default products if none exist
-        const defaultProducts = [
-          { id: 1, name: 'شاورما دجاج كبير', nameEn: 'Large Chicken Shawarma', price: 22.00, category: 'main', stock: 15 },
-          { id: 2, name: 'شاورما لحم كبير', nameEn: 'Large Beef Shawarma', price: 25.00, category: 'main', stock: 8 },
-          { id: 3, name: 'برجر دجاج', nameEn: 'Chicken Burger', price: 18.00, category: 'main', stock: 12 },
-          { id: 4, name: 'برجر لحم', nameEn: 'Beef Burger', price: 20.00, category: 'main', stock: 3 },
-          { id: 5, name: '7UP (330ml)', nameEn: '7UP (330ml)', price: 5.00, category: 'drinks', stock: 25 },
-          { id: 6, name: 'بيبسي (330ml)', nameEn: 'Pepsi (330ml)', price: 5.00, category: 'drinks', stock: 0 },
-          { id: 7, name: 'ماء (500ml)', nameEn: 'Water (500ml)', price: 2.00, category: 'drinks', stock: 50 },
-          { id: 8, name: 'بطاطس مقلية', nameEn: 'French Fries', price: 8.00, category: 'sides', stock: 6 },
-          { id: 9, name: 'سلطة خضراء', nameEn: 'Green Salad', price: 6.00, category: 'sides', stock: 2 },
-        ]
-        setMenuItems(defaultProducts)
-        localStorage.setItem('inventory', JSON.stringify(defaultProducts))
+        // No defaults; keep empty list as requested
+        setMenuItems([])
       }
     }
 
@@ -225,10 +213,12 @@ const POSEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-700 to-green-600 text-white shadow-lg">
+        <div aria-hidden className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_-10%,rgba(255,255,255,.25),transparent)]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-5">
             <div>
               <h1 className="text-2xl font-extrabold arabic">نقطة البيع</h1>
@@ -252,7 +242,7 @@ const POSEnhanced: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -273,7 +263,7 @@ const POSEnhanced: React.FC = () => {
                       onClick={() => setSelectedMode(mode.value)}
                       className={`px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2 ${
                         selectedMode === mode.value
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
@@ -312,7 +302,7 @@ const POSEnhanced: React.FC = () => {
                       <p className="text-sm text-gray-500 english">{item.nameEn}</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xl font-bold text-white bg-blue-600 rounded-lg px-2 py-0.5 inline-block">{formatToEnglish(item.price)}</span>
+                      <span className="text-xl font-bold text-white bg-emerald-600 rounded-lg px-2 py-0.5 inline-block">{formatToEnglish(item.price)}</span>
                       <p className="text-xs text-gray-500">SAR (شامل الضريبة)</p>
                     </div>
                   </div>
@@ -330,7 +320,7 @@ const POSEnhanced: React.FC = () => {
                       className={`px-3 py-1 rounded-md text-sm flex items-center space-x-1 ${
                         item.stock === 0 
                           ? 'bg-gray-400 text-white cursor-not-allowed' 
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
                       }`}
                       disabled={item.stock === 0}
                     >
