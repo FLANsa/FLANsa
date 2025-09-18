@@ -365,13 +365,21 @@ function ProductsPage() {
               </div>
               <div>
                       <label className="block text-sm text-gray-700 arabic mb-1">التصنيف</label>
-                <input
-                  type="text"
+                <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        placeholder="مثل: ساندوتشات"
-                      />
+                      >
+                        <option value="">اختر التصنيف</option>
+                        <option value="ساندوتشات">ساندوتشات</option>
+                        <option value="برجر">برجر</option>
+                        <option value="سلطات">سلطات</option>
+                        <option value="مشروبات">مشروبات</option>
+                        <option value="حلويات">حلويات</option>
+                        <option value="مقبلات">مقبلات</option>
+                        <option value="وجبات رئيسية">وجبات رئيسية</option>
+                        <option value="عصائر طبيعية">عصائر طبيعية</option>
+                      </select>
                     </div>
                   </div>
                   <div>
