@@ -24,7 +24,14 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       setUser(userCredential.user)
-      try { localStorage.setItem('isLoggedIn', 'true') } catch (_) {}
+      // Set both localStorage flags for compatibility
+      try { 
+        localStorage.setItem('isLoggedIn', 'true')
+        localStorage.setItem('user', JSON.stringify({
+          name: userCredential.user.displayName || userCredential.user.email || 'User',
+          role: 'admin'
+        }))
+      } catch (_) {}
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Login error:', error)
