@@ -24,7 +24,8 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       setUser(userCredential.user)
-      navigate('/pin')
+      try { localStorage.setItem('isLoggedIn', 'true') } catch (_) {}
+      navigate('/dashboard')
     } catch (error: any) {
       console.error('Login error:', error)
       setError(getErrorMessage(error.code))
