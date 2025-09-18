@@ -247,10 +247,7 @@ function DashboardPage() {
               </div>
               <div className="mr-4">
                 <p className="text-2xl font-bold text-gray-900">
-                  {(() => {
-                    const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-                    return orders.length
-                  })()}
+                  {loading ? '...' : stats.totalOrders}
                 </p>
                 <p className="text-sm text-gray-500 arabic">إجمالي الطلبات</p>
               </div>
@@ -263,11 +260,7 @@ function DashboardPage() {
               </div>
               <div className="mr-4">
                 <p className="text-2xl font-bold text-gray-900">
-                  {(() => {
-                    const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-                    const total = orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0)
-                    return total.toFixed(0)
-                  })()}
+                  {loading ? '...' : stats.totalSales.toFixed(0)}
                 </p>
                 <p className="text-sm text-gray-500 arabic">ريال سعودي</p>
               </div>
@@ -280,10 +273,7 @@ function DashboardPage() {
               </div>
               <div className="mr-4">
                 <p className="text-2xl font-bold text-gray-900">
-                  {(() => {
-                    const inventory = JSON.parse(localStorage.getItem('inventory') || '[]')
-                    return inventory.length || 9
-                  })()}
+                  {loading ? '...' : stats.totalProducts}
                 </p>
                 <p className="text-sm text-gray-500 arabic">المنتجات المتاحة</p>
               </div>
