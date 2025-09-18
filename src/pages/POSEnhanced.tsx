@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { collection, getDocs, query, where, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { Category, Item } from '../types'
 import { usePOSStore } from '../stores/posStore'
@@ -103,20 +103,94 @@ export default function POSEnhanced() {
     }
   }
 
-  const handleCheckout = () => {
-    // This would typically navigate to a checkout page or open a modal
-    console.log('Checkout:', {
-      cart,
-      selectedCustomer,
-      orderMode,
-      tableNumber,
-      orderDiscount,
-      orderDiscountType,
-      serviceCharge,
-      subtotal: getCartSubtotal(),
-      vat: getCartVAT(),
-      total: getCartTotal()
-    })
+  const handleCheckout = async () => {
+    if (cart.length === 0) {
+      alert('السلة فارغة. أضف أصناف للبدء')
+      return
+    }
+
+    try {
+      const orderData = {
+        items: cart,
+        selectedCustomer,
+        orderMode,
+        tableNumber,
+        orderDiscount,
+        orderDiscountType,
+        serviceCharge,
+        subtotal: getCartSubtotal(),
+        vat: getCartVAT(),
+        total: getCartTotal(),
+        status: 'completed',
+        paymentMethod: 'cash', // Default
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`
+      }
+
+      // Save to Firebase
+      const docRef = await addDoc(collection(db, 'orders'), orderData)
+      
+      // Save to localStorage as backup
+      const localOrder = { id: docRef.id, ...orderData }
+      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]')
+      existingOrders.unshift(localOrder)
+      localStorage.setItem('orders', JSON.stringify(existingOrders))
+      localStorage.setItem('lastOrder', JSON.stringify(localOrder))
+
+      // Update inventory stock in Firebase
+      for (const cartItem of cart) {
+        const itemDoc = doc(db, 'items', cartItem.itemId)
+        // Note: This is a simplified update - in production you'd want to use transactions
+        // to prevent race conditions when multiple users are selling the same item
+        try {
+          await updateDoc(itemDoc, {
+            stock: Math.max(0, (cartItem.stock || 100) - cartItem.quantity),
+            updatedAt: new Date()
+          })
+        } catch (error) {
+          console.error(`Error updating stock for item ${cartItem.itemId}:`, error)
+        }
+      }
+
+      // Clear cart
+      clearCart()
+      
+      alert('تم إتمام البيع بنجاح! تم حفظ الطلب في قاعدة البيانات.')
+      
+      // Navigate to print page
+      window.location.href = `/print/${docRef.id}`
+      
+    } catch (error) {
+      console.error('Error processing order:', error)
+      alert('حدث خطأ أثناء معالجة الطلب. تم الحفظ محلياً فقط.')
+      
+      // Fallback: save locally only
+      const localOrder = {
+        id: Date.now().toString(),
+        items: cart,
+        selectedCustomer,
+        orderMode,
+        tableNumber,
+        orderDiscount,
+        orderDiscountType,
+        serviceCharge,
+        subtotal: getCartSubtotal(),
+        vat: getCartVAT(),
+        total: getCartTotal(),
+        status: 'completed',
+        paymentMethod: 'cash',
+        createdAt: new Date(),
+        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`
+      }
+      
+      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]')
+      existingOrders.unshift(localOrder)
+      localStorage.setItem('orders', JSON.stringify(existingOrders))
+      localStorage.setItem('lastOrder', JSON.stringify(localOrder))
+      
+      clearCart()
+    }
   }
 
   if (categoriesLoading || itemsLoading) {
