@@ -359,17 +359,9 @@ const POSEnhanced: React.FC = () => {
                       <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(item.category)}`}>
                         {item.category}
                       </span>
-                      <span className={`text-xs px-2 py-1 rounded-full ${getStockColor(item.stock)}`}>
-                        {formatToEnglish(item.stock)} متوفر
-                      </span>
                     </div>
                     <button 
-                      className={`px-3 py-1 rounded-md text-sm flex items-center space-x-1 ${
-                        item.stock === 0 
-                          ? 'bg-gray-400 text-white cursor-not-allowed' 
-                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                      }`}
-                      disabled={item.stock === 0}
+                      className="px-3 py-1 rounded-md text-sm flex items-center space-x-1 bg-emerald-600 text-white hover:bg-emerald-700"
                     >
                       <Plus className="h-4 w-4" />
                       <span>أضف</span>
