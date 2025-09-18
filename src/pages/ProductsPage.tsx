@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Plus, Search, Tag, Image as ImageIcon, X, Trash2, Layers, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 type InventoryItem = {
   id: string
@@ -16,9 +19,11 @@ type SortKey = 'newest' | 'priceAsc' | 'priceDesc' | 'name'
 function ProductsPage() {
   const navigate = useNavigate()
   const [items, setItems] = useState<InventoryItem[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Modal
   const [isOpen, setIsOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   // Form fields
   const [name, setName] = useState('')
@@ -33,48 +38,108 @@ function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortKey, setSortKey] = useState<SortKey>('newest')
 
+  // Load items from Firebase
   useEffect(() => {
-    const data = localStorage.getItem('inventory')
-    try {
-      setItems(data ? JSON.parse(data) : [])
-    } catch {
-      setItems([])
-    }
+    loadItems()
   }, [])
 
-  function save(next: InventoryItem[]) {
-    setItems(next)
-    localStorage.setItem('inventory', JSON.stringify(next))
+  const loadItems = async () => {
+    try {
+      setLoading(true)
+      const itemsRef = collection(db, 'items')
+      const q = query(itemsRef, orderBy('createdAt', 'desc'))
+      const querySnapshot = await getDocs(q)
+      
+      const loadedItems = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+      })) as InventoryItem[]
+      
+      setItems(loadedItems)
+      
+      // Also save to localStorage for offline access
+      localStorage.setItem('inventory', JSON.stringify(loadedItems))
+    } catch (error) {
+      console.error('Error loading items:', error)
+      // Fallback to localStorage
+      const data = localStorage.getItem('inventory')
+      try {
+        setItems(data ? JSON.parse(data) : [])
+      } catch {
+        setItems([])
+      }
+    } finally {
+      setLoading(false)
+    }
   }
-  const generateId = () => Math.random().toString(36).slice(2, 10)
+
   function resetForm() {
     setName(''); setNameEn(''); setPrice(''); setCategory(''); setImageUrl(''); setError('')
   }
 
-  function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setSaving(true)
+    
     const trimmedName = name.trim()
     const numericPrice = Number(price)
     if (!trimmedName) return setError('الاسم مطلوب')
     if (!Number.isFinite(numericPrice) || numericPrice <= 0) return setError('السعر غير صحيح')
 
-    const newItem: InventoryItem = {
-      id: generateId(),
-      name: trimmedName,
-      nameEn: nameEn.trim() || undefined,
-      price: Math.round(numericPrice),
-      imageUrl: imageUrl.trim() || undefined,
-      category: category.trim() || undefined,
+    try {
+      const newItem = {
+        name: nameEn.trim() || trimmedName,
+        nameAr: trimmedName,
+        price: Math.round(numericPrice),
+        imageUrl: imageUrl.trim() || '',
+        category: category.trim() || 'غير مصنف',
+        stock: 100, // Default stock
+        isActive: true,
+        isAvailable: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+
+      // Add to Firebase
+      const docRef = await addDoc(collection(db, 'items'), newItem)
+      
+      // Add to local state
+      const itemWithId = { id: docRef.id, ...newItem }
+      setItems([itemWithId, ...items])
+      
+      // Update localStorage
+      const updatedItems = [itemWithId, ...items]
+      localStorage.setItem('inventory', JSON.stringify(updatedItems))
+      
+      resetForm()
+      setIsOpen(false)
+    } catch (error) {
+      console.error('Error adding item:', error)
+      setError('حدث خطأ أثناء إضافة المنتج')
+    } finally {
+      setSaving(false)
     }
-    save([newItem, ...items])
-    resetForm()
-    setIsOpen(false)
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return
-    save(items.filter(i => i.id !== id))
+    
+    try {
+      // Delete from Firebase
+      await deleteDoc(doc(db, 'items', id))
+      
+      // Update local state
+      const updatedItems = items.filter(i => i.id !== id)
+      setItems(updatedItems)
+      
+      // Update localStorage
+      localStorage.setItem('inventory', JSON.stringify(updatedItems))
+    } catch (error) {
+      console.error('Error deleting item:', error)
+      alert('حدث خطأ أثناء حذف المنتج')
+    }
   }
 
   // Categories + counts
@@ -235,7 +300,12 @@ function ProductsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <LoadingSpinner size="lg" />
+            <span className="mr-3 text-gray-600 arabic">جاري تحميل المنتجات...</span>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border p-12 text-center">
             <div className="mx-auto w-14 h-14 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4">
               <ImageIcon className="h-7 w-7" />
@@ -440,11 +510,19 @@ function ProductsPage() {
               >
                 إلغاء
               </button>
-              <button
+                <button
                     type="submit"
-                    className="px-6 py-2 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 arabic"
+                    disabled={saving}
+                    className="px-6 py-2 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 arabic"
                   >
-                    إضافة المنتج
+                    {saving ? (
+                      <span className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        جاري الحفظ...
+                      </span>
+                    ) : (
+                      'إضافة المنتج'
+                    )}
               </button>
                 </div>
               </form>
