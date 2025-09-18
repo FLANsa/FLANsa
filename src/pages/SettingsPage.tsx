@@ -1,21 +1,31 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Save, CheckCircle, AlertCircle } from 'lucide-react'
-import { useSettings } from '../hooks/useFirebase'
 
 const SettingsPage: React.FC = () => {
-  const { settings, loading, updateSettings } = useSettings()
   const [formData, setFormData] = useState({
-    restaurantName: settings?.restaurantName || 'مطعم Big Diet',
-    restaurantNameAr: settings?.restaurantNameAr || 'مطعم Big Diet',
-    vatNumber: settings?.vatNumber || '123456789012345',
-    crNumber: settings?.crNumber || '1010101010',
-    phone: settings?.phone || '+966 11 123 4567',
-    address: settings?.address || 'Riyadh, Saudi Arabia',
-    addressAr: settings?.addressAr || 'الرياض، المملكة العربية السعودية',
-    email: settings?.email || 'info@bigdiet.com',
-    vatRate: settings?.vatRate || 15,
-    language: settings?.language || 'ar'
+    restaurantName: 'مطعم Big Diet',
+    restaurantNameAr: 'مطعم Big Diet',
+    vatNumber: '123456789012345',
+    crNumber: '1010101010',
+    phone: '+966 11 123 4567',
+    address: 'Riyadh, Saudi Arabia',
+    addressAr: 'الرياض، المملكة العربية السعودية',
+    email: 'info@bigdiet.com',
+    vatRate: 15,
+    language: 'ar'
   })
+  const [loading, setLoading] = useState(false)
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('restaurantSettings')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        setFormData(prev => ({ ...prev, ...parsed }))
+      } catch (_) {}
+    }
+  }, [])
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -51,33 +61,16 @@ const SettingsPage: React.FC = () => {
     if (!validateAll()) return
     setSaving(true)
     try {
-      // احفظ محلياً فوراً لضمان عدم فقدان التعديلات
-      try {
-        localStorage.setItem('restaurantSettings', JSON.stringify(formData))
-      } catch (_) {}
-
-      // حاول المزامنة مع السحابة
-      await updateSettings(formData)
-      setSuccess('تم حفظ الإعدادات ومزامنتها بنجاح')
+      localStorage.setItem('restaurantSettings', JSON.stringify(formData))
+      setSuccess('تم حفظ الإعدادات بنجاح')
     } catch (error) {
       console.error('Error saving settings:', error)
-      // في حال فشل المزامنة السحابية، نبقي الحفظ المحلي ونبلغ المستخدم
-      setSuccess('تم الحفظ محلياً (تعذّرت المزامنة مع السحابة)')
+      setSubmitError('تعذّر الحفظ. تحقق من صلاحيات التخزين')
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 arabic">جاري تحميل الإعدادات...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
