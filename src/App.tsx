@@ -162,11 +162,51 @@ function DashboardPage() {
     const data = localStorage.getItem('user')
     return data ? JSON.parse(data) : { name: 'أحمد محمد', role: 'admin' }
   })
+  const [stats, setStats] = useState({ totalOrders: 0, totalSales: 0, totalProducts: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadStats()
+  }, [])
+
+  const loadStats = async () => {
+    try {
+      // Load orders from Firebase
+      const ordersRef = collection(db, 'orders')
+      const ordersSnapshot = await getDocs(ordersRef)
+      const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      
+      // Load products from Firebase
+      const itemsRef = collection(db, 'items')
+      const itemsSnapshot = await getDocs(itemsRef)
+      const products = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      
+      // Calculate stats
+      const totalOrders = orders.length
+      const totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0)
+      const totalProducts = products.length
+      
+      setStats({ totalOrders, totalSales, totalProducts })
+    } catch (error) {
+      console.error('Error loading stats:', error)
+      // Fallback to localStorage
+      const localOrders = JSON.parse(localStorage.getItem('orders') || '[]')
+      const localProducts = JSON.parse(localStorage.getItem('inventory') || '[]')
+      setStats({
+        totalOrders: localOrders.length,
+        totalSales: localOrders.reduce((sum, order) => sum + (order.total || 0), 0),
+        totalProducts: localProducts.length || 9
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('user')
-    navigate('/', { replace: true })
+    // Force page reload to clear all state
+    window.location.href = '/login'
   }
 
   const menuItems = [
