@@ -32,7 +32,8 @@ export default function LoginPage() {
           role: 'admin'
         }))
       } catch (_) {}
-      navigate('/dashboard')
+      // Force page reload to ensure App.tsx picks up the auth state
+      window.location.href = '/dashboard'
     } catch (error: any) {
       console.error('Login error:', error)
       setError(getErrorMessage(error.code))
