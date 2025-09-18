@@ -115,11 +115,14 @@ function PrintPage() {
           {order.items.map((item: any, index: number) => (
             <div key={index} className="mb-2">
               <div className="flex justify-between text-sm" dir="rtl">
-                <span className="arabic flex-1">{item.name}</span>
+                <div className="flex-1">
+                  <div className="arabic font-medium">{item.name}</div>
+                  <div className="english text-xs text-gray-500">{item.nameEn}</div>
+                </div>
                 <span className="text-left">{formatToEnglish(item.quantity)}x</span>
             </div>
               <div className="flex justify-between text-xs text-gray-600">
-                <span className="english">{item.nameEn}</span>
+                <span></span>
                 <span>{formatToEnglish(item.price)} SAR (شامل الضريبة)</span>
           </div>
                   </div>
