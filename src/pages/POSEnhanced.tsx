@@ -281,10 +281,10 @@ const POSEnhanced: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => window.history.back()}
+                onClick={() => window.location.href = '/dashboard'}
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-md text-sm backdrop-blur arabic transition"
               >
-                العودة
+                الصفحة الرئيسية
               </button>
             </div>
           </div>
