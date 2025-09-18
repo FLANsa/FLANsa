@@ -140,13 +140,13 @@ const POSEnhanced: React.FC = () => {
       // Try to save to Firebase first
       try {
         const orderData = {
-          items: cart.map(item => ({
-            name: item.name,
-            nameEn: item.nameEn,
-            price: item.price,
-            quantity: item.quantity,
-            itemId: item.id
-          })),
+        items: cart.map(item => ({
+          name: item.nameAr || item.name,
+          nameEn: item.name || item.nameEn,
+          price: item.price,
+          quantity: item.quantity,
+          itemId: item.id
+        })),
           mode: selectedMode,
           customerPhone,
           subtotal,
@@ -204,8 +204,8 @@ const POSEnhanced: React.FC = () => {
         customer: customerPhone ? `عميل ${customerPhone}` : 'عميل بدون رقم',
         phone: customerPhone || '',
         items: cart.map(item => ({
-          name: item.name,
-          nameEn: item.nameEn,
+          name: item.nameAr || item.name,
+          nameEn: item.name || item.nameEn,
           price: item.price,
           quantity: item.quantity
         })),
@@ -345,8 +345,8 @@ const POSEnhanced: React.FC = () => {
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 arabic text-lg">{item.name}</h3>
-                      <p className="text-sm text-gray-500 english">{item.nameEn}</p>
+                      <h3 className="font-semibold text-gray-900 arabic text-lg">{item.nameAr || item.name}</h3>
+                      <p className="text-sm text-gray-500 english">{item.name || item.nameEn}</p>
                     </div>
                     <div className="text-right">
                       <span className="text-xl font-bold text-white bg-emerald-600 rounded-lg px-2 py-0.5 inline-block">{formatToEnglish(item.price)}</span>
@@ -406,7 +406,8 @@ const POSEnhanced: React.FC = () => {
                     {cart.map(item => (
                       <div key={item.id} className="flex items-center justify-between border-b pb-3">
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 arabic">{item.name}</h4>
+                          <h4 className="font-medium text-gray-900 arabic">{item.nameAr || item.name}</h4>
+                          <p className="text-xs text-gray-500 english">{item.name || item.nameEn}</p>
                           <p className="text-sm text-gray-500">{formatToEnglish(item.price)} SAR (شامل الضريبة)</p>
                         </div>
                         <div className="flex items-center space-x-2">
