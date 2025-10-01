@@ -433,7 +433,7 @@ function App() {
   }
 
   return (
-    <Routes>
+      <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/pos" element={<POSEnhanced />} />
