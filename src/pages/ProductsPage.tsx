@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { authService } from '../lib/authService'
 
 type InventoryItem = {
   id: string
@@ -46,8 +47,19 @@ function ProductsPage() {
   const loadItems = async () => {
     try {
       setLoading(true)
+      const tenantId = authService.getCurrentTenantId()
+      if (!tenantId) {
+        setItems([])
+        setLoading(false)
+        return
+      }
+
       const itemsRef = collection(db, 'items')
-      const q = query(itemsRef, orderBy('createdAt', 'desc'))
+      const q = query(
+        itemsRef, 
+        where('tenantId', '==', tenantId),
+        orderBy('createdAt', 'desc')
+      )
       const querySnapshot = await getDocs(q)
       
       const loadedItems = querySnapshot.docs.map(doc => ({
@@ -89,7 +101,14 @@ function ProductsPage() {
     if (!Number.isFinite(numericPrice) || numericPrice <= 0) return setError('السعر غير صحيح')
 
     try {
+      const tenantId = authService.getCurrentTenantId()
+      if (!tenantId) {
+        setError('خطأ في تحديد المحل')
+        return
+      }
+
       const newItem = {
+        tenantId,
         name: nameEn.trim() || trimmedName,
         nameAr: trimmedName,
         price: Math.round(numericPrice),

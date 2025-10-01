@@ -17,8 +17,27 @@ import {
 import { db } from './firebase'
 
 // Types
+export interface Tenant {
+  id: string
+  name: string
+  nameAr: string
+  email: string
+  phone: string
+  address: string
+  addressAr: string
+  vatNumber: string
+  crNumber: string
+  subscriptionPlan: 'basic' | 'premium' | 'enterprise'
+  subscriptionStatus: 'active' | 'suspended' | 'cancelled'
+  subscriptionExpiry: any
+  isActive: boolean
+  createdAt: any
+  updatedAt: any
+}
+
 export interface User {
   id: string
+  tenantId: string
   name: string
   email: string
   role: 'admin' | 'manager' | 'cashier'
@@ -31,6 +50,7 @@ export interface User {
 
 export interface Customer {
   id: string
+  tenantId: string
   name: string
   phone: string
   email?: string
@@ -43,6 +63,7 @@ export interface Customer {
 
 export interface Item {
   id: string
+  tenantId: string
   name: string
   nameEn: string
   price: number
@@ -57,6 +78,7 @@ export interface Item {
 
 export interface Order {
   id: string
+  tenantId: string
   customerId?: string
   customerName: string
   customerPhone?: string
@@ -84,6 +106,7 @@ export interface Order {
 
 export interface Settings {
   id: string
+  tenantId: string
   restaurantName: string
   restaurantNameAr: string
   vatNumber: string
@@ -100,11 +123,55 @@ export interface Settings {
 
 // Collections
 const COLLECTIONS = {
+  TENANTS: 'tenants',
   USERS: 'users',
   CUSTOMERS: 'customers',
   ITEMS: 'items',
   ORDERS: 'orders',
   SETTINGS: 'settings'
+}
+
+// Tenant Services
+export const tenantService = {
+  async createTenant(tenantData: Omit<Tenant, 'id' | 'createdAt' | 'updatedAt'>) {
+    const docRef = await addDoc(collection(db, COLLECTIONS.TENANTS), {
+      ...tenantData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    })
+    return docRef.id
+  },
+
+  async updateTenant(tenantId: string, tenantData: Partial<Tenant>) {
+    const tenantRef = doc(db, COLLECTIONS.TENANTS, tenantId)
+    await updateDoc(tenantRef, {
+      ...tenantData,
+      updatedAt: serverTimestamp()
+    })
+  },
+
+  async getTenant(tenantId: string): Promise<Tenant | null> {
+    const tenantDoc = await getDoc(doc(db, COLLECTIONS.TENANTS, tenantId))
+    if (tenantDoc.exists()) {
+      return { id: tenantDoc.id, ...tenantDoc.data() } as Tenant
+    }
+    return null
+  },
+
+  async getTenants(): Promise<Tenant[]> {
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.TENANTS))
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tenant))
+  },
+
+  async getActiveTenants(): Promise<Tenant[]> {
+    const q = query(
+      collection(db, COLLECTIONS.TENANTS),
+      where('isActive', '==', true),
+      where('subscriptionStatus', '==', 'active')
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tenant))
+  }
 }
 
 // User Services
@@ -136,6 +203,15 @@ export const userService = {
 
   async getUsers(): Promise<User[]> {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.USERS))
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User))
+  },
+
+  async getUsersByTenant(tenantId: string): Promise<User[]> {
+    const q = query(
+      collection(db, COLLECTIONS.USERS),
+      where('tenantId', '==', tenantId)
+    )
+    const querySnapshot = await getDocs(q)
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User))
   }
 }
@@ -174,9 +250,19 @@ export const customerService = {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer))
   },
 
-  async searchCustomers(searchTerm: string): Promise<Customer[]> {
+  async getCustomersByTenant(tenantId: string): Promise<Customer[]> {
     const q = query(
       collection(db, COLLECTIONS.CUSTOMERS),
+      where('tenantId', '==', tenantId)
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer))
+  },
+
+  async searchCustomers(searchTerm: string, tenantId: string): Promise<Customer[]> {
+    const q = query(
+      collection(db, COLLECTIONS.CUSTOMERS),
+      where('tenantId', '==', tenantId),
       where('name', '>=', searchTerm),
       where('name', '<=', searchTerm + '\uf8ff')
     )
@@ -221,9 +307,28 @@ export const itemService = {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Item))
   },
 
+  async getItemsByTenant(tenantId: string): Promise<Item[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ITEMS),
+      where('tenantId', '==', tenantId)
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Item))
+  },
+
   async getActiveItems(): Promise<Item[]> {
     const q = query(
       collection(db, COLLECTIONS.ITEMS),
+      where('isActive', '==', true)
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Item))
+  },
+
+  async getActiveItemsByTenant(tenantId: string): Promise<Item[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ITEMS),
+      where('tenantId', '==', tenantId),
       where('isActive', '==', true)
     )
     const querySnapshot = await getDocs(q)
@@ -275,9 +380,30 @@ export const orderService = {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order))
   },
 
+  async getOrdersByTenant(tenantId: string): Promise<Order[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ORDERS),
+      where('tenantId', '==', tenantId),
+      orderBy('createdAt', 'desc')
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order))
+  },
+
   async getOrdersByStatus(status: string): Promise<Order[]> {
     const q = query(
       collection(db, COLLECTIONS.ORDERS),
+      where('status', '==', status),
+      orderBy('createdAt', 'desc')
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order))
+  },
+
+  async getOrdersByStatusAndTenant(status: string, tenantId: string): Promise<Order[]> {
+    const q = query(
+      collection(db, COLLECTIONS.ORDERS),
+      where('tenantId', '==', tenantId),
       where('status', '==', status),
       orderBy('createdAt', 'desc')
     )
@@ -296,6 +422,20 @@ export const orderService = {
     )
     const querySnapshot = await getDocs(q)
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order))
+  },
+
+  async getTodayOrdersByTenant(tenantId: string): Promise<Order[]> {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const q = query(
+      collection(db, COLLECTIONS.ORDERS),
+      where('tenantId', '==', tenantId),
+      where('createdAt', '>=', today),
+      orderBy('createdAt', 'desc')
+    )
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order))
   }
 }
 
@@ -303,6 +443,14 @@ export const orderService = {
 export const settingsService = {
   async getSettings(): Promise<Settings | null> {
     const settingsDoc = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'main'))
+    if (settingsDoc.exists()) {
+      return { id: settingsDoc.id, ...settingsDoc.data() } as Settings
+    }
+    return null
+  },
+
+  async getSettingsByTenant(tenantId: string): Promise<Settings | null> {
+    const settingsDoc = await getDoc(doc(db, COLLECTIONS.SETTINGS, tenantId))
     if (settingsDoc.exists()) {
       return { id: settingsDoc.id, ...settingsDoc.data() } as Settings
     }
@@ -317,16 +465,47 @@ export const settingsService = {
     })
   },
 
+  async updateSettingsByTenant(tenantId: string, settingsData: Partial<Settings>) {
+    const settingsRef = doc(db, COLLECTIONS.SETTINGS, tenantId)
+    await updateDoc(settingsRef, {
+      ...settingsData,
+      updatedAt: serverTimestamp()
+    })
+  },
+
   async createDefaultSettings() {
     const defaultSettings: Omit<Settings, 'id' | 'updatedAt'> = {
-      restaurantName: 'Big Diet Restaurant',
-      restaurantNameAr: 'مطعم Big Diet',
+      tenantId: 'main',
+      restaurantName: 'Qayd POS System',
+      restaurantNameAr: 'قيد - نظام نقاط البيع',
       vatNumber: '123456789012345',
       crNumber: '1010101010',
       phone: '+966 11 123 4567',
       address: 'Riyadh, Saudi Arabia',
       addressAr: 'الرياض، المملكة العربية السعودية',
-      email: 'info@bigdiet.com',
+      email: 'info@qayd.com',
+      vatRate: 15,
+      currency: 'SAR',
+      language: 'ar'
+    }
+
+    await addDoc(collection(db, COLLECTIONS.SETTINGS), {
+      ...defaultSettings,
+      updatedAt: serverTimestamp()
+    })
+  },
+
+  async createDefaultSettingsForTenant(tenantId: string, tenantData: Partial<Tenant>) {
+    const defaultSettings: Omit<Settings, 'id' | 'updatedAt'> = {
+      tenantId,
+      restaurantName: tenantData.name || 'Qayd POS System',
+      restaurantNameAr: tenantData.nameAr || 'قيد - نظام نقاط البيع',
+      vatNumber: tenantData.vatNumber || '123456789012345',
+      crNumber: tenantData.crNumber || '1010101010',
+      phone: tenantData.phone || '+966 11 123 4567',
+      address: tenantData.address || 'Riyadh, Saudi Arabia',
+      addressAr: tenantData.addressAr || 'الرياض، المملكة العربية السعودية',
+      email: tenantData.email || 'info@qayd.com',
       vatRate: 15,
       currency: 'SAR',
       language: 'ar'
@@ -356,6 +535,22 @@ export const realtimeService = {
     })
   },
 
+  subscribeToOrdersByTenant(tenantId: string, callback: (orders: Order[]) => void) {
+    const q = query(
+      collection(db, COLLECTIONS.ORDERS),
+      where('tenantId', '==', tenantId),
+      orderBy('createdAt', 'desc')
+    )
+    
+    return onSnapshot(q, (querySnapshot) => {
+      const orders = querySnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as Order))
+      callback(orders)
+    })
+  },
+
   subscribeToItems(callback: (items: Item[]) => void) {
     const q = query(
       collection(db, COLLECTIONS.ITEMS),
@@ -371,8 +566,39 @@ export const realtimeService = {
     })
   },
 
+  subscribeToItemsByTenant(tenantId: string, callback: (items: Item[]) => void) {
+    const q = query(
+      collection(db, COLLECTIONS.ITEMS),
+      where('tenantId', '==', tenantId),
+      where('isActive', '==', true)
+    )
+    
+    return onSnapshot(q, (querySnapshot) => {
+      const items = querySnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as Item))
+      callback(items)
+    })
+  },
+
   subscribeToCustomers(callback: (customers: Customer[]) => void) {
     return onSnapshot(collection(db, COLLECTIONS.CUSTOMERS), (querySnapshot) => {
+      const customers = querySnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as Customer))
+      callback(customers)
+    })
+  },
+
+  subscribeToCustomersByTenant(tenantId: string, callback: (customers: Customer[]) => void) {
+    const q = query(
+      collection(db, COLLECTIONS.CUSTOMERS),
+      where('tenantId', '==', tenantId)
+    )
+    
+    return onSnapshot(q, (querySnapshot) => {
       const customers = querySnapshot.docs.map(doc => ({ 
         id: doc.id, 
         ...doc.data() 

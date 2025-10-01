@@ -3,6 +3,7 @@ import { Plus, Minus, Trash2, Phone, Printer, CreditCard, Receipt, ShoppingCart,
 import { parseNumber, formatToEnglish, formatCurrencyEnglish, cleanNumberInput, isValidNumberInput } from '../utils/numberUtils'
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { authService } from '../lib/authService'
 
 const POSEnhanced: React.FC = () => {
   const [cart, setCart] = useState([])
@@ -139,7 +140,11 @@ const POSEnhanced: React.FC = () => {
       
       // Try to save to Firebase first
       try {
+        const tenantId = authService.getCurrentTenantId()
+        const currentUser = authService.getCurrentUser()
+        
         const orderData = {
+        tenantId: tenantId || 'main',
         items: cart.map(item => ({
           name: item.nameAr || item.name,
           nameEn: item.name || item.nameEn,
@@ -159,7 +164,10 @@ const POSEnhanced: React.FC = () => {
           status: 'completed',
           createdAt: new Date(),
           updatedAt: new Date(),
-          invoiceNumber: order.invoiceNumber
+          invoiceNumber: order.invoiceNumber,
+          branchId: 'main',
+          terminalId: 'pos-1',
+          cashierId: currentUser?.id || 'cashier-1'
         }
 
         const docRef = await addDoc(collection(db, 'orders'), orderData)

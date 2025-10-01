@@ -10,7 +10,11 @@ import POSEnhanced from './pages/POSEnhanced'
 import ProductsPage from './pages/ProductsPage'
 import SettingsPage from './pages/SettingsPage'
 import { formatToEnglish } from './utils/numberUtils'
-import LoginPage from './pages/LoginPage'
+import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
+import { authService } from './lib/authService'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from './lib/firebase'
+import { createDemoMultiTenantData } from './lib/seedMultiTenantData'
 
 /* Login page now comes from src/pages/LoginPage */
 
@@ -21,6 +25,7 @@ function PrintPage() {
   const navigate = useNavigate()
   const [order, setOrder] = useState<any>(null)
   const [qrUrl, setQrUrl] = useState('')
+  const [tenant, setTenant] = useState<any>(null)
 
   useEffect(() => {
     const orderData = localStorage.getItem('lastOrder')
@@ -28,11 +33,15 @@ function PrintPage() {
     const parsed = JSON.parse(orderData)
     setOrder(parsed)
 
+    // Get tenant data
+    const currentTenant = authService.getCurrentTenant()
+    setTenant(currentTenant)
+
     ;(async () => {
       try {
         const qr = await generateZATCAQR({
-          sellerName: 'Big Diet Restaurant',
-          vatNumber: '123456789012345',
+          sellerName: tenant?.name || 'Qayd POS System',
+          vatNumber: tenant?.vatNumber || '123456789012345',
           timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
           total: parsed.total || 0,
           vatTotal: parsed.vat || 0,
@@ -43,7 +52,7 @@ function PrintPage() {
         console.error('QR generation failed', e)
       }
     })()
-  }, [])
+  }, [tenant])
 
   if (!order) {
     return (
@@ -84,12 +93,12 @@ function PrintPage() {
       {/* Receipt (58mm) */}
       <div className="max-w-md mx-auto bg-white p-4 print:p-2 print:max-w-none print:mx-0" style={{ width: '58mm' }}>
         <div className="text-center mb-4">
-          <h1 className="text-lg font-bold arabic">مطعم Big Diet</h1>
-          <p className="text-sm english">Big Diet Restaurant</p>
+          <h1 className="text-lg font-bold arabic">{tenant?.nameAr || 'قيد'}</h1>
+          <p className="text-sm english">{tenant?.name || 'Qayd - POS System'}</p>
           <div className="text-xs text-gray-600 mt-2">
-            <p>VAT: 123456789012345</p>
-            <p>CR: 1010101010</p>
-            <p>Tel: 0112345678</p>
+            <p>VAT: {tenant?.vatNumber || '123456789012345'}</p>
+            <p>CR: {tenant?.crNumber || '1010101010'}</p>
+            <p>Tel: {tenant?.phone || '0112345678'}</p>
           </div>
         </div>
 
@@ -161,27 +170,45 @@ function PrintPage() {
 ========================= */
 function DashboardPage() {
   const navigate = useNavigate()
-  const [user] = useState(() => {
-    const data = localStorage.getItem('user')
-    return data ? JSON.parse(data) : { name: 'أحمد محمد', role: 'admin' }
-  })
+  const [user, setUser] = useState<any>(null)
+  const [tenant, setTenant] = useState<any>(null)
   const [stats, setStats] = useState({ totalOrders: 0, totalSales: 0, totalProducts: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Get current user and tenant
+    const currentUser = authService.getCurrentUser()
+    const currentTenant = authService.getCurrentTenant()
+    
+    setUser(currentUser)
+    setTenant(currentTenant)
+    
     loadStats()
   }, [])
 
   const loadStats = async () => {
     try {
-      // Load orders from Firebase
-      const ordersRef = collection(db, 'orders')
-      const ordersSnapshot = await getDocs(ordersRef)
+      const tenantId = authService.getCurrentTenantId()
+      if (!tenantId) {
+        setStats({ totalOrders: 0, totalSales: 0, totalProducts: 0 })
+        setLoading(false)
+        return
+      }
+
+      // Load orders from Firebase filtered by tenant
+      const ordersQuery = query(
+        collection(db, 'orders'),
+        where('tenantId', '==', tenantId)
+      )
+      const ordersSnapshot = await getDocs(ordersQuery)
       const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       
-      // Load products from Firebase
-      const itemsRef = collection(db, 'items')
-      const itemsSnapshot = await getDocs(itemsRef)
+      // Load products from Firebase filtered by tenant
+      const itemsQuery = query(
+        collection(db, 'items'),
+        where('tenantId', '==', tenantId)
+      )
+      const itemsSnapshot = await getDocs(itemsQuery)
       const products = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       
       // Calculate stats
@@ -205,11 +232,15 @@ function DashboardPage() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn')
-    localStorage.removeItem('user')
-    // Force page reload to clear all state
-    window.location.href = '/login'
+  const handleLogout = async () => {
+    try {
+      await authService.signOut()
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Force page reload to clear all state
+      window.location.reload()
+    }
   }
 
   const menuItems = [
@@ -233,8 +264,11 @@ function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-semibold arabic">{user.name}</p>
-                <p className="text-[11px] opacity-90">{user.role}</p>
+                <p className="text-sm font-semibold arabic">{user?.name || 'المستخدم'}</p>
+                <p className="text-[11px] opacity-90">{user?.role || 'مستخدم'}</p>
+                {tenant && (
+                  <p className="text-[10px] opacity-75 arabic">{tenant.nameAr || tenant.name}</p>
+                )}
               </div>
               <button onClick={handleLogout} className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white px-3 py-2 rounded-lg text-sm backdrop-blur transition arabic">
                 تسجيل الخروج
@@ -248,7 +282,9 @@ function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 arabic mb-2">لوحة التحكم</h2>
-          <p className="text-gray-600 arabic">مرحباً بك في نظام نقطة البيع لمطعم Big Diet</p>
+          <p className="text-gray-600 arabic">
+            مرحباً بك في نظام قيد - {tenant?.nameAr || tenant?.name || 'نظام نقاط البيع السحابي'}
+          </p>
         </div>
 
         {/* Menu Grid */}
@@ -332,13 +368,60 @@ function DashboardPage() {
    App (Routes)
 ========================= */
 function App() {
-  const [isLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Initialize demo data
+    const initializeApp = async () => {
+      try {
+        // Check if demo data already exists
+        const tenantsSnapshot = await getDocs(collection(db, 'tenants'))
+        if (tenantsSnapshot.empty) {
+          console.log('Creating demo multi-tenant data...')
+          await createDemoMultiTenantData()
+        }
+      } catch (error) {
+        console.error('Error initializing demo data:', error)
+      }
+    }
+
+    initializeApp()
+
+    // Check authentication status
+    const checkAuth = () => {
+      const authenticated = authService.isAuthenticated()
+      setIsLoggedIn(authenticated)
+      setLoading(false)
+    }
+
+    checkAuth()
+
+    // Listen to auth state changes
+    const unsubscribe = authService.onAuthStateChange((user) => {
+      setIsLoggedIn(!!user)
+      setLoading(false)
+    })
+
+    return unsubscribe
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 arabic">جاري التحميل...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!isLoggedIn) {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPageMultiTenant />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )

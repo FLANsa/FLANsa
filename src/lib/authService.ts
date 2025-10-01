@@ -6,10 +6,11 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
-import { userService, User } from './firebaseServices'
+import { userService, tenantService, User, Tenant } from './firebaseServices'
 
 export interface AuthUser extends User {
   firebaseUser: FirebaseUser
+  tenant?: Tenant
 }
 
 class AuthService {
@@ -24,9 +25,16 @@ class AuthService {
           // Get user data from Firestore
           const userData = await userService.getUser(firebaseUser.uid)
           if (userData) {
+            // Get tenant data if user has tenantId
+            let tenantData: Tenant | undefined
+            if (userData.tenantId) {
+              tenantData = await tenantService.getTenant(userData.tenantId)
+            }
+            
             this.currentUser = {
               ...userData,
-              firebaseUser
+              firebaseUser,
+              tenant: tenantData
             }
           } else {
             // User data not found, sign out
@@ -57,11 +65,15 @@ class AuthService {
         // Create user data based on email
         const role = email.includes('admin') ? 'admin' : 
                     email.includes('manager') ? 'manager' : 'cashier'
-        const name = email.includes('admin') ? 'أحمد محمد' :
-                    email.includes('manager') ? 'فاطمة أحمد' : 'محمد علي'
+        const name = email.includes('admin') ? 'مدير النظام' :
+                    email.includes('manager') ? 'مدير المحل' : 'كاشير'
+        
+        // For demo purposes, assign to default tenant
+        const defaultTenantId = 'main'
         
         userData = {
           id: userCredential.user.uid,
+          tenantId: defaultTenantId,
           name,
           email: userCredential.user.email || '',
             role: role as 'admin' | 'manager' | 'cashier',
@@ -121,6 +133,14 @@ class AuthService {
     return this.currentUser?.role === 'cashier' || this.isManager()
   }
 
+  getCurrentTenantId(): string | null {
+    return this.currentUser?.tenantId || null
+  }
+
+  getCurrentTenant(): Tenant | null {
+    return this.currentUser?.tenant || null
+  }
+
   onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback)
     
@@ -147,23 +167,44 @@ export const createDemoUsers = async () => {
       return
     }
 
+    // Create demo tenant first
+    const demoTenant = {
+      name: 'Qayd Demo Store',
+      nameAr: 'متجر قيد التجريبي',
+      email: 'demo@qayd.com',
+      phone: '+966 11 123 4567',
+      address: 'Riyadh, Saudi Arabia',
+      addressAr: 'الرياض، المملكة العربية السعودية',
+      vatNumber: '123456789012345',
+      crNumber: '1010101010',
+      subscriptionPlan: 'premium' as const,
+      subscriptionStatus: 'active' as const,
+      subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+      isActive: true
+    }
+    
+    const tenantId = await tenantService.createTenant(demoTenant)
+    
     // Create demo users
     const demoUsers = [
       {
-        name: 'أحمد محمد',
-        email: 'admin@bigdiet.com',
+        tenantId,
+        name: 'مدير النظام',
+        email: 'admin@qayd.com',
         role: 'admin' as const,
         isActive: true
       },
       {
-        name: 'فاطمة أحمد',
-        email: 'manager@bigdiet.com',
+        tenantId,
+        name: 'مدير المحل',
+        email: 'manager@qayd.com',
         role: 'manager' as const,
         isActive: true
       },
       {
-        name: 'محمد علي',
-        email: 'cashier@bigdiet.com',
+        tenantId,
+        name: 'كاشير',
+        email: 'cashier@qayd.com',
         role: 'cashier' as const,
         isActive: true
       }
