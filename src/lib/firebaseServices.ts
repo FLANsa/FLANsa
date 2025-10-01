@@ -66,6 +66,7 @@ export interface Item {
   id: string
   tenantId: string
   name: string
+  nameAr: string
   nameEn: string
   price: number
   category: string

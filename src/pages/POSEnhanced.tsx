@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Minus, Trash2, Phone, Printer, CreditCard, Receipt, ShoppingCart, User, Percent, Calculator, CheckCircle, AlertCircle, RefreshCw, Package } from 'lucide-react'
-import { parseNumber, formatToEnglish, formatCurrencyEnglish, cleanNumberInput, isValidNumberInput } from '../utils/numberUtils'
+import { Plus, Minus, Trash2, Phone, CreditCard, CheckCircle, ShoppingCart } from 'lucide-react'
+import { parseNumber, formatToEnglish } from '../utils/numberUtils'
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { authService } from '../lib/authService'
+import { itemService, Item } from '../lib/firebaseServices'
+
+// Define cart item type
+interface CartItem extends Item {
+  quantity: number
+}
 
 const POSEnhanced: React.FC = () => {
   const navigate = useNavigate()
-  const [cart, setCart] = useState([])
+  const [cart, setCart] = useState<CartItem[]>([])
   const [selectedMode, setSelectedMode] = useState('dine-in')
   const [customerPhone, setCustomerPhone] = useState('')
   const [discount, setDiscount] = useState(0)
@@ -19,19 +25,36 @@ const POSEnhanced: React.FC = () => {
   const [receivedAmount, setReceivedAmount] = useState(0)
   const [change, setChange] = useState(0)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const [menuItems, setMenuItems] = useState([])
+  const [menuItems, setMenuItems] = useState<Item[]>([])
 
-  // Load products from localStorage and listen for changes
+  // Load products from Firebase filtered by tenant
   useEffect(() => {
-    const loadProducts = () => {
-      const savedInventory = localStorage.getItem('inventory')
-      if (savedInventory) {
-        setMenuItems(JSON.parse(savedInventory))
-      } else {
-        // No defaults; keep empty list as requested
-        setMenuItems([])
+    const loadProducts = async () => {
+      try {
+        const tenantId = authService.getCurrentTenantId()
+        if (!tenantId) {
+          console.log('No tenant ID found, using empty menu')
+          setMenuItems([])
+          return
+        }
+
+        console.log('Loading products for tenant:', tenantId)
+        const items = await itemService.getActiveItemsByTenant(tenantId)
+        console.log('Loaded products for POS:', items.length, 'items')
+        setMenuItems(items)
+
+        // Also save to localStorage for offline access
+        localStorage.setItem('inventory', JSON.stringify(items))
+      } catch (error) {
+        console.error('Error loading products for POS:', error)
+        // Fallback to localStorage if Firebase fails
+        const savedInventory = localStorage.getItem('inventory')
+        if (savedInventory) {
+          setMenuItems(JSON.parse(savedInventory))
+        } else {
+          setMenuItems([])
+        }
       }
     }
 
@@ -39,7 +62,7 @@ const POSEnhanced: React.FC = () => {
     loadProducts()
 
     // Listen for storage changes (when products are updated from other tabs)
-    const handleStorageChange = (e) => {
+    const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'inventory') {
         loadProducts()
       }
@@ -47,8 +70,8 @@ const POSEnhanced: React.FC = () => {
 
     window.addEventListener('storage', handleStorageChange)
 
-    // Also check for changes every 2 seconds (for same-tab updates)
-    const interval = setInterval(loadProducts, 2000)
+    // Also check for changes every 5 seconds (for same-tab updates)
+    const interval = setInterval(loadProducts, 5000)
 
     return () => {
       window.removeEventListener('storage', handleStorageChange)
@@ -56,19 +79,6 @@ const POSEnhanced: React.FC = () => {
     }
   }, [])
 
-  // Manual refresh function
-  const refreshProducts = () => {
-    setIsRefreshing(true)
-    const savedInventory = localStorage.getItem('inventory')
-    if (savedInventory) {
-      const products = JSON.parse(savedInventory)
-      setMenuItems(products)
-      alert(`تم تحديث المنتجات! تم تحميل ${products.length} منتج`)
-    } else {
-      alert('لا توجد منتجات محفوظة')
-    }
-    setTimeout(() => setIsRefreshing(false), 1000)
-  }
 
   // Calculate totals (price includes VAT, so we need to extract VAT from total)
   const totalWithVat = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
@@ -81,12 +91,12 @@ const POSEnhanced: React.FC = () => {
     setChange(Math.max(0, receivedAmount - total))
   }, [receivedAmount, total])
 
-  const addToCart = (item) => {
+  const addToCart = (item: Item) => {
     const existingItem = cart.find(cartItem => cartItem.id === item.id)
     const currentQuantity = existingItem ? existingItem.quantity : 0
     
     if (currentQuantity >= item.stock) {
-      alert(`لا يوجد مخزون كافي من ${item.name}. المتوفر: ${item.stock}`)
+      alert(`لا يوجد مخزون كافي من ${item.nameAr || item.name}. المتوفر: ${item.stock}`)
       return
     }
     
@@ -101,11 +111,11 @@ const POSEnhanced: React.FC = () => {
     }
   }
 
-  const removeFromCart = (itemId) => {
+  const removeFromCart = (itemId: string) => {
     setCart(cart.filter(item => item.id !== itemId))
   }
 
-  const updateQuantity = (itemId, quantity) => {
+  const updateQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(itemId)
     } else {
@@ -254,7 +264,7 @@ const POSEnhanced: React.FC = () => {
     }
   }
 
-  const getCategoryColor = (category) => {
+  const getCategoryColor = (category: string) => {
     switch (category) {
       case 'main': return 'bg-red-100 text-red-800'
       case 'drinks': return 'bg-blue-100 text-blue-800'
@@ -263,11 +273,6 @@ const POSEnhanced: React.FC = () => {
     }
   }
 
-  const getStockColor = (stock) => {
-    if (stock === 0) return 'bg-red-100 text-red-800'
-    if (stock <= 5) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-green-100 text-green-800'
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
