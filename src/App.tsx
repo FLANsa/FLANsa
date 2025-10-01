@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import {
-  Eye, EyeOff, Lock, Mail,
-  ShoppingCart, Package, Settings, Receipt, Save, Printer, BarChart3
+  ShoppingCart, Package, Settings, Receipt, Printer, BarChart3
 } from 'lucide-react'
 import { generateZATCAQR, formatZATCATimestamp, generateUUID } from './lib/zatca'
 import SalesReportsPageTest from './pages/SalesReportsPage'
@@ -214,7 +213,7 @@ function DashboardPage() {
       
       // Calculate stats
       const totalOrders = orders.length
-      const totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0)
+      const totalSales = orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0)
       const totalProducts = products.length
       
       setStats({ totalOrders, totalSales, totalProducts })
@@ -225,7 +224,7 @@ function DashboardPage() {
       const localProducts = JSON.parse(localStorage.getItem('inventory') || '[]')
       setStats({
         totalOrders: localOrders.length,
-        totalSales: localOrders.reduce((sum, order) => sum + (order.total || 0), 0),
+        totalSales: localOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0),
         totalProducts: localProducts.length || 9
       })
     } finally {
@@ -396,6 +395,7 @@ function App() {
     // Check authentication status
     const checkAuth = () => {
       const authenticated = authService.isAuthenticated()
+      console.log('App checkAuth - authenticated:', authenticated)
       setIsLoggedIn(authenticated)
       setLoading(false)
     }
@@ -404,6 +404,7 @@ function App() {
 
     // Listen to auth state changes
     const unsubscribe = authService.onAuthStateChange((user) => {
+      console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
       setIsLoggedIn(!!user)
       setLoading(false)
     })

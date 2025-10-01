@@ -4,8 +4,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from './firebase'
+import { auth } from './firebase'
 import { userService, tenantService, User, Tenant } from './firebaseServices'
 
 export interface AuthUser extends User {
@@ -28,7 +27,8 @@ class AuthService {
             // Get tenant data if user has tenantId
             let tenantData: Tenant | undefined
             if (userData.tenantId) {
-              tenantData = await tenantService.getTenant(userData.tenantId)
+              const tenant = await tenantService.getTenant(userData.tenantId)
+              tenantData = tenant || undefined
             }
             
             this.currentUser = {
@@ -91,13 +91,21 @@ class AuthService {
         console.log('User data created successfully')
       }
 
+      // Get tenant data if user has tenantId
+      let tenantData: Tenant | undefined
+      if (userData.tenantId) {
+        const tenant = await tenantService.getTenant(userData.tenantId)
+        tenantData = tenant || undefined
+      }
+
       const authUser: AuthUser = {
         ...userData,
-        firebaseUser: userCredential.user
+        firebaseUser: userCredential.user,
+        tenant: tenantData
       }
 
       this.currentUser = authUser
-      console.log('Sign in completed successfully')
+      console.log('Sign in completed successfully, user:', authUser)
       return authUser
     } catch (error) {
       console.error('Sign in error:', error)

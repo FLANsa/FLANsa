@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../lib/authService'
-import { tenantService } from '../lib/firebaseServices'
+import { tenantService, userService } from '../lib/firebaseServices'
 import { Tenant } from '../lib/firebaseServices'
 import { DEMO_CREDENTIALS } from '../lib/seedMultiTenantData'
-import { createFirebaseAuthUsers } from '../lib/createFirebaseUsers'
+import { createFirebaseAuthUsers, createSingleFirebaseUser } from '../lib/createFirebaseUsers'
 
 export default function LoginPageMultiTenant() {
   const [email, setEmail] = useState('')
@@ -20,7 +20,9 @@ export default function LoginPageMultiTenant() {
 
   useEffect(() => {
     // Check if user is already logged in
+    console.log('LoginPage useEffect - checking auth status')
     if (authService.isAuthenticated()) {
+      console.log('User already authenticated, navigating to dashboard')
       navigate('/dashboard')
     }
     
@@ -32,18 +34,24 @@ export default function LoginPageMultiTenant() {
     try {
       const activeTenants = await tenantService.getActiveTenants()
       setTenants(activeTenants)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading tenants:', error)
+      if (error.code === 'permission-denied') {
+        setError('خطأ في الصلاحيات: يرجى تحديث قواعد Firebase Firestore لتسمح بالوصول للمستخدمين المسجلين')
+      }
     }
   }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Login button clicked!')
     setLoading(true)
     setError('')
 
     try {
       console.log('Starting login process...')
+      console.log('Email:', email)
+      console.log('Password length:', password.length)
       console.log('Firebase config:', {
         projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'qayd-pos-demo',
         authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'qayd-pos-demo.firebaseapp.com'
@@ -51,9 +59,16 @@ export default function LoginPageMultiTenant() {
       
       const result = await authService.signIn(email, password)
       console.log('Login successful:', result)
-      navigate('/dashboard')
+      
+      // Wait a bit for auth state to update
+      setTimeout(() => {
+        console.log('Navigating to dashboard...')
+        navigate('/dashboard')
+      }, 100)
     } catch (error: any) {
       console.error('Login error:', error)
+      console.error('Error code:', error.code)
+      console.error('Error message:', error.message)
       
       // Provide more specific error messages
       if (error.code === 'auth/user-not-found') {
@@ -79,6 +94,9 @@ export default function LoginPageMultiTenant() {
 
     try {
       const formData = new FormData(e.target as HTMLFormElement)
+      const adminEmail = formData.get('adminEmail') as string
+      const adminPassword = '123456' // Default password for new accounts
+      
       const tenantData = {
         name: formData.get('name') as string,
         nameAr: formData.get('nameAr') as string,
@@ -94,23 +112,36 @@ export default function LoginPageMultiTenant() {
         isActive: true
       }
 
+      // Create Firebase Auth user first
+      console.log('Creating Firebase Auth user for:', adminEmail)
+      const authUserCreated = await createSingleFirebaseUser(adminEmail, adminPassword)
+      
+      if (!authUserCreated) {
+        throw new Error('فشل في إنشاء حساب Firebase Auth')
+      }
+
+      // Create tenant
       const tenantId = await tenantService.createTenant(tenantData)
       
       // Create admin user for this tenant
       const adminUserData = {
         tenantId,
         name: formData.get('adminName') as string,
-        email: formData.get('adminEmail') as string,
+        email: adminEmail,
         role: 'admin' as const,
         isActive: true
       }
 
-      // Note: In a real app, you would create Firebase Auth user first
-      // For demo purposes, we'll just show success message
-      setError('تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول باستخدام بيانات المدير.')
+      // Create user in Firestore
+      await userService.createUser(adminUserData)
+
+      setError(`تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول باستخدام:
+البريد الإلكتروني: ${adminEmail}
+كلمة المرور: ${adminPassword}`)
       setShowTenantForm(false)
       
     } catch (error: any) {
+      console.error('Tenant registration error:', error)
       setError(error.message || 'خطأ في إنشاء الحساب')
     } finally {
       setLoading(false)
@@ -131,6 +162,24 @@ export default function LoginPageMultiTenant() {
       setError(error.message || 'خطأ في إنشاء الحسابات التجريبية')
     } finally {
       setCreatingUsers(false)
+    }
+  }
+
+  const testFirebaseConnection = async () => {
+    try {
+      console.log('Testing Firebase connection...')
+      // Try to get current user (this will test auth connection)
+      const currentUser = authService.getCurrentUser()
+      console.log('Current user:', currentUser)
+      
+      // Try to create a test user
+      const testResult = await createSingleFirebaseUser('test@test.com', '123456')
+      console.log('Test user creation result:', testResult)
+      
+      setError('Firebase connection test completed - check console for details')
+    } catch (error: any) {
+      console.error('Firebase connection test failed:', error)
+      setError(`Firebase connection test failed: ${error.message}`)
     }
   }
 
@@ -212,6 +261,12 @@ export default function LoginPageMultiTenant() {
                   className="text-green-600 hover:text-green-500 text-sm font-medium arabic disabled:opacity-50"
                 >
                   {creatingUsers ? 'جاري إنشاء الحسابات...' : 'إنشاء الحسابات التجريبية'}
+                </button>
+                <button
+                  onClick={testFirebaseConnection}
+                  className="text-orange-600 hover:text-orange-500 text-sm font-medium arabic"
+                >
+                  اختبار اتصال Firebase
                 </button>
               </div>
 

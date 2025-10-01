@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+             includeAssets: ['favicon.ico'],
       manifest: {
         name: 'قيد - نظام نقاط البيع',
         short_name: 'قيد',
@@ -20,8 +20,8 @@ export default defineConfig({
         scope: '/',
         start_url: '/'
       },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+             workbox: {
+               globPatterns: ['**/*.{js,css,html,ico}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

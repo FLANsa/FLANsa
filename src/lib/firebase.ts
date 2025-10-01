@@ -9,6 +9,8 @@ import { firebaseConfig } from './firebaseConfig'
 const env: any = (import.meta as any).env
 
 console.log('Firebase Config:', firebaseConfig)
+console.log('Firebase Auth Domain:', firebaseConfig.authDomain)
+console.log('Firebase Project ID:', firebaseConfig.projectId)
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
