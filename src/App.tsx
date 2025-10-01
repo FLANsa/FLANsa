@@ -11,6 +11,8 @@ import SettingsPage from './pages/SettingsPage'
 import { formatToEnglish } from './utils/numberUtils'
 import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
 import { authService } from './lib/authService'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from './lib/firebase'
 
 /* Login page now comes from src/pages/LoginPage */
 
