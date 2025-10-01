@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Save, CheckCircle, AlertCircle } from 'lucide-react'
 import { authService } from '../lib/authService'
-import { settingsService } from '../lib/firebaseServices'
+import { settingsService, tenantService } from '../lib/firebaseServices'
 
 const SettingsPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -27,8 +27,14 @@ const SettingsPage: React.FC = () => {
           return
         }
 
+        // Load settings from Firebase
         const settings = await settingsService.getSettingsByTenant(tenantId)
+        
+        // Load tenant data from Firebase
+        const tenant = await tenantService.getTenant(tenantId)
+        
         if (settings) {
+          // Use settings data if available
           setFormData(prev => ({
             ...prev,
             restaurantName: settings.restaurantName || prev.restaurantName,
@@ -43,8 +49,43 @@ const SettingsPage: React.FC = () => {
             language: settings.language || prev.language
           }))
           console.log('Settings loaded from Firebase:', settings)
+        } else if (tenant) {
+          // Use tenant data if no settings found
+          setFormData(prev => ({
+            ...prev,
+            restaurantName: tenant.name || prev.restaurantName,
+            restaurantNameAr: tenant.nameAr || prev.restaurantNameAr,
+            vatNumber: tenant.vatNumber || prev.vatNumber,
+            crNumber: tenant.crNumber || prev.crNumber,
+            phone: tenant.phone || prev.phone,
+            address: tenant.address || prev.address,
+            addressAr: tenant.addressAr || prev.addressAr,
+            email: tenant.email || prev.email,
+            vatRate: prev.vatRate, // Keep default VAT rate
+            language: prev.language // Keep default language
+          }))
+          console.log('Tenant data loaded from Firebase:', tenant)
         } else {
-          console.log('No settings found for tenant, using defaults')
+          // Fallback to tenant data from authService
+          const currentTenant = authService.getCurrentTenant()
+          if (currentTenant) {
+            setFormData(prev => ({
+              ...prev,
+              restaurantName: currentTenant.name || prev.restaurantName,
+              restaurantNameAr: currentTenant.nameAr || prev.restaurantNameAr,
+              vatNumber: currentTenant.vatNumber || prev.vatNumber,
+              crNumber: currentTenant.crNumber || prev.crNumber,
+              phone: currentTenant.phone || prev.phone,
+              address: currentTenant.address || prev.address,
+              addressAr: currentTenant.addressAr || prev.addressAr,
+              email: currentTenant.email || prev.email,
+              vatRate: prev.vatRate, // Keep default VAT rate
+              language: prev.language // Keep default language
+            }))
+            console.log('Tenant data loaded from authService:', currentTenant)
+          } else {
+            console.log('No settings or tenant data found, using defaults')
+          }
         }
       } catch (error) {
         console.error('Error loading settings:', error)
@@ -159,7 +200,13 @@ const SettingsPage: React.FC = () => {
         )}
         <div className="bg-white rounded-xl shadow-sm border p-6">
           <h2 className="text-lg font-semibold text-gray-900 arabic mb-2">إعدادات المطعم</h2>
-          <p className="text-sm text-gray-500 mb-6 arabic">تأكد من صحة بيانات الضرائب والاتصال قبل الحفظ.</p>
+          <p className="text-sm text-gray-500 mb-4 arabic">تأكد من صحة بيانات الضرائب والاتصال قبل الحفظ.</p>
+          
+          {/* Info message */}
+          <div className="mb-6 rounded-md bg-blue-50 p-3 text-blue-800 flex items-center gap-2 arabic">
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-sm">البيانات المعروضة مأخوذة من بيانات التسجيل. يمكنك تعديلها وحفظها.</span>
+          </div>
           
           {/* Restaurant names */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
