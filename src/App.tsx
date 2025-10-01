@@ -11,10 +11,6 @@ import SettingsPage from './pages/SettingsPage'
 import { formatToEnglish } from './utils/numberUtils'
 import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
 import { authService } from './lib/authService'
-import { collection, getDocs, query, where } from 'firebase/firestore'
-import { db } from './lib/firebase'
-import { createDemoMultiTenantData } from './lib/seedMultiTenantData'
-import { createFirebaseAuthUsers } from './lib/createFirebaseUsers'
 
 /* Login page now comes from src/pages/LoginPage */
 
@@ -372,29 +368,6 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Initialize demo data
-    const initializeApp = async () => {
-      try {
-        // Check if demo data already exists
-        const tenantsSnapshot = await getDocs(collection(db, 'tenants'))
-        if (tenantsSnapshot.empty) {
-          console.log('Creating demo multi-tenant data...')
-          await createDemoMultiTenantData()
-        }
-        
-        // Always try to create Firebase Auth users (they might not exist)
-        console.log('Creating Firebase Auth users...')
-        await createFirebaseAuthUsers()
-      } catch (error: any) {
-        console.error('Error initializing demo data:', error)
-        if (error.code === 'permission-denied') {
-          console.warn('Firestore permissions not set. App will work with limited functionality.')
-        }
-      }
-    }
-
-    initializeApp()
-
     // Check authentication status
     const checkAuth = () => {
       const authenticated = authService.isAuthenticated()
