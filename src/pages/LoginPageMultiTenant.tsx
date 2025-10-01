@@ -4,6 +4,7 @@ import { authService } from '../lib/authService'
 import { tenantService } from '../lib/firebaseServices'
 import { Tenant } from '../lib/firebaseServices'
 import { DEMO_CREDENTIALS } from '../lib/seedMultiTenantData'
+import { createFirebaseAuthUsers } from '../lib/createFirebaseUsers'
 
 export default function LoginPageMultiTenant() {
   const [email, setEmail] = useState('')
@@ -13,6 +14,7 @@ export default function LoginPageMultiTenant() {
   const [showTenantForm, setShowTenantForm] = useState(false)
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [selectedTenant, setSelectedTenant] = useState<string>('')
+  const [creatingUsers, setCreatingUsers] = useState(false)
   
   const navigate = useNavigate()
 
@@ -95,6 +97,20 @@ export default function LoginPageMultiTenant() {
     }
   }
 
+  const handleCreateDemoUsers = async () => {
+    setCreatingUsers(true)
+    setError('')
+    
+    try {
+      await createFirebaseAuthUsers()
+      setError('تم إنشاء الحسابات التجريبية بنجاح! يمكنك الآن تسجيل الدخول.')
+    } catch (error: any) {
+      setError(error.message || 'خطأ في إنشاء الحسابات التجريبية')
+    } finally {
+      setCreatingUsers(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
@@ -160,12 +176,19 @@ export default function LoginPageMultiTenant() {
                 </button>
               </form>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <button
                   onClick={() => setShowTenantForm(true)}
-                  className="text-blue-600 hover:text-blue-500 text-sm font-medium arabic"
+                  className="text-blue-600 hover:text-blue-500 text-sm font-medium arabic block"
                 >
                   إنشاء حساب جديد للمحل
+                </button>
+                <button
+                  onClick={handleCreateDemoUsers}
+                  disabled={creatingUsers}
+                  className="text-green-600 hover:text-green-500 text-sm font-medium arabic disabled:opacity-50"
+                >
+                  {creatingUsers ? 'جاري إنشاء الحسابات...' : 'إنشاء الحسابات التجريبية'}
                 </button>
               </div>
 

@@ -15,6 +15,7 @@ import { authService } from './lib/authService'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from './lib/firebase'
 import { createDemoMultiTenantData } from './lib/seedMultiTenantData'
+import { createFirebaseAuthUsers } from './lib/createFirebaseUsers'
 
 /* Login page now comes from src/pages/LoginPage */
 
@@ -381,6 +382,10 @@ function App() {
           console.log('Creating demo multi-tenant data...')
           await createDemoMultiTenantData()
         }
+        
+        // Always try to create Firebase Auth users (they might not exist)
+        console.log('Creating Firebase Auth users...')
+        await createFirebaseAuthUsers()
       } catch (error) {
         console.error('Error initializing demo data:', error)
       }
