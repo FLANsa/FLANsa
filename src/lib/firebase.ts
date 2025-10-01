@@ -4,19 +4,11 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics'
+import { firebaseConfig } from './firebaseConfig'
 
 const env: any = (import.meta as any).env
 
-// Demo Firebase configuration (replace with your actual config)
-const firebaseConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY || "AIzaSyBvOkBwvOeJ4UaK9mF8nG7hI6jK5lM4nO3p",
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "qayd-pos-demo.firebaseapp.com",
-  projectId: env.VITE_FIREBASE_PROJECT_ID || "qayd-pos-demo",
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "qayd-pos-demo.appspot.com",
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-  appId: env.VITE_FIREBASE_APP_ID || "1:123456789012:web:abcdef1234567890",
-  measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || "G-ABCDEF1234",
-}
+console.log('Firebase Config:', firebaseConfig)
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
