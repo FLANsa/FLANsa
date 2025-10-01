@@ -7,7 +7,8 @@ service cloud.firestore {
     // قراءة المستأجرين (عامة للجميع):
     match /tenants/{tenantId} {
       allow get, list: if true; // أي شخص يمكنه قراءة المستأجرين
-      allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
+      allow create: if isSignedIn(); // أي مستخدم مسجل يمكنه إنشاء مستأجر جديد
+      allow update, delete: if isSignedIn() && request.auth.token.admin == true;
     }
 
     // ملف المستخدم الخاص به:
@@ -32,6 +33,7 @@ service cloud.firestore {
 
     match /settings/{settingId} {
       allow read, write: if isSignedIn();
+      allow create: if isSignedIn(); // أي مستخدم مسجل يمكنه إنشاء إعدادات جديدة
     }
   }
 }
