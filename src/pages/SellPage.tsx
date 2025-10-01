@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { Category, Item } from '../types'
 import { usePOSStore } from '../stores/posStore'
@@ -40,15 +40,20 @@ export default function SellPage() {
     queryKey: ['categories'],
     queryFn: async () => {
       const categoriesRef = collection(db, 'categories')
-      const q = query(categoriesRef, where('isActive', '==', true), orderBy('sortOrder'))
+      const q = query(categoriesRef, where('isActive', '==', true))
       const querySnapshot = await getDocs(q)
       
-      return querySnapshot.docs.map(doc => ({
+      const categories = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
         updatedAt: doc.data().updatedAt?.toDate() || new Date(),
       })) as Category[]
+      
+      // Sort categories by sortOrder in JavaScript
+      categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      
+      return categories
     }
   })
 

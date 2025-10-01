@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Plus, Search, Tag, Image as ImageIcon, X, Trash2, Layers, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { authService } from '../lib/authService'
@@ -57,8 +57,7 @@ function ProductsPage() {
       const itemsRef = collection(db, 'items')
       const q = query(
         itemsRef, 
-        where('tenantId', '==', tenantId),
-        orderBy('createdAt', 'desc')
+        where('tenantId', '==', tenantId)
       )
       const querySnapshot = await getDocs(q)
       
@@ -67,6 +66,9 @@ function ProductsPage() {
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate() || new Date(),
       })) as InventoryItem[]
+      
+      // Sort items by createdAt in JavaScript instead of Firestore
+      loadedItems.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
       
       setItems(loadedItems)
       
