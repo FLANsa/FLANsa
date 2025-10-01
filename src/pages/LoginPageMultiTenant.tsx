@@ -24,7 +24,7 @@ export default function LoginPageMultiTenant() {
       navigate('/dashboard')
     }
     
-    // Load available tenants
+    // Load available tenants (this will work with new rules)
     loadTenants()
   }, [navigate])
 

@@ -4,9 +4,9 @@ service cloud.firestore {
     function isSignedIn() { return request.auth != null; }
     function uid() { return request.auth.uid; }
 
-    // قراءة المستأجرين للمستخدمين المسجلين:
+    // قراءة المستأجرين (عامة للجميع):
     match /tenants/{tenantId} {
-      allow get, list: if isSignedIn(); // أي مستخدم مسجل يمكنه قراءة المستأجرين
+      allow get, list: if true; // أي شخص يمكنه قراءة المستأجرين
       allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
     }
 
