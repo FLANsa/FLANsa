@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../lib/authService'
 import { tenantService, userService } from '../lib/firebaseServices'
-import { Tenant } from '../lib/firebaseServices'
-import { DEMO_CREDENTIALS } from '../lib/seedMultiTenantData'
+import { createSingleFirebaseUser, createFirebaseAuthUsers } from '../lib/createFirebaseUsers'
 
 export default function LoginPageMultiTenant() {
   const [email, setEmail] = useState('')
@@ -11,8 +10,7 @@ export default function LoginPageMultiTenant() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showTenantForm, setShowTenantForm] = useState(false)
-  const [tenants, setTenants] = useState<Tenant[]>([])
-  const [selectedTenant, setSelectedTenant] = useState<string>('')
+  const [creatingUsers, setCreatingUsers] = useState(false)
   
   const navigate = useNavigate()
 
@@ -24,21 +22,7 @@ export default function LoginPageMultiTenant() {
       navigate('/dashboard')
     }
     
-    // Load available tenants (this will work with new rules)
-    loadTenants()
   }, [navigate])
-
-  const loadTenants = async () => {
-    try {
-      const activeTenants = await tenantService.getActiveTenants()
-      setTenants(activeTenants)
-    } catch (error: any) {
-      console.error('Error loading tenants:', error)
-      if (error.code === 'permission-denied') {
-        setError('خطأ في الصلاحيات: يرجى تحديث قواعد Firebase Firestore لتسمح بالوصول للمستخدمين المسجلين')
-      }
-    }
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,10 +34,6 @@ export default function LoginPageMultiTenant() {
       console.log('Starting login process...')
       console.log('Email:', email)
       console.log('Password length:', password.length)
-      console.log('Firebase config:', {
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'qayd-pos-demo',
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'qayd-pos-demo.firebaseapp.com'
-      })
       
       const result = await authService.signIn(email, password)
       console.log('Login successful:', result)
@@ -91,6 +71,22 @@ export default function LoginPageMultiTenant() {
     }
   }
 
+  const handleCreateDemoUsers = async () => {
+    setCreatingUsers(true)
+    setError('')
+    
+    try {
+      console.log('Creating demo Firebase Auth users...')
+      await createFirebaseAuthUsers()
+      setError('تم إنشاء الحسابات التجريبية بنجاح! يمكنك الآن تسجيل الدخول.')
+    } catch (error: any) {
+      console.error('Error creating demo users:', error)
+      setError(`خطأ في إنشاء الحسابات التجريبية: ${error.message}`)
+    } finally {
+      setCreatingUsers(false)
+    }
+  }
+
   const handleTenantRegistration = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -118,9 +114,9 @@ export default function LoginPageMultiTenant() {
 
       // Create Firebase Auth user first
       console.log('Creating Firebase Auth user for:', adminEmail)
-      const authUserCreated = await createSingleFirebaseUser(adminEmail, adminPassword)
+      const authUser = await createSingleFirebaseUser(adminEmail, adminPassword)
       
-      if (!authUserCreated) {
+      if (!authUser) {
         throw new Error('فشل في إنشاء حساب Firebase Auth')
       }
 
@@ -129,11 +125,14 @@ export default function LoginPageMultiTenant() {
       
       // Create admin user for this tenant
       const adminUserData = {
+        id: authUser.uid,
         tenantId,
         name: formData.get('adminName') as string,
         email: adminEmail,
         role: 'admin' as const,
-        isActive: true
+        isActive: true,
+        createdAt: null,
+        updatedAt: null
       }
 
       // Create user in Firestore
@@ -219,6 +218,14 @@ export default function LoginPageMultiTenant() {
               </form>
 
               <div className="text-center space-y-2">
+                <button
+                  onClick={handleCreateDemoUsers}
+                  disabled={creatingUsers}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium arabic mb-2"
+                >
+                  {creatingUsers ? 'جاري إنشاء الحسابات...' : 'إنشاء الحسابات التجريبية'}
+                </button>
+                
                 <button
                   onClick={() => setShowTenantForm(true)}
                   className="text-blue-600 hover:text-blue-500 text-sm font-medium arabic block"

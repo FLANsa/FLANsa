@@ -58,16 +58,24 @@ export const createFirebaseAuthUsers = async () => {
 // Function to create a single user
 export const createSingleFirebaseUser = async (email: string, password: string) => {
   try {
-    await createUserWithEmailAndPassword(auth, email, password)
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     console.log(`Created Firebase Auth user: ${email}`)
-    return true
+    return userCredential.user
   } catch (error: any) {
     if (error.code === 'auth/email-already-in-use') {
       console.log(`User already exists: ${email}`)
-      return true
+      // Try to get the existing user by signing in
+      try {
+        const { signInWithEmailAndPassword } = await import('firebase/auth')
+        const userCredential = await signInWithEmailAndPassword(auth, email, password)
+        return userCredential.user
+      } catch (signInError) {
+        console.error(`Error signing in existing user ${email}:`, signInError)
+        return null
+      }
     } else {
       console.error(`Error creating user ${email}:`, error.message)
-      return false
+      return null
     }
   }
 }
