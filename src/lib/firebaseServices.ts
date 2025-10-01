@@ -2,6 +2,7 @@ import {
   collection, 
   doc, 
   addDoc, 
+  setDoc,
   updateDoc, 
   deleteDoc, 
   getDocs, 
@@ -176,13 +177,15 @@ export const tenantService = {
 
 // User Services
 export const userService = {
-  async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) {
-    const docRef = await addDoc(collection(db, COLLECTIONS.USERS), {
+  async createUser(userData: User) {
+    // Use the user's Firebase Auth UID as the document ID
+    const userDocRef = doc(db, COLLECTIONS.USERS, userData.id)
+    await setDoc(userDocRef, {
       ...userData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     })
-    return docRef.id
+    return userData.id
   },
 
   async updateUser(userId: string, userData: Partial<User>) {

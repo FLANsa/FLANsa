@@ -1,9 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Simplified rules for development - allow all authenticated users
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    function isSignedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+
+    // Publicly readable list of active tenants (for the login/landing screen)
+    match /tenants/{tenantId} {
+      allow get, list: if resource.data.isActive == true;   // read-only public
+      // write tenant docs only by admins (you can later gate with custom claims)
+      allow create, update, delete: if isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // Users collection keyed by Firebase Auth UID
+    match /users/{userId} {
+      // Allow a logged-in user to create their own profile doc once
+      allow create: if isSignedIn() && userId == uid();
+
+      // Allow a user to read/update their own document
+      allow read, update: if isSignedIn() && userId == uid();
+
+      // Optional: block delete by default
+      allow delete: if false;
+    }
+
+    // Allow authenticated users to read/write their tenant's data
+    match /customers/{customerId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /items/{itemId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /orders/{orderId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if isSignedIn();
     }
   }
 }
