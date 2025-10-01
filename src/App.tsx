@@ -381,7 +381,10 @@ function App() {
     // Check authentication status
     const checkAuth = () => {
       const authenticated = authService.isAuthenticated()
+      const currentUser = authService.getCurrentUser()
       console.log('App checkAuth - authenticated:', authenticated)
+      console.log('App checkAuth - currentUser:', currentUser)
+      console.log('App checkAuth - currentUser exists:', !!currentUser)
       setIsLoggedIn(authenticated)
       setLoading(false)
     }
@@ -392,6 +395,9 @@ function App() {
     const unsubscribe = authService.onAuthStateChange((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
       console.log('User object:', user)
+      console.log('User ID:', user?.id)
+      console.log('User email:', user?.email)
+      console.log('User tenantId:', user?.tenantId)
       console.log('Setting isLoggedIn to:', !!user)
       setIsLoggedIn(!!user)
       setLoading(false)
@@ -412,6 +418,7 @@ function App() {
   }
 
   if (!isLoggedIn) {
+    console.log('App: User not logged in, redirecting to login')
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -421,6 +428,7 @@ function App() {
     )
   }
 
+  console.log('App: User is logged in, showing dashboard routes')
   return (
       <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

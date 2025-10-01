@@ -18,8 +18,9 @@ class AuthService {
 
   constructor() {
     // Listen to auth state changes
+    console.log('[AuthService] Setting up onAuthStateChanged listener')
     onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('[onAuthStateChanged] Firebase user =', firebaseUser?.uid || null)
+      console.log('[onAuthStateChanged] Called with Firebase user =', firebaseUser?.uid || null)
       console.log('[onAuthStateChanged] Firebase user email =', firebaseUser?.email || null)
       
       if (firebaseUser) {
