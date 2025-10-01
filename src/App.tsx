@@ -385,8 +385,11 @@ function App() {
         // Always try to create Firebase Auth users (they might not exist)
         console.log('Creating Firebase Auth users...')
         await createFirebaseAuthUsers()
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error initializing demo data:', error)
+        if (error.code === 'permission-denied') {
+          console.warn('Firestore permissions not set. App will work with limited functionality.')
+        }
       }
     }
 

@@ -86,16 +86,44 @@ class AuthService {
           updatedAt: null
         }
         
-        // Save user data to Firestore
-        await userService.createUser(userData)
-        console.log('User data created successfully')
+        try {
+          // Save user data to Firestore
+          await userService.createUser(userData)
+          console.log('User data created successfully in Firestore')
+        } catch (firestoreError: any) {
+          console.warn('Failed to save user data to Firestore:', firestoreError.message)
+          console.log('Continuing with local user data...')
+          // Continue with the user data even if Firestore fails
+        }
       }
 
       // Get tenant data if user has tenantId
       let tenantData: Tenant | undefined
       if (userData.tenantId) {
-        const tenant = await tenantService.getTenant(userData.tenantId)
-        tenantData = tenant || undefined
+        try {
+          const tenant = await tenantService.getTenant(userData.tenantId)
+          tenantData = tenant || undefined
+        } catch (tenantError: any) {
+          console.warn('Failed to load tenant data:', tenantError.message)
+          // Create default tenant data if Firestore fails
+          tenantData = {
+            id: 'main',
+            name: 'Qayd Demo Store',
+            nameAr: 'متجر قيد التجريبي',
+            email: 'demo@qayd.com',
+            phone: '+966 11 123 4567',
+            address: 'Riyadh, Saudi Arabia',
+            addressAr: 'الرياض، المملكة العربية السعودية',
+            vatNumber: '123456789012345',
+            crNumber: '1010101010',
+            subscriptionPlan: 'premium' as const,
+            subscriptionStatus: 'active' as const,
+            subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            isActive: true,
+            createdAt: null,
+            updatedAt: null
+          }
+        }
       }
 
       const authUser: AuthUser = {
