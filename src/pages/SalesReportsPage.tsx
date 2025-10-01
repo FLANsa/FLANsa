@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { authService } from '../lib/authService'
 
 type Order = {
   id: string
@@ -29,30 +30,66 @@ export default function SalesReportsPageTest() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    loadOrders()
+  }, [])
+
+  const loadOrders = async () => {
     try {
-      const localOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-      // Map local orders shape to generic shape
-      const mapped: Order[] = localOrders.map((o: any) => ({
-        id: o.id,
-        customer: o.customer,
-        phone: o.phone,
-        total: o.total || 0,
-        status: o.status || 'completed',
-        mode: o.mode,
-        timestamp: o.timestamp,
-        invoiceNumber: o.id,
-        subtotal: o.total ? o.total / 1.15 : 0,
-        vat: o.total ? (o.total * 0.15) / 1.15 : 0,
-        discount: 0,
-        paymentMethod: o.paymentMethod || 'cash'
-      }))
-      setOrders(mapped)
-    } catch (_) {
-      setOrders([])
+      setLoading(true)
+      const tenantId = authService.getCurrentTenantId()
+      if (!tenantId) {
+        console.log('No tenant ID found, using empty orders')
+        setOrders([])
+        setLoading(false)
+        return
+      }
+
+      console.log('Loading orders for tenant:', tenantId)
+      const ordersRef = collection(db, 'orders')
+      const q = query(
+        ordersRef,
+        where('tenantId', '==', tenantId),
+        orderBy('createdAt', 'desc')
+      )
+      const querySnapshot = await getDocs(q)
+      
+      const loadedOrders = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        total: doc.data().total || 0,
+        status: doc.data().status || 'completed',
+        mode: doc.data().mode || 'dine-in',
+        paymentMethod: doc.data().paymentMethod || 'cash',
+        timestamp: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+        invoiceNumber: doc.data().invoiceNumber || doc.id,
+        subtotal: doc.data().subtotal || 0,
+        vat: doc.data().vat || 0,
+        discount: doc.data().discount || 0,
+        customer: doc.data().customer || '',
+        phone: doc.data().phone || '',
+        items: doc.data().items || []
+      })) as Order[]
+      
+      setOrders(loadedOrders)
+      console.log('Loaded orders for tenant:', loadedOrders.length, 'orders')
+      
+      // Also save to localStorage for offline access
+      localStorage.setItem('orders', JSON.stringify(loadedOrders))
+    } catch (error) {
+      console.error('Error loading orders:', error)
+      // Fallback to localStorage if Firebase fails
+      try {
+        const localOrders = JSON.parse(localStorage.getItem('orders') || '[]')
+        setOrders(localOrders)
+      } catch (localError) {
+        console.error('Error loading from localStorage:', localError)
+        setOrders([])
+      }
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   const { filtered, totals } = useMemo(() => {
     const now = new Date()
