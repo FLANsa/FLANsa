@@ -146,7 +146,7 @@ const POSEnhanced: React.FC = () => {
         const currentUser = authService.getCurrentUser()
         
         const orderData = {
-        tenantId: tenantId || 'main',
+        tenantId: tenantId,
         items: cart.map(item => ({
           name: item.nameAr || item.name,
           nameEn: item.name || item.nameEn,

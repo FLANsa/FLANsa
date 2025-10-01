@@ -476,9 +476,9 @@ export const settingsService = {
     })
   },
 
-  async createDefaultSettings() {
+  async createDefaultSettings(tenantId: string = 'main') {
     const defaultSettings: Omit<Settings, 'id' | 'updatedAt'> = {
-      tenantId: 'main',
+      tenantId: tenantId,
       restaurantName: 'Qayd POS System',
       restaurantNameAr: 'قيد - نظام نقاط البيع',
       vatNumber: '123456789012345',

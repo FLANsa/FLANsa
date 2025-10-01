@@ -5,7 +5,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth'
 import { auth } from './firebase'
-import { userService, tenantService, User, Tenant } from './firebaseServices'
+import { userService, tenantService, settingsService, User, Tenant } from './firebaseServices'
 
 export interface AuthUser extends User {
   firebaseUser: FirebaseUser
@@ -47,10 +47,13 @@ class AuthService {
             console.log('[onAuthStateChanged] Current user set to:', this.currentUser)
           } else {
             console.log('[onAuthStateChanged] No user data found in Firestore, creating default user data')
+            // Create unique tenant for this user
+            const uniqueTenantId = `tenant_${firebaseUser.uid}`
+            
             // Create default user data instead of signing out
             this.currentUser = {
               id: firebaseUser.uid,
-              tenantId: 'main',
+              tenantId: uniqueTenantId,
               name: 'مستخدم',
               email: firebaseUser.email || '',
               role: 'cashier',
@@ -59,18 +62,18 @@ class AuthService {
               updatedAt: null,
               firebaseUser,
               tenant: {
-                id: 'main',
-                name: 'Qayd Demo Store',
-                nameAr: 'متجر قيد التجريبي',
-                email: 'demo@qayd.com',
+                id: uniqueTenantId,
+                name: 'My Store',
+                nameAr: 'متجري',
+                email: firebaseUser.email || '',
                 phone: '+966 11 123 4567',
                 address: 'Riyadh, Saudi Arabia',
                 addressAr: 'الرياض، المملكة العربية السعودية',
                 vatNumber: '123456789012345',
                 crNumber: '1010101010',
-                subscriptionPlan: 'premium' as const,
+                subscriptionPlan: 'basic' as const,
                 subscriptionStatus: 'active' as const,
-                subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                 isActive: true,
                 createdAt: null,
                 updatedAt: null
@@ -114,12 +117,29 @@ class AuthService {
         const name = email.includes('admin') ? 'مدير النظام' :
                     email.includes('manager') ? 'مدير المحل' : 'كاشير'
         
-        // For demo purposes, assign to default tenant
-        const defaultTenantId = 'main'
+        // Create unique tenant for each new user
+        const uniqueTenantId = `tenant_${userCredential.user.uid}`
+        
+        // Create tenant data for this user
+        const tenantData = {
+          id: uniqueTenantId,
+          name: `${name}'s Store`,
+          nameAr: `متجر ${name}`,
+          email: userCredential.user.email || '',
+          phone: '+966 11 123 4567',
+          address: 'Riyadh, Saudi Arabia',
+          addressAr: 'الرياض، المملكة العربية السعودية',
+          vatNumber: '123456789012345',
+          crNumber: '1010101010',
+          subscriptionPlan: 'basic' as const,
+          subscriptionStatus: 'active' as const,
+          subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days trial
+          isActive: true
+        }
         
         userData = {
           id: userCredential.user.uid,
-          tenantId: defaultTenantId,
+          tenantId: uniqueTenantId,
           name,
           email: userCredential.user.email || '',
           role: role as 'admin' | 'manager' | 'cashier',
@@ -129,11 +149,19 @@ class AuthService {
         }
         
         try {
+          // Create tenant in Firestore first
+          await tenantService.createTenant(tenantData)
+          console.log('Tenant created successfully in Firestore')
+          
           // Save user data to Firestore
           await userService.createUser(userData)
           console.log('User data created successfully in Firestore')
+          
+          // Create default settings for this tenant
+          await settingsService.createDefaultSettings(uniqueTenantId)
+          console.log('Default settings created for tenant')
         } catch (firestoreError: any) {
-          console.warn('Failed to save user data to Firestore:', firestoreError.message)
+          console.warn('Failed to save tenant/user/settings data to Firestore:', firestoreError.message)
           console.log('Continuing with local user data...')
           // Continue with the user data even if Firestore fails
         }
@@ -149,18 +177,18 @@ class AuthService {
           console.warn('Failed to load tenant data:', tenantError.message)
           // Create default tenant data if Firestore fails
           tenantData = {
-            id: 'main',
-            name: 'Qayd Demo Store',
-            nameAr: 'متجر قيد التجريبي',
-            email: 'demo@qayd.com',
+            id: userData.tenantId,
+            name: 'My Store',
+            nameAr: 'متجري',
+            email: userData.email,
             phone: '+966 11 123 4567',
             address: 'Riyadh, Saudi Arabia',
             addressAr: 'الرياض، المملكة العربية السعودية',
             vatNumber: '123456789012345',
             crNumber: '1010101010',
-            subscriptionPlan: 'premium' as const,
+            subscriptionPlan: 'basic' as const,
             subscriptionStatus: 'active' as const,
-            subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             isActive: true,
             createdAt: null,
             updatedAt: null
@@ -282,25 +310,34 @@ export const createDemoUsers = async () => {
     // Create demo users
     const demoUsers = [
       {
+        id: 'demo_admin',
         tenantId,
         name: 'مدير النظام',
         email: 'admin@qayd.com',
         role: 'admin' as const,
-        isActive: true
+        isActive: true,
+        createdAt: null,
+        updatedAt: null
       },
       {
+        id: 'demo_manager',
         tenantId,
         name: 'مدير المحل',
         email: 'manager@qayd.com',
         role: 'manager' as const,
-        isActive: true
+        isActive: true,
+        createdAt: null,
+        updatedAt: null
       },
       {
+        id: 'demo_cashier',
         tenantId,
         name: 'كاشير',
         email: 'cashier@qayd.com',
         role: 'cashier' as const,
-        isActive: true
+        isActive: true,
+        createdAt: null,
+        updatedAt: null
       }
     ]
 
