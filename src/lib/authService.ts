@@ -56,12 +56,16 @@ class AuthService {
 
   async signIn(email: string, password: string): Promise<AuthUser> {
     try {
+      console.log('Attempting to sign in with:', email)
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      console.log('Firebase Auth successful, user ID:', userCredential.user.uid)
       
       // Create user data if not exists (for demo purposes)
       let userData = await userService.getUser(userCredential.user.uid)
+      console.log('User data from Firestore:', userData)
       
       if (!userData) {
+        console.log('Creating new user data...')
         // Create user data based on email
         const role = email.includes('admin') ? 'admin' : 
                     email.includes('manager') ? 'manager' : 'cashier'
@@ -76,14 +80,15 @@ class AuthService {
           tenantId: defaultTenantId,
           name,
           email: userCredential.user.email || '',
-            role: role as 'admin' | 'manager' | 'cashier',
-            isActive: true,
-            createdAt: null,
-            updatedAt: null
+          role: role as 'admin' | 'manager' | 'cashier',
+          isActive: true,
+          createdAt: null,
+          updatedAt: null
         }
         
         // Save user data to Firestore
         await userService.createUser(userData)
+        console.log('User data created successfully')
       }
 
       const authUser: AuthUser = {
@@ -92,6 +97,7 @@ class AuthService {
       }
 
       this.currentUser = authUser
+      console.log('Sign in completed successfully')
       return authUser
     } catch (error) {
       console.error('Sign in error:', error)

@@ -29,22 +29,29 @@ export const createFirebaseAuthUsers = async () => {
       ...Object.values(DEMO_CREDENTIALS.quickmart)
     ]
 
+    let createdCount = 0
+    let existingCount = 0
+
     for (const credential of allCredentials) {
       try {
         await createUserWithEmailAndPassword(auth, credential.email, credential.password)
-        console.log(`Created Firebase Auth user: ${credential.email}`)
+        console.log(`✅ Created Firebase Auth user: ${credential.email}`)
+        createdCount++
       } catch (error: any) {
         if (error.code === 'auth/email-already-in-use') {
-          console.log(`User already exists: ${credential.email}`)
+          console.log(`ℹ️ User already exists: ${credential.email}`)
+          existingCount++
         } else {
-          console.error(`Error creating user ${credential.email}:`, error.message)
+          console.error(`❌ Error creating user ${credential.email}:`, error.message)
         }
       }
     }
     
-    console.log('Firebase Auth users creation completed!')
+    console.log(`Firebase Auth users creation completed! Created: ${createdCount}, Existing: ${existingCount}`)
+    return { createdCount, existingCount }
   } catch (error) {
     console.error('Error creating Firebase Auth users:', error)
+    throw error
   }
 }
 

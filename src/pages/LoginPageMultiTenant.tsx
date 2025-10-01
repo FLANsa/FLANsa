@@ -43,9 +43,19 @@ export default function LoginPageMultiTenant() {
     setError('')
 
     try {
-      await authService.signIn(email, password)
+      console.log('Starting login process...')
+      
+      // Add timeout to prevent hanging
+      const loginPromise = authService.signIn(email, password)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('انتهت مهلة تسجيل الدخول')), 10000)
+      )
+      
+      const result = await Promise.race([loginPromise, timeoutPromise])
+      console.log('Login successful:', result)
       navigate('/dashboard')
     } catch (error: any) {
+      console.error('Login error:', error)
       setError(error.message || 'خطأ في تسجيل الدخول')
     } finally {
       setLoading(false)
@@ -102,9 +112,12 @@ export default function LoginPageMultiTenant() {
     setError('')
     
     try {
-      await createFirebaseAuthUsers()
-      setError('تم إنشاء الحسابات التجريبية بنجاح! يمكنك الآن تسجيل الدخول.')
+      console.log('Creating demo users...')
+      const result = await createFirebaseAuthUsers()
+      console.log('Demo users created successfully')
+      setError(`تم إنشاء الحسابات التجريبية بنجاح! تم إنشاء ${result.createdCount} حساب جديد و ${result.existingCount} حساب موجود مسبقاً. يمكنك الآن تسجيل الدخول.`)
     } catch (error: any) {
+      console.error('Error creating demo users:', error)
       setError(error.message || 'خطأ في إنشاء الحسابات التجريبية')
     } finally {
       setCreatingUsers(false)
