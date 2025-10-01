@@ -44,19 +44,29 @@ export default function LoginPageMultiTenant() {
 
     try {
       console.log('Starting login process...')
+      console.log('Firebase config:', {
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'qayd-pos-demo',
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'qayd-pos-demo.firebaseapp.com'
+      })
       
-      // Add timeout to prevent hanging
-      const loginPromise = authService.signIn(email, password)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('انتهت مهلة تسجيل الدخول')), 10000)
-      )
-      
-      const result = await Promise.race([loginPromise, timeoutPromise])
+      const result = await authService.signIn(email, password)
       console.log('Login successful:', result)
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Login error:', error)
-      setError(error.message || 'خطأ في تسجيل الدخول')
+      
+      // Provide more specific error messages
+      if (error.code === 'auth/user-not-found') {
+        setError('المستخدم غير موجود. تأكد من صحة البريد الإلكتروني أو اضغط على "إنشاء الحسابات التجريبية"')
+      } else if (error.code === 'auth/wrong-password') {
+        setError('كلمة المرور غير صحيحة')
+      } else if (error.code === 'auth/network-request-failed') {
+        setError('خطأ في الاتصال. تأكد من اتصال الإنترنت')
+      } else if (error.code === 'auth/invalid-email') {
+        setError('البريد الإلكتروني غير صحيح')
+      } else {
+        setError(error.message || 'خطأ في تسجيل الدخول')
+      }
     } finally {
       setLoading(false)
     }
@@ -203,6 +213,13 @@ export default function LoginPageMultiTenant() {
                 >
                   {creatingUsers ? 'جاري إنشاء الحسابات...' : 'إنشاء الحسابات التجريبية'}
                 </button>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-blue-900 arabic mb-2">⚠️ مهم:</h4>
+                <p className="text-xs text-blue-700 arabic">
+                  إذا لم تعمل الحسابات، اضغط على زر "إنشاء الحسابات التجريبية" أولاً
+                </p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
