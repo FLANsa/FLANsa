@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Big Diet POS',
-        short_name: 'Big Diet',
-        description: 'Big Diet Restaurant Cashier System',
+        name: 'قيد - نظام نقاط البيع',
+        short_name: 'قيد',
+        description: 'Qayd POS System - Multi-tenant Cashier System',
         theme_color: '#1f2937',
         background_color: '#ffffff',
         display: 'standalone',
@@ -50,6 +50,17 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false, // Disable sourcemap in production to reduce size
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor libraries into separate chunks
+          vendor: ['react', 'react-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          ui: ['@tanstack/react-query', 'react-router-dom']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000 // Increase warning limit to 1MB
   }
 })
