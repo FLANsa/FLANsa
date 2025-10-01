@@ -408,6 +408,8 @@ function App() {
     // Listen to auth state changes
     const unsubscribe = authService.onAuthStateChange((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
+      console.log('User object:', user)
+      console.log('Setting isLoggedIn to:', !!user)
       setIsLoggedIn(!!user)
       setLoading(false)
     })

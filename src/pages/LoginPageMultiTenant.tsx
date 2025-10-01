@@ -60,11 +60,17 @@ export default function LoginPageMultiTenant() {
       const result = await authService.signIn(email, password)
       console.log('Login successful:', result)
       
-      // Wait a bit for auth state to update
-      setTimeout(() => {
+      // Check if user is authenticated
+      const isAuth = authService.isAuthenticated()
+      console.log('Is authenticated after login:', isAuth)
+      
+      if (isAuth) {
         console.log('Navigating to dashboard...')
         navigate('/dashboard')
-      }, 100)
+      } else {
+        console.log('Authentication failed, staying on login page')
+        setError('فشل في تسجيل الدخول - يرجى المحاولة مرة أخرى')
+      }
     } catch (error: any) {
       console.error('Login error:', error)
       console.error('Error code:', error.code)

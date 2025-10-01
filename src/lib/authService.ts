@@ -50,7 +50,11 @@ class AuthService {
       }
       
       // Notify all listeners
-      this.authStateListeners.forEach(listener => listener(this.currentUser))
+      console.log('Notifying', this.authStateListeners.length, 'auth state listeners')
+      this.authStateListeners.forEach((listener, index) => {
+        console.log(`Calling listener ${index} with user:`, this.currentUser)
+        listener(this.currentUser)
+      })
     })
   }
 
@@ -134,6 +138,16 @@ class AuthService {
 
       this.currentUser = authUser
       console.log('Sign in completed successfully, user:', authUser)
+      console.log('Current user set to:', this.currentUser)
+      console.log('isAuthenticated() returns:', this.isAuthenticated())
+      
+      // Manually notify listeners since onAuthStateChanged might not trigger immediately
+      console.log('Manually notifying auth state listeners after sign in')
+      this.authStateListeners.forEach((listener, index) => {
+        console.log(`Manually calling listener ${index} with user:`, this.currentUser)
+        listener(this.currentUser)
+      })
+      
       return authUser
     } catch (error) {
       console.error('Sign in error:', error)
