@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Save, CheckCircle, AlertCircle } from 'lucide-react'
+import { authService } from '../lib/authService'
+import { settingsService } from '../lib/firebaseServices'
 
 const SettingsPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,17 +16,50 @@ const SettingsPage: React.FC = () => {
     vatRate: 15,
     language: 'ar'
   })
-  const [loading, setLoading] = useState(false)
 
-  // Load from localStorage on mount
+  // Load settings from Firebase on mount
   useEffect(() => {
-    const saved = localStorage.getItem('restaurantSettings')
-    if (saved) {
+    const loadSettings = async () => {
       try {
-        const parsed = JSON.parse(saved)
-        setFormData(prev => ({ ...prev, ...parsed }))
-      } catch (_) {}
+        const tenantId = authService.getCurrentTenantId()
+        if (!tenantId) {
+          console.log('No tenant ID found, using default settings')
+          return
+        }
+
+        const settings = await settingsService.getSettingsByTenant(tenantId)
+        if (settings) {
+          setFormData(prev => ({
+            ...prev,
+            restaurantName: settings.restaurantName || prev.restaurantName,
+            restaurantNameAr: settings.restaurantNameAr || prev.restaurantNameAr,
+            vatNumber: settings.vatNumber || prev.vatNumber,
+            crNumber: settings.crNumber || prev.crNumber,
+            phone: settings.phone || prev.phone,
+            address: settings.address || prev.address,
+            addressAr: settings.addressAr || prev.addressAr,
+            email: settings.email || prev.email,
+            vatRate: settings.vatRate || prev.vatRate,
+            language: settings.language || prev.language
+          }))
+          console.log('Settings loaded from Firebase:', settings)
+        } else {
+          console.log('No settings found for tenant, using defaults')
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error)
+        // Fallback to localStorage if Firebase fails
+        const saved = localStorage.getItem('restaurantSettings')
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved)
+            setFormData(prev => ({ ...prev, ...parsed }))
+          } catch (_) {}
+        }
+      }
     }
+
+    loadSettings()
   }, [])
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
@@ -60,12 +95,33 @@ const SettingsPage: React.FC = () => {
     setSubmitError(null)
     if (!validateAll()) return
     setSaving(true)
+    
     try {
+      const tenantId = authService.getCurrentTenantId()
+      if (!tenantId) {
+        throw new Error('No tenant ID found')
+      }
+
+      // Get existing settings for this tenant
+      const existingSettings = await settingsService.getSettingsByTenant(tenantId)
+      
+      if (existingSettings) {
+        // Update existing settings
+        await settingsService.updateSettingsByTenant(tenantId, formData)
+        console.log('Settings updated in Firebase')
+      } else {
+        // Create new settings
+        await settingsService.createDefaultSettingsForTenant(tenantId, formData)
+        console.log('New settings created in Firebase')
+      }
+
+      // Also save to localStorage as backup
       localStorage.setItem('restaurantSettings', JSON.stringify(formData))
+      
       setSuccess('تم حفظ الإعدادات بنجاح')
     } catch (error) {
       console.error('Error saving settings:', error)
-      setSubmitError('تعذّر الحفظ. تحقق من صلاحيات التخزين')
+      setSubmitError('تعذّر الحفظ. تحقق من اتصال الإنترنت')
     } finally {
       setSaving(false)
     }

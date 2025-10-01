@@ -150,16 +150,19 @@ class AuthService {
         
         try {
           // Create tenant in Firestore first
+          console.log('[signIn] Creating tenant with data:', tenantData)
           await tenantService.createTenant(tenantData)
-          console.log('Tenant created successfully in Firestore')
+          console.log('[signIn] Tenant created successfully in Firestore')
           
           // Save user data to Firestore
+          console.log('[signIn] Creating user with data:', userData)
           await userService.createUser(userData)
-          console.log('User data created successfully in Firestore')
+          console.log('[signIn] User data created successfully in Firestore')
           
-          // Create default settings for this tenant
-          await settingsService.createDefaultSettings(uniqueTenantId)
-          console.log('Default settings created for tenant')
+          // Create default settings for this tenant using tenant data
+          console.log('[signIn] Creating settings for tenant:', uniqueTenantId)
+          await settingsService.createDefaultSettingsForTenant(uniqueTenantId, tenantData)
+          console.log('[signIn] Default settings created for tenant with actual data')
         } catch (firestoreError: any) {
           console.warn('Failed to save tenant/user/settings data to Firestore:', firestoreError.message)
           console.log('Continuing with local user data...')
@@ -171,8 +174,10 @@ class AuthService {
       let tenantData: Tenant | undefined
       if (userData.tenantId) {
         try {
+          console.log('[signIn] Loading tenant data for tenantId:', userData.tenantId)
           const tenant = await tenantService.getTenant(userData.tenantId)
           tenantData = tenant || undefined
+          console.log('[signIn] Tenant data loaded:', tenantData)
         } catch (tenantError: any) {
           console.warn('Failed to load tenant data:', tenantError.message)
           // Create default tenant data if Firestore fails
