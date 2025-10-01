@@ -186,6 +186,14 @@ function DashboardPage() {
 
   const loadStats = async () => {
     try {
+      console.log('loadStats called - Firebase functions available:', {
+        collection: typeof collection,
+        getDocs: typeof getDocs,
+        query: typeof query,
+        where: typeof where,
+        db: typeof db
+      })
+      
       const tenantId = authService.getCurrentTenantId()
       if (!tenantId) {
         setStats({ totalOrders: 0, totalSales: 0, totalProducts: 0 })
