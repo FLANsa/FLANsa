@@ -1,5 +1,5 @@
-import { initializeApp } from 'firebase/app'
-import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import { initializeApp, getApps, getApp } from 'firebase/app'
+import { getAuth, connectAuthEmulator, browserLocalPersistence, setPersistence } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
@@ -12,14 +12,17 @@ console.log('Firebase Config:', firebaseConfig)
 console.log('Firebase Auth Domain:', firebaseConfig.authDomain)
 console.log('Firebase Project ID:', firebaseConfig.projectId)
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
+// Initialize Firebase - ensure single instance
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
 // Initialize Firebase services
 export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const functions = getFunctions(app)
 export const storage = getStorage(app)
+
+// Set persistence to browser local storage
+setPersistence(auth, browserLocalPersistence)
 
 // Initialize Analytics only when supported to avoid runtime crashes (e.g., Safari private / non-HTTPS)
 export let analytics: Analytics | undefined

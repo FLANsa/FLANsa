@@ -19,16 +19,24 @@ class AuthService {
   constructor() {
     // Listen to auth state changes
     onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('[onAuthStateChanged] Firebase user =', firebaseUser?.uid || null)
+      console.log('[onAuthStateChanged] Firebase user email =', firebaseUser?.email || null)
+      
       if (firebaseUser) {
         try {
           // Get user data from Firestore
+          console.log('[onAuthStateChanged] Getting user data from Firestore for UID:', firebaseUser.uid)
           const userData = await userService.getUser(firebaseUser.uid)
+          console.log('[onAuthStateChanged] User data from Firestore:', userData)
+          
           if (userData) {
             // Get tenant data if user has tenantId
             let tenantData: Tenant | undefined
             if (userData.tenantId) {
+              console.log('[onAuthStateChanged] Getting tenant data for tenantId:', userData.tenantId)
               const tenant = await tenantService.getTenant(userData.tenantId)
               tenantData = tenant || undefined
+              console.log('[onAuthStateChanged] Tenant data:', tenantData)
             }
             
             this.currentUser = {
@@ -36,23 +44,53 @@ class AuthService {
               firebaseUser,
               tenant: tenantData
             }
+            console.log('[onAuthStateChanged] Current user set to:', this.currentUser)
           } else {
-            // User data not found, sign out
-            await this.signOut()
-            this.currentUser = null
+            console.log('[onAuthStateChanged] No user data found in Firestore, creating default user data')
+            // Create default user data instead of signing out
+            this.currentUser = {
+              id: firebaseUser.uid,
+              tenantId: 'main',
+              name: 'مستخدم',
+              email: firebaseUser.email || '',
+              role: 'cashier',
+              isActive: true,
+              createdAt: null,
+              updatedAt: null,
+              firebaseUser,
+              tenant: {
+                id: 'main',
+                name: 'Qayd Demo Store',
+                nameAr: 'متجر قيد التجريبي',
+                email: 'demo@qayd.com',
+                phone: '+966 11 123 4567',
+                address: 'Riyadh, Saudi Arabia',
+                addressAr: 'الرياض، المملكة العربية السعودية',
+                vatNumber: '123456789012345',
+                crNumber: '1010101010',
+                subscriptionPlan: 'premium' as const,
+                subscriptionStatus: 'active' as const,
+                subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                isActive: true,
+                createdAt: null,
+                updatedAt: null
+              }
+            }
+            console.log('[onAuthStateChanged] Created default user data:', this.currentUser)
           }
         } catch (error) {
-          console.error('Error fetching user data:', error)
+          console.error('[onAuthStateChanged] Error fetching user data:', error)
           this.currentUser = null
         }
       } else {
+        console.log('[onAuthStateChanged] No Firebase user, setting currentUser to null')
         this.currentUser = null
       }
-      
+
       // Notify all listeners
-      console.log('Notifying', this.authStateListeners.length, 'auth state listeners')
+      console.log('[onAuthStateChanged] Notifying', this.authStateListeners.length, 'auth state listeners')
       this.authStateListeners.forEach((listener, index) => {
-        console.log(`Calling listener ${index} with user:`, this.currentUser)
+        console.log(`[onAuthStateChanged] Calling listener ${index} with user:`, this.currentUser)
         listener(this.currentUser)
       })
     })
