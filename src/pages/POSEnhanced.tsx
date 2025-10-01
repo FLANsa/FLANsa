@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Minus, Trash2, Phone, Printer, CreditCard, Receipt, ShoppingCart, User, Percent, Calculator, CheckCircle, AlertCircle, RefreshCw, Package } from 'lucide-react'
 import { parseNumber, formatToEnglish, formatCurrencyEnglish, cleanNumberInput, isValidNumberInput } from '../utils/numberUtils'
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
@@ -6,6 +7,7 @@ import { db } from '../lib/firebase'
 import { authService } from '../lib/authService'
 
 const POSEnhanced: React.FC = () => {
+  const navigate = useNavigate()
   const [cart, setCart] = useState([])
   const [selectedMode, setSelectedMode] = useState('dine-in')
   const [customerPhone, setCustomerPhone] = useState('')
@@ -242,7 +244,7 @@ const POSEnhanced: React.FC = () => {
       alert('تم إتمام البيع بنجاح! جاري فتح صفحة الطباعة...')
       
       // Navigate to print page
-      window.location.href = `/print/${order.id}`
+      navigate(`/print/${order.id}`)
       
     } catch (error) {
       console.error('Error processing order:', error)
