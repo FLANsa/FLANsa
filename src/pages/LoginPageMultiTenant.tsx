@@ -184,6 +184,7 @@ export default function LoginPageMultiTenant() {
                     id="email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -200,6 +201,7 @@ export default function LoginPageMultiTenant() {
                     id="password"
                     name="password"
                     type="password"
+                    autoComplete="current-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -317,6 +319,7 @@ export default function LoginPageMultiTenant() {
                       id="email"
                       name="email"
                       type="email"
+                      autoComplete="email"
                       required
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="store@example.com"
@@ -330,6 +333,7 @@ export default function LoginPageMultiTenant() {
                       id="phone"
                       name="phone"
                       type="tel"
+                      autoComplete="tel"
                       required
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="+966 50 123 4567"
@@ -419,6 +423,7 @@ export default function LoginPageMultiTenant() {
                         id="adminEmail"
                         name="adminEmail"
                         type="email"
+                        autoComplete="email"
                         required
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         placeholder="admin@mystore.com"

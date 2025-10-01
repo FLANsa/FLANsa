@@ -423,6 +423,7 @@ function ProductsPage() {
                     <label className="block text-sm text-gray-700 arabic mb-1">الاسم (عربي)</label>
                 <input
                   type="text"
+                  autoComplete="off"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -433,6 +434,7 @@ function ProductsPage() {
                     <label className="block text-sm text-gray-700 english mb-1">Name (English)</label>
                 <input
                   type="text"
+                  autoComplete="off"
                       value={nameEn}
                       onChange={(e) => setNameEn(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -445,6 +447,7 @@ function ProductsPage() {
                       <label className="block text-sm text-gray-700 arabic mb-1">السعر (SAR)</label>
                       <input
                         type="number"
+                        autoComplete="off"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
