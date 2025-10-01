@@ -4,7 +4,6 @@ import { authService } from '../lib/authService'
 import { tenantService, userService } from '../lib/firebaseServices'
 import { Tenant } from '../lib/firebaseServices'
 import { DEMO_CREDENTIALS } from '../lib/seedMultiTenantData'
-import { createFirebaseAuthUsers, createSingleFirebaseUser } from '../lib/createFirebaseUsers'
 
 export default function LoginPageMultiTenant() {
   const [email, setEmail] = useState('')
@@ -14,7 +13,6 @@ export default function LoginPageMultiTenant() {
   const [showTenantForm, setShowTenantForm] = useState(false)
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [selectedTenant, setSelectedTenant] = useState<string>('')
-  const [creatingUsers, setCreatingUsers] = useState(false)
   
   const navigate = useNavigate()
 
@@ -78,7 +76,7 @@ export default function LoginPageMultiTenant() {
       
       // Provide more specific error messages
       if (error.code === 'auth/user-not-found') {
-        setError('المستخدم غير موجود. تأكد من صحة البريد الإلكتروني أو اضغط على "إنشاء الحسابات التجريبية"')
+        setError('المستخدم غير موجود. تأكد من صحة البريد الإلكتروني')
       } else if (error.code === 'auth/wrong-password') {
         setError('كلمة المرور غير صحيحة')
       } else if (error.code === 'auth/network-request-failed') {
@@ -154,40 +152,6 @@ export default function LoginPageMultiTenant() {
     }
   }
 
-  const handleCreateDemoUsers = async () => {
-    setCreatingUsers(true)
-    setError('')
-    
-    try {
-      console.log('Creating demo users...')
-      const result = await createFirebaseAuthUsers()
-      console.log('Demo users created successfully')
-      setError(`تم إنشاء الحسابات التجريبية بنجاح! تم إنشاء ${result.createdCount} حساب جديد و ${result.existingCount} حساب موجود مسبقاً. يمكنك الآن تسجيل الدخول.`)
-    } catch (error: any) {
-      console.error('Error creating demo users:', error)
-      setError(error.message || 'خطأ في إنشاء الحسابات التجريبية')
-    } finally {
-      setCreatingUsers(false)
-    }
-  }
-
-  const testFirebaseConnection = async () => {
-    try {
-      console.log('Testing Firebase connection...')
-      // Try to get current user (this will test auth connection)
-      const currentUser = authService.getCurrentUser()
-      console.log('Current user:', currentUser)
-      
-      // Try to create a test user
-      const testResult = await createSingleFirebaseUser('test@test.com', '123456')
-      console.log('Test user creation result:', testResult)
-      
-      setError('Firebase connection test completed - check console for details')
-    } catch (error: any) {
-      console.error('Firebase connection test failed:', error)
-      setError(`Firebase connection test failed: ${error.message}`)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -261,27 +225,8 @@ export default function LoginPageMultiTenant() {
                 >
                   إنشاء حساب جديد للمحل
                 </button>
-                <button
-                  onClick={handleCreateDemoUsers}
-                  disabled={creatingUsers}
-                  className="text-green-600 hover:text-green-500 text-sm font-medium arabic disabled:opacity-50"
-                >
-                  {creatingUsers ? 'جاري إنشاء الحسابات...' : 'إنشاء الحسابات التجريبية'}
-                </button>
-                <button
-                  onClick={testFirebaseConnection}
-                  className="text-orange-600 hover:text-orange-500 text-sm font-medium arabic"
-                >
-                  اختبار اتصال Firebase
-                </button>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                <h4 className="text-sm font-medium text-blue-900 arabic mb-2">⚠️ مهم:</h4>
-                <p className="text-xs text-blue-700 arabic">
-                  إذا لم تعمل الحسابات، اضغط على زر "إنشاء الحسابات التجريبية" أولاً
-                </p>
-              </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-gray-900 arabic mb-2">حسابات تجريبية:</h4>
