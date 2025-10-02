@@ -378,26 +378,15 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = () => {
-      const authenticated = authService.isAuthenticated()
-      const currentUser = authService.getCurrentUser()
-      console.log('App checkAuth - authenticated:', authenticated)
-      console.log('App checkAuth - currentUser:', currentUser)
-      console.log('App checkAuth - currentUser exists:', !!currentUser)
-      setIsLoggedIn(authenticated)
-      setLoading(false)
-    }
-
-    checkAuth()
-
-    // Listen to auth state changes
+    // Listen to auth state changes only
     const unsubscribe = authService.onAuthStateChange((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
       console.log('User object:', user)
-      console.log('User ID:', user?.id)
-      console.log('User email:', user?.email)
-      console.log('User tenantId:', user?.tenantId)
+      if (user) {
+        console.log('User ID:', user.id)
+        console.log('User email:', user.email)
+        console.log('User tenantId:', user.tenantId)
+      }
       console.log('Setting isLoggedIn to:', !!user)
       setIsLoggedIn(!!user)
       setLoading(false)

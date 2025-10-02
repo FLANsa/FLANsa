@@ -15,13 +15,15 @@ export default function LoginPageMultiTenant() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check if user is already logged in
-    console.log('LoginPage useEffect - checking auth status')
-    if (authService.isAuthenticated()) {
-      console.log('User already authenticated, navigating to dashboard')
-      navigate('/dashboard')
-    }
+    // Listen to auth state changes
+    const unsubscribe = authService.onAuthStateChange((user) => {
+      if (user) {
+        console.log('User already authenticated, navigating to dashboard')
+        navigate('/dashboard')
+      }
+    })
     
+    return unsubscribe
   }, [navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
