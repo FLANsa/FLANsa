@@ -1,10 +1,10 @@
-// Real Firebase configuration - Qayd POS System
+// Firebase configuration - Qayd POS System
 export const firebaseConfig = {
-  apiKey: "AIzaSyBhVWOAUrQ-9AefIpPgF7oQ3nXrc3xIUNE",
-  authDomain: "big-diet-restaurant-pos.firebaseapp.com",
-  projectId: "big-diet-restaurant-pos",
-  storageBucket: "big-diet-restaurant-pos.appspot.com",
-  messagingSenderId: "413735572767",
-  appId: "1:413735572767:web:b23941c29a9f3bd77a0c2a",
-  measurementId: "G-8D3SRZHDXJ"
+  apiKey: "AIzaSyDr62-VTj3CuJZuVdbW5O1LPWwhdpZ9WiM",
+  authDomain: "qayd-pos.firebaseapp.com",
+  projectId: "qayd-pos",
+  storageBucket: "qayd-pos.firebasestorage.app",
+  messagingSenderId: "254589973271",
+  appId: "1:254589973271:web:815c633ca31a7fe7583d52",
+  measurementId: "G-9383J4C1F4"
 }
