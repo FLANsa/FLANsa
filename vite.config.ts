@@ -57,6 +57,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false, // Disable sourcemap in production to reduce size
+    minify: 'terser', // Use terser for better minification
     rollupOptions: {
       output: {
         manualChunks: {
@@ -68,5 +69,8 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 1000 // Increase warning limit to 1MB
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'firebase/app', 'firebase/auth', 'firebase/firestore']
   }
 })

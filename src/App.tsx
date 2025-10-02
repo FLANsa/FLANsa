@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import {
   ShoppingCart, Package, Settings, Receipt, Printer, BarChart3
 } from 'lucide-react'
 import { generateZATCAQR, formatZATCATimestamp, generateUUID } from './lib/zatca'
-import SalesReportsPageTest from './pages/SalesReportsPage'
-import POSEnhanced from './pages/POSEnhanced'
-import ProductsPage from './pages/ProductsPage'
-import SettingsPage from './pages/SettingsPage'
 import { formatToEnglish } from './utils/numberUtils'
-import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
 import { authService } from './lib/authService'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from './lib/firebase'
+
+// Lazy load components for better performance
+const SalesReportsPageTest = lazy(() => import('./pages/SalesReportsPage'))
+const POSEnhanced = lazy(() => import('./pages/POSEnhanced'))
+const ProductsPage = lazy(() => import('./pages/ProductsPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const LoginPageMultiTenant = lazy(() => import('./pages/LoginPageMultiTenant'))
 
 /* Login page now comes from src/pages/LoginPage */
 
@@ -404,7 +406,13 @@ function App() {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPageMultiTenant />} />
+        <Route path="/login" element={
+          <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>}>
+            <LoginPageMultiTenant />
+          </Suspense>
+        } />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
@@ -414,11 +422,41 @@ function App() {
   return (
       <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/pos" element={<POSEnhanced />} />
-        <Route path="/products" element={<ProductsPage />} />
-      <Route path="/reports" element={<SalesReportsPageTest />} />
-        <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/dashboard" element={
+        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>}>
+          <DashboardPage />
+        </Suspense>
+      } />
+      <Route path="/pos" element={
+        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>}>
+          <POSEnhanced />
+        </Suspense>
+      } />
+      <Route path="/products" element={
+        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>}>
+          <ProductsPage />
+        </Suspense>
+      } />
+      <Route path="/reports" element={
+        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>}>
+          <SalesReportsPageTest />
+        </Suspense>
+      } />
+      <Route path="/settings" element={
+        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>}>
+          <SettingsPage />
+        </Suspense>
+      } />
         <Route path="/print/:orderId" element={<PrintPage />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

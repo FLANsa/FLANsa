@@ -21,8 +21,8 @@ export const db = getFirestore(app)
 export const functions = getFunctions(app)
 export const storage = getStorage(app)
 
-// Set persistence to browser local storage
-setPersistence(auth, browserLocalPersistence)
+// Set persistence asynchronously to avoid blocking
+setPersistence(auth, browserLocalPersistence).catch(console.error)
 
 // Initialize Analytics only when supported to avoid runtime crashes (e.g., Safari private / non-HTTPS)
 export let analytics: Analytics | undefined

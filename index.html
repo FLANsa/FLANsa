@@ -11,10 +11,32 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     
-    <!-- Fonts -->
+    <!-- Fonts - Optimized loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100;200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Critical CSS -->
+    <style>
+      /* Prevent font loading flash */
+      .arabic { font-family: 'Noto Sans Arabic', sans-serif; }
+      .english { font-family: 'JetBrains Mono', monospace; }
+      
+      /* Critical styles for LCP element */
+      h1.mt-0\.5\.text-2xl\.sm\:text-3xl\.font-extrabold\.arabic\.tracking-tight {
+        font-family: 'Noto Sans Arabic', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        color: #1f2937;
+      }
+      
+      @media (min-width: 640px) {
+        h1.mt-0\.5\.text-2xl\.sm\:text-3xl\.font-extrabold\.arabic\.tracking-tight {
+          font-size: 1.875rem;
+        }
+      }
+    </style>
     
     <title>قيد - نظام الكاشير</title>
   </head>
