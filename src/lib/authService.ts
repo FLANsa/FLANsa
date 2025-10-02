@@ -2,7 +2,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  getAuth
 } from 'firebase/auth'
 import { auth } from './firebase'
 import { userService, tenantService, settingsService, User, Tenant } from './firebaseServices'
@@ -272,10 +273,13 @@ class AuthService {
   onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback)
     
-    // Call immediately with current user if available (for instant response)
-    if (this.currentUser) {
+    // Check Firebase Auth state immediately
+    const firebaseUser = getAuth().currentUser
+    if (firebaseUser && this.currentUser) {
+      console.log('[onAuthStateChange] Firebase user exists, calling callback immediately')
       callback(this.currentUser)
     } else {
+      console.log('[onAuthStateChange] No Firebase user or currentUser, calling callback with null')
       callback(null)
     }
     

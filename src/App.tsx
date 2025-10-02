@@ -377,7 +377,14 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
-    // Listen to auth state changes only
+    // Check initial auth state first
+    const initialUser = authService.getCurrentUser()
+    if (initialUser) {
+      console.log('Initial user found:', initialUser.id)
+      setIsLoggedIn(true)
+    }
+
+    // Listen to auth state changes
     const unsubscribe = authService.onAuthStateChange((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
       if (user) {
