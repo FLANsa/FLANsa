@@ -1,6 +1,6 @@
-# Deployment Guide - Big Diet POS
+# Deployment Guide - Qayd POS
 
-This guide covers deploying the Big Diet Restaurant POS system to production.
+This guide covers deploying the Qayd POS system to production.
 
 ## Prerequisites
 
@@ -14,8 +14,8 @@ This guide covers deploying the Big Diet Restaurant POS system to production.
 ### 1. Create Firebase Project
 ```bash
 firebase login
-firebase projects:create big-diet-pos
-firebase use big-diet-pos
+firebase projects:create qayd-pos
+firebase use qayd-pos
 ```
 
 ### 2. Enable Required Services
@@ -61,15 +61,15 @@ cp env.example .env
 ```env
 # Firebase Configuration
 VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=big-diet-pos.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=big-diet-pos
-VITE_FIREBASE_STORAGE_BUCKET=big-diet-pos.appspot.com
+VITE_FIREBASE_AUTH_DOMAIN=qayd-pos.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=qayd-pos
+VITE_FIREBASE_STORAGE_BUCKET=qayd-pos.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 
 # Business Configuration
-VITE_BUSINESS_NAME=Big Diet Restaurant
-VITE_BUSINESS_NAME_AR=مطعم Big Diet
+VITE_BUSINESS_NAME=Qayd POS System
+VITE_BUSINESS_NAME_AR=قيد - نظام الكاشير
 VITE_VAT_NUMBER=123456789012345
 VITE_CR_NUMBER=1010101010
 VITE_BUSINESS_ADDRESS=Riyadh, Saudi Arabia
@@ -78,8 +78,8 @@ VITE_BUSINESS_PHONE=+966 11 123 4567
 VITE_BUSINESS_EMAIL=info@bigdiet.com
 
 # ZATCA Configuration
-VITE_ZATCA_SELLER_NAME=Big Diet Restaurant
-VITE_ZATCA_SELLER_NAME_AR=مطعم Big Diet
+VITE_ZATCA_SELLER_NAME=Qayd POS System
+VITE_ZATCA_SELLER_NAME_AR=قيد - نظام الكاشير
 VITE_ZATCA_VAT_NUMBER=123456789012345
 VITE_ZATCA_CR_NUMBER=1010101010
 ```
@@ -227,27 +227,27 @@ firebase hosting:channel:logs production
 ### 1. Database Backup
 ```bash
 # Export Firestore data
-gcloud firestore export gs://big-diet-pos-backup/firestore-export
+gcloud firestore export gs://qayd-pos-backup/firestore-export
 
 # Schedule regular backups
 gcloud scheduler jobs create http firestore-backup \
   --schedule="0 2 * * *" \
-  --uri="https://firestore.googleapis.com/v1/projects/big-diet-pos/databases/(default):exportDocuments"
+  --uri="https://firestore.googleapis.com/v1/projects/qayd-pos/databases/(default):exportDocuments"
 ```
 
 ### 2. Storage Backup
 ```bash
 # Backup Firebase Storage
-gsutil -m cp -r gs://big-diet-pos.appspot.com gs://big-diet-pos-backup/storage
+gsutil -m cp -r gs://qayd-pos.appspot.com gs://qayd-pos-backup/storage
 ```
 
 ### 3. Recovery Process
 ```bash
 # Restore Firestore data
-gcloud firestore import gs://big-diet-pos-backup/firestore-export
+gcloud firestore import gs://qayd-pos-backup/firestore-export
 
 # Restore Storage data
-gsutil -m cp -r gs://big-diet-pos-backup/storage gs://big-diet-pos.appspot.com
+gsutil -m cp -r gs://qayd-pos-backup/storage gs://qayd-pos.appspot.com
 ```
 
 ## Performance Optimization

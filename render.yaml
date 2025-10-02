@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: big-diet-pos
+    name: qayd-pos
     runtime: static
     autoDeploy: true
     pullRequestPreviewsEnabled: true

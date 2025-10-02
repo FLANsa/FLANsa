@@ -19,7 +19,7 @@ const PrintPage: React.FC = () => {
       const buildQR = async () => {
         try {
           const qr = await generateZATCAQR({
-            sellerName: 'Big Diet Restaurant',
+            sellerName: 'Qayd POS System',
             vatNumber: '123456789012345',
             timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
             total: parsed.total || 0,
@@ -83,8 +83,8 @@ const PrintPage: React.FC = () => {
         <div className="receipt receipt-58mm bg-white p-4 shadow-lg">
           {/* Header */}
           <div className="text-center mb-4">
-            <h1 className="text-lg font-bold arabic">مطعم Big Diet</h1>
-            <p className="text-sm english">Big Diet Restaurant</p>
+            <h1 className="text-lg font-bold arabic">قيد - نظام الكاشير</h1>
+            <p className="text-sm english">Qayd POS System</p>
             <p className="text-xs arabic">الرياض، المملكة العربية السعودية</p>
             <p className="text-xs english">Riyadh, Saudi Arabia</p>
             <p className="text-xs">+966 11 123 4567</p>

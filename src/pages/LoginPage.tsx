@@ -70,7 +70,7 @@ export default function LoginPage() {
             تسجيل الدخول
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 arabic">
-            نظام نقطة البيع - مطعم Big Diet
+            نظام نقطة البيع - قيد
           </p>
         </div>
         
@@ -170,10 +170,10 @@ export default function LoginPage() {
         
         <div className="text-center">
           <p className="text-xs text-gray-500 arabic">
-            مطعم Big Diet - نظام نقطة البيع
+            قيد - نظام نقطة البيع
           </p>
           <p className="text-xs text-gray-400 english">
-            Big Diet Restaurant - Point of Sale System
+            Qayd POS System - Point of Sale System
           </p>
         </div>
       </div>

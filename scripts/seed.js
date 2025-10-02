@@ -14,16 +14,16 @@ const seedData = {
   settings: {
     id: 'main',
     branchId: 'main-branch',
-    businessName: 'Big Diet Restaurant',
-    businessNameAr: 'مطعم Big Diet',
+    businessName: 'Qayd POS System',
+    businessNameAr: 'قيد - نظام الكاشير',
     vatRate: 15,
     serviceChargeRate: 0,
     currency: 'SAR',
     timezone: 'Asia/Riyadh',
     language: 'both',
     receiptSettings: {
-      headerText: 'Welcome to Big Diet Restaurant',
-      headerTextAr: 'مرحباً بكم في مطعم Big Diet',
+      headerText: 'Welcome to Qayd POS System',
+      headerTextAr: 'مرحباً بكم في قيد - نظام الكاشير',
       footerText: 'Thank you for your visit',
       footerTextAr: 'شكراً لزيارتكم',
       showLogo: true,
@@ -36,8 +36,8 @@ const seedData = {
       printKOT: true
     },
     zatcaSettings: {
-      sellerName: 'Big Diet Restaurant',
-      sellerNameAr: 'مطعم Big Diet',
+      sellerName: 'Qayd POS System',
+      sellerNameAr: 'قيد - نظام الكاشير',
       vatNumber: '123456789012345',
       crNumber: '1010101010',
       address: 'Riyadh, Saudi Arabia',

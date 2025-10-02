@@ -5,8 +5,8 @@ import { settingsService, tenantService } from '../lib/firebaseServices'
 
 const SettingsPage: React.FC = () => {
   const [formData, setFormData] = useState({
-    restaurantName: 'مطعم Big Diet',
-    restaurantNameAr: 'مطعم Big Diet',
+    restaurantName: 'قيد - نظام الكاشير',
+    restaurantNameAr: 'قيد - نظام الكاشير',
     vatNumber: '123456789012345',
     crNumber: '1010101010',
     phone: '+966 11 123 4567',

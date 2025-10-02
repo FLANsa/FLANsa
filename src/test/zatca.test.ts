@@ -9,7 +9,7 @@ import {
 
 describe('ZATCA Compliance', () => {
   const testData = {
-    sellerName: 'Big Diet Restaurant',
+    sellerName: 'Qayd POS System',
     vatNumber: '123456789012345',
     timestamp: '2025-01-17T20:15:00.000Z',
     total: 31.05,

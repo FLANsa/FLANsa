@@ -9,7 +9,7 @@ const admin = require('firebase-admin');
 
 // For now, let's use the emulator
 admin.initializeApp({
-  projectId: 'big-diet-restaurant-pos'
+  projectId: 'qayd-pos'
 });
 
 async function setUserRoles() {

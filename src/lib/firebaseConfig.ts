@@ -1,4 +1,4 @@
-// Real Firebase configuration - Big Diet Restaurant POS
+// Real Firebase configuration - Qayd POS System
 export const firebaseConfig = {
   apiKey: "AIzaSyBhVWOAUrQ-9AefIpPgF7oQ3nXrc3xIUNE",
   authDomain: "big-diet-restaurant-pos.firebaseapp.com",

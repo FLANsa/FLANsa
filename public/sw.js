@@ -1,5 +1,5 @@
-// Service Worker for Big Diet POS
-const CACHE_NAME = 'big-diet-pos-v1'
+// Service Worker for Qayd POS
+const CACHE_NAME = 'qayd-pos-v1'
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
