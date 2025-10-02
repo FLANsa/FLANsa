@@ -272,6 +272,13 @@ class AuthService {
   onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback)
     
+    // Call immediately with current user if available (for instant response)
+    if (this.currentUser) {
+      callback(this.currentUser)
+    } else {
+      callback(null)
+    }
+    
     // Return unsubscribe function
     return () => {
       const index = this.authStateListeners.indexOf(callback)

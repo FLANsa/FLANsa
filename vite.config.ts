@@ -5,7 +5,10 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Enable fast refresh for better development experience
+      fastRefresh: true
+    }),
     VitePWA({
       registerType: 'autoUpdate',
              includeAssets: ['favicon.ico'],
@@ -46,7 +49,10 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: true,
+    hmr: {
+      overlay: false // Disable error overlay for faster development
+    }
   },
   build: {
     outDir: 'dist',

@@ -375,13 +375,11 @@ function DashboardPage() {
 ========================= */
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Listen to auth state changes only
     const unsubscribe = authService.onAuthStateChange((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
-      console.log('User object:', user)
       if (user) {
         console.log('User ID:', user.id)
         console.log('User email:', user.email)
@@ -389,22 +387,10 @@ function App() {
       }
       console.log('Setting isLoggedIn to:', !!user)
       setIsLoggedIn(!!user)
-      setLoading(false)
     })
 
     return unsubscribe
   }, [])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 arabic">جاري التحميل...</p>
-        </div>
-      </div>
-    )
-  }
 
   if (!isLoggedIn) {
     console.log('App: User not logged in, redirecting to login')
