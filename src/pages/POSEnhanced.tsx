@@ -286,22 +286,6 @@ const POSEnhanced: React.FC = () => {
               <h1 className="text-2xl font-extrabold arabic">نقطة البيع</h1>
               <p className="text-sm/6 opacity-90 english">Point of Sale</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium arabic">
-                  {JSON.parse(localStorage.getItem('user') || '{}').name || 'مستخدم'}
-                </p>
-                <p className="text-xs/5 opacity-90">
-                  {JSON.parse(localStorage.getItem('user') || '{}').role || 'role'}
-                </p>
-              </div>
-              <button
-                onClick={() => window.location.href = '/dashboard'}
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-md text-sm backdrop-blur arabic transition"
-              >
-                الصفحة الرئيسية
-              </button>
-            </div>
           </div>
         </div>
       </header>
