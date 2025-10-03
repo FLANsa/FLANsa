@@ -328,6 +328,29 @@ const POSEnhanced: React.FC = () => {
                   className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-lg transition-all duration-200 cursor-pointer ring-1 ring-gray-100 hover:-translate-y-1"
                   onClick={() => addToCart(item)}
                 >
+                  {/* Product Image */}
+                  <div className="mb-3">
+                    {item.imageUrl ? (
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden">
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.nameAr || item.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <span className="text-xs px-2 py-1 rounded-full bg-white/90 text-gray-700 font-medium">
+                            {item.category || 'غير مصنف'}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full h-32 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <Package className="h-8 w-8 text-gray-400" />
+                        <span className="text-sm text-gray-500 arabic mr-2">لا توجد صورة</span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 arabic text-lg">{item.nameAr || item.name}</h3>
@@ -390,10 +413,26 @@ const POSEnhanced: React.FC = () => {
                   <div className="max-h-64 overflow-y-auto space-y-3">
                     {cart.map(item => (
                       <div key={item.id} className="flex items-center justify-between border-b pb-3">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 arabic">{item.nameAr || item.name}</h4>
-                          <p className="text-xs text-gray-500 english">{item.name || item.nameEn}</p>
-                          <p className="text-sm text-gray-500">{formatToEnglish(item.price)} SAR (شامل الضريبة)</p>
+                        <div className="flex items-center space-x-3">
+                          {/* Product Image in Cart */}
+                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                            {item.imageUrl ? (
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.nameAr || item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <Package className="h-4 w-4 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 arabic">{item.nameAr || item.name}</h4>
+                            <p className="text-xs text-gray-500 english">{item.name || item.nameEn}</p>
+                            <p className="text-sm text-gray-500">{formatToEnglish(item.price)} SAR (شامل الضريبة)</p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
