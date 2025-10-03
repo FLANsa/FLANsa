@@ -385,23 +385,21 @@ function App() {
   useEffect(() => {
     const auth = getAuth();
 
-    // انتظر أول تغيير حالة من Firebase ثم قرّر
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       console.log('Firebase auth state changed:', fbUser ? 'User logged in' : 'User logged out');
-      
-      // إذا كان عندك authService منفصل، تقدر تتأكد من مزامنة المستخدم/التيننت هنا
-      // مثال: authService.syncFromFirebaseUser(fbUser)
-      
-      // التحقق من authService إذا كان المستخدم موجود
-      const currentUser = authService.getCurrentUser();
-      const isAuthenticated = !!fbUser && !!currentUser;
-      
-      console.log('Firebase user:', fbUser?.uid);
-      console.log('AuthService user:', currentUser?.id);
-      console.log('Setting isLoggedIn to:', isAuthenticated);
-      
-      setIsLoggedIn(isAuthenticated);      // لا تربطه بفحص آخر لحظي
-      setIsInitialized(true);       // اعتبر التطبيق جاهز بعد أول firing
+
+      // حسم قرار الواجهة مباشرةً من Firebase
+      setIsLoggedIn(!!fbUser);
+      setIsInitialized(true);
+
+      // (اختياري) بعدها بسكّة جانبية، زامن authService/tenant بدون ما تأثر على isInitialized
+      try {
+        if (fbUser && authService.syncFromFirebaseUser) {
+          await authService.syncFromFirebaseUser(fbUser); // إن كانت موجودة
+        }
+      } catch (e) {
+        console.warn('authService sync failed:', e);
+      }
     });
 
     return unsubscribe;

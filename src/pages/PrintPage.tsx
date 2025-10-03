@@ -2,6 +2,7 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
 import { generateZATCAQR, formatZATCATimestamp, generateUUID } from '../lib/zatca'
+import { authService } from '../lib/authService'
 
 const PrintPage: React.FC = () => {
   const { orderId } = useParams()
@@ -11,28 +12,33 @@ const PrintPage: React.FC = () => {
 
   React.useEffect(() => {
     // Get order from localStorage
-    const lastOrder = localStorage.getItem('lastOrder')
-    if (lastOrder) {
-      const parsed = JSON.parse(lastOrder)
-      setOrder(parsed)
-      // Generate ZATCA QR image
-      const buildQR = async () => {
-        try {
-          const qr = await generateZATCAQR({
-            sellerName: 'Qayd POS System',
-            vatNumber: '123456789012345',
-            timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
-            total: parsed.total || 0,
-            vatTotal: parsed.vat || 0,
-            uuid: generateUUID()
-          })
-          setQrUrl(qr)
-        } catch (e) {
-          console.error('QR generation failed', e)
-        }
+    const orderData = localStorage.getItem('lastOrder')
+    if (!orderData) return
+
+    const parsed = JSON.parse(orderData)
+    setOrder(parsed)
+
+    // Get current tenant directly to avoid re-renders
+    const currentTenant = authService.getCurrentTenant()
+
+    // Generate ZATCA QR image
+    const buildQR = async () => {
+      try {
+        const qr = await generateZATCAQR({
+          sellerName: currentTenant?.name || 'Qayd POS System',
+          vatNumber: currentTenant?.vatNumber || '123456789012345',
+          timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
+          total: parsed.total || 0,
+          vatTotal: parsed.vat || 0,
+          uuid: generateUUID()
+        })
+        setQrUrl(qr)
+      } catch (e) {
+        console.error('QR generation failed', e)
       }
-      buildQR()
     }
+    buildQR()
+    // لاحظ: بدون وضع tenant في dependencies
   }, [])
 
   const handlePrint = () => {
