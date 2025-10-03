@@ -14,6 +14,7 @@ const PrintPage: React.FC = () => {
   const [ublXml, setUblXml] = React.useState<string>('')
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string>('')
+  const [currentTenant, setCurrentTenant] = React.useState<any>(null)
 
   const [qrUrl, setQrUrl] = React.useState<string>('')
 
@@ -52,14 +53,15 @@ const PrintPage: React.FC = () => {
         }
 
         // Get current tenant directly to avoid re-renders
-        const currentTenant = authService.getCurrentTenant()
+        const tenant = authService.getCurrentTenant()
+        setCurrentTenant(tenant)
 
         // Generate ZATCA QR image
         const buildQR = async () => {
           try {
             // Use restaurant settings if available, otherwise fallback to tenant data
-            const sellerName = restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'
-            const vatNumber = restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'
+            const sellerName = restaurantSettings?.restaurantName || tenant?.name || 'Qayd POS System'
+            const vatNumber = restaurantSettings?.vatNumber || tenant?.vatNumber || '123456789012345'
             
             const qr = await generateZATCAQR({
               sellerName: sellerName,
@@ -79,9 +81,9 @@ const PrintPage: React.FC = () => {
               issueTime: new Date(parsed.timestamp).toISOString().split('T')[1].split('.')[0],
               sellerName: sellerName,
               sellerVatNumber: vatNumber,
-              sellerCrNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
-              sellerAddress: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
-              sellerPhone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
+              sellerCrNumber: restaurantSettings?.crNumber || tenant?.crNumber || '1010101010',
+              sellerAddress: restaurantSettings?.address || tenant?.address || 'Riyadh, Saudi Arabia',
+              sellerPhone: restaurantSettings?.phone || tenant?.phone || '+966 11 123 4567',
               items: parsed.items?.map((item: any) => ({
                 nameAr: item.nameAr || item.name,
                 nameEn: item.nameEn || item.name,
