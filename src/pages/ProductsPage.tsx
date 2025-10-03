@@ -557,28 +557,25 @@ function ProductsPage() {
                           </div>
 
                           {/* السعر + التصنيف */}
-                          <div className="max-w-xl">
-                            {/* السعر (مع SAR متوافقة RTL) */}
-                            <div className="max-w-xl">
+                          <div className="space-y-4 max-w-xl">
+                            {/* السعر */}
+                            <div>
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر *</label>
-                              <div className="relative">
-                                <input
-                                  type="number"
-                                  autoComplete="off"
-                                  value={price}
-                                  onChange={(e) => setPrice(e.target.value)}
-                                  className={inputBase}
-                                  placeholder="25.00"
-                                  dir="ltr"
-                                  min={0}
-                                  
-                                />
-                                
-                              </div>
+                              <input
+                                type="number"
+                                autoComplete="off"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                className={inputBase}
+                                placeholder="25.00"
+                                dir="ltr"
+                                min={0}
+                                step="0.01"
+                              />
                             </div>
 
                             {/* التصنيف */}
-                            <div className="max-w-xl">
+                            <div>
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">التصنيف</label>
                               <select
                                 value={category}
