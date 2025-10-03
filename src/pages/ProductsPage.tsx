@@ -88,7 +88,7 @@ function ProductsPage() {
     } catch (error) {
       console.error('Error loading items:', error)
       // Fallback to localStorage
-      const data = localStorage.getItem('inventory')
+    const data = localStorage.getItem('inventory')
     try {
       setItems(data ? JSON.parse(data) : [])
     } catch {
@@ -245,7 +245,7 @@ function ProductsPage() {
   function handleEdit(item: InventoryItem) {
     // Fill form with item data
     setName(item.nameAr || item.name)
-    setNameEn(item.nameEn || '')
+    setNameEn(item.nameEn || item.name || '')
     setPrice(item.price.toString())
     setCategory(item.category || '')
     setImagePreview(item.imageUrl || '')
