@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
-import { generateZATCAQR, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID } from '../lib/zatca'
+import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID } from '../lib/zatca'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
 
@@ -63,15 +63,21 @@ const PrintPage: React.FC = () => {
             const sellerName = restaurantSettings?.restaurantName || tenant?.name || 'Qayd POS System'
             const vatNumber = restaurantSettings?.vatNumber || tenant?.vatNumber || '123456789012345'
             
-            const qr = await generateZATCAQR({
+            const qrData = {
               sellerName: sellerName,
               vatNumber: vatNumber,
               timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
               total: parsed.total || 0,
               vatTotal: parsed.vat || 0,
               uuid: generateUUID()
-            })
+            }
+            
+            // Generate QR image for display
+            const qr = await generateZATCAQR(qrData)
             setQrUrl(qr)
+            
+            // Generate TLV Base64 for UBL XML
+            const qrTlvData = generateZATCAQRData(qrData)
             
             // Generate UBL XML
             const ublData = {
@@ -94,7 +100,7 @@ const PrintPage: React.FC = () => {
               subtotal: parsed.subtotal || 0,
               vatTotal: parsed.vat || 0,
               total: parsed.total || 0,
-              qrData: qr // Add QR data to UBL XML
+              qrData: qrTlvData // Add TLV Base64 QR data to UBL XML
             }
             
             const xml = generateUBLXML(ublData)

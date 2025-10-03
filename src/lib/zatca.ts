@@ -59,6 +59,14 @@ export async function generateZATCAQR(data: ZATCAQRData): Promise<string> {
 }
 
 /**
+ * Generate ZATCA QR TLV Base64 data (for UBL XML embedding)
+ */
+export function generateZATCAQRData(data: ZATCAQRData): string {
+  const tlvData = generateZATCATLV(data)
+  return btoa(tlvData)
+}
+
+/**
  * Generate invoice hash for ZATCA compliance
  */
 export function generateInvoiceHash(data: ZATCAQRData): string {
@@ -156,6 +164,10 @@ export function generateUBLXML(data: {
   <cbc:IssueTime>${data.issueTime}</cbc:IssueTime>
   <cbc:InvoiceTypeCode>0100000</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
+  
+  <!-- ZATCA Compliance Fields -->
+  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
+  <cbc:CustomizationID>urn:sa:qayd-pos:invoice:1.0</cbc:CustomizationID>
   
   <!-- Seller Information -->
   <cac:AccountingSupplierParty>
@@ -269,6 +281,19 @@ export function generateUBLXML(data: {
     <cbc:TaxInclusiveAmount currencyID="SAR">${data.total.toFixed(2)}</cbc:TaxInclusiveAmount>
     <cbc:PayableAmount currencyID="SAR">${data.total.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
+  
+  <!-- ZATCA Production Fields -->
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>ICV</cbc:ID>
+    <cbc:DocumentTypeCode>ICV</cbc:DocumentTypeCode>
+    <cbc:DocumentDescription>Invoice Counter Value</cbc:DocumentDescription>
+  </cac:AdditionalDocumentReference>
+  
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>PIH</cbc:ID>
+    <cbc:DocumentTypeCode>PIH</cbc:DocumentTypeCode>
+    <cbc:DocumentDescription>Previous Invoice Hash</cbc:DocumentDescription>
+  </cac:AdditionalDocumentReference>
 </Invoice>`
   
   return xml
@@ -289,6 +314,23 @@ export function generateDigitalSignature(xmlContent: string, privateKey?: string
   } catch (error) {
     console.error('Error generating digital signature:', error)
     return `SIGNATURE_PLACEHOLDER_${Date.now().toString(36)}`
+  }
+}
+
+/**
+ * Generate XML Signature for ZATCA Production
+ * Note: This is a placeholder - real implementation requires ZATCA certificates
+ */
+export function generateXMLSignature(xmlContent: string): string {
+  // Placeholder for XML signature
+  // In real implementation, this would use ZATCA certificates and proper XML signing
+  try {
+    const encodedContent = encodeURIComponent(xmlContent)
+    const hash = btoa(encodedContent)
+    return `XML_SIGNATURE_PLACEHOLDER_${hash.slice(0, 32)}`
+  } catch (error) {
+    console.error('Error generating XML signature:', error)
+    return `XML_SIGNATURE_PLACEHOLDER_${Date.now().toString(36)}`
   }
 }
 
