@@ -265,11 +265,11 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
-      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-700 to-green-600 text-white shadow-lg">
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-700 to-green-600 text-white shadow-lg mx-4 mt-4">
         <div aria-hidden className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_-10%,rgba(255,255,255,.25),transparent)]" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             <div className="text-right">
               <div className="text-xs/5 uppercase tracking-wider english opacity-80">Dashboard</div>
               <h1 className="mt-0.5 text-2xl sm:text-3xl font-extrabold arabic tracking-tight">لوحة التحكم</h1>
