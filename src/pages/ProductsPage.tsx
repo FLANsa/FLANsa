@@ -520,142 +520,142 @@ function ProductsPage() {
                   <form onSubmit={handleAdd} className="p-6 overflow-y-auto flex-1 min-h-0">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                       {/* النموذج (عمودان) */}
-                      <div className="md:col-span-2 space-y-5">
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="text-base font-semibold text-gray-800 arabic mb-3">معلومات المنتج</h4>
-                      
-                      <div className="space-y-5">
-                        {/* الاسم بالعربية */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 arabic mb-2">الاسم بالعربية *</label>
-                          <input
-                            type="text"
-                            autoComplete="off"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-base"
-                            placeholder="مثل: برجر لحم"
-                          />
-                        </div>
-                        
-                        {/* الاسم بالإنجليزية */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 english mb-2">Name (English)</label>
-                          <input
-                            type="text"
-                            autoComplete="off"
-                            value={nameEn}
-                            onChange={(e) => setNameEn(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-base"
-                            placeholder="e.g. Beef Burger"
-                            dir="ltr"
-                          />
-                        </div>
-                        
-                        {/* السعر والتصنيف في صف واحد */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        {/* معلومات المنتج */}
+                        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+                          <h4 className="text-lg font-semibold text-gray-800 arabic">معلومات المنتج</h4>
+                          
+                          {/* الاسم بالعربية */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 arabic mb-2">السعر (SAR) *</label>
-                            <div className="relative">
-                              <input
-                                type="number"
-                                autoComplete="off"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                className="w-full pr-3 pl-16 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-base"
-                                placeholder="مثال: 25.00"
-                                dir="ltr"
-                                min={0}
-                                step="0.01"
-                              />
-                              {/* RTL: لاحقة SAR على اليسار */}
-                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pr-3 text-sm text-gray-600 border-r bg-gray-100 rounded-l-lg">SAR</span>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1 arabic">يمكنك استخدام الكسور العشرية (مثال: 12.50)</p>
+                            <label className="block text-sm font-medium text-gray-700 arabic mb-1">الاسم بالعربية *</label>
+                            <input
+                              type="text"
+                              autoComplete="off"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                              placeholder="مثل: برجر لحم"
+                            />
                           </div>
                           
+                          {/* الاسم بالإنجليزية */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 arabic mb-2">التصنيف</label>
-                            <select
-                              value={category}
-                              onChange={(e) => setCategory(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-base"
-                            >
-                              <option value="">اختر التصنيف</option>
-                              <option value="ساندوتشات">ساندوتشات</option>
-                              <option value="برجر">برجر</option>
-                              <option value="سلطات">سلطات</option>
-                              <option value="مشروبات">مشروبات</option>
-                              <option value="حلويات">حلويات</option>
-                              <option value="مقبلات">مقبلات</option>
-                              <option value="وجبات رئيسية">وجبات رئيسية</option>
-                              <option value="عصائر طبيعية">عصائر طبيعية</option>
-                            </select>
+                            <label className="block text-sm font-medium text-gray-700 english mb-1">Name (English)</label>
+                            <input
+                              type="text"
+                              autoComplete="off"
+                              value={nameEn}
+                              onChange={(e) => setNameEn(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                              placeholder="e.g. Beef Burger"
+                              dir="ltr"
+                            />
                           </div>
-                        </div>
-                        
-                        {/* صورة المنتج */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 arabic mb-3">صورة المنتج</label>
                           
-                          {/* Upload Area */}
-                          <div className="space-y-4">
-                            {/* File Upload */}
-                            <div 
-                              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                                className="hidden"
-                              />
-                              <div className="flex flex-col items-center gap-3">
-                                <div className="p-3 bg-emerald-100 rounded-full">
-                                  <Upload className="h-6 w-6 text-emerald-600" />
-                                </div>
-                                <div>
-                                  <p className="text-base font-medium text-gray-700 arabic">اضغط لرفع صورة</p>
-                                  <p className="text-sm text-gray-500 arabic">PNG, JPG, GIF حتى 5MB</p>
-                                </div>
+                          {/* السعر والتصنيف */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* السعر */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر (SAR) *</label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  autoComplete="off"
+                                  value={price}
+                                  onChange={(e) => setPrice(e.target.value)}
+                                  className="w-full pr-2 pl-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                                  placeholder="25.00"
+                                  dir="ltr"
+                                  min={0}
+                                  step="0.01"
+                                />
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-2 pr-2 text-xs text-gray-600 border-r bg-gray-50 rounded-l-md">SAR</span>
                               </div>
                             </div>
                             
-                            {/* Image Preview */}
-                            {imagePreview && (
-                              <div className="relative">
-                                <img
-                                  src={imagePreview}
-                                  alt="Preview"
-                                  className="w-full h-32 object-cover rounded-lg border"
+                            {/* التصنيف */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 arabic mb-1">التصنيف</label>
+                              <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                              >
+                                <option value="">اختر التصنيف</option>
+                                <option value="ساندوتشات">ساندوتشات</option>
+                                <option value="برجر">برجر</option>
+                                <option value="سلطات">سلطات</option>
+                                <option value="مشروبات">مشروبات</option>
+                                <option value="حلويات">حلويات</option>
+                                <option value="مقبلات">مقبلات</option>
+                                <option value="وجبات رئيسية">وجبات رئيسية</option>
+                                <option value="عصائر طبيعية">عصائر طبيعية</option>
+                              </select>
+                            </div>
+                          </div>
+                          
+                          {/* صورة المنتج */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 arabic mb-2">صورة المنتج</label>
+                            
+                            {/* Upload Area */}
+                            <div className="space-y-3">
+                              {/* File Upload */}
+                              <div 
+                                className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                onClick={() => fileInputRef.current?.click()}
+                              >
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  className="hidden"
                                 />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setImagePreview('')
-                                    setUploadedImage(null)
-                                    if (fileInputRef.current) fileInputRef.current.value = ''
-                                  }}
-                                  className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
+                                <div className="flex flex-col items-center gap-2">
+                                  <div className="p-2 bg-emerald-100 rounded-full">
+                                    <Upload className="h-5 w-5 text-emerald-600" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700 arabic">اضغط لرفع صورة</p>
+                                    <p className="text-xs text-gray-500 arabic">PNG, JPG, GIF حتى 5MB</p>
+                                  </div>
+                                </div>
                               </div>
-                            )}
+                              
+                              {/* Image Preview */}
+                              {imagePreview && (
+                                <div className="relative">
+                                  <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    className="w-full h-24 object-cover rounded-md border"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setImagePreview('')
+                                      setUploadedImage(null)
+                                      if (fileInputRef.current) fileInputRef.current.value = ''
+                                    }}
+                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        
-                        {error && (
-                          <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm arabic flex items-center gap-2">
-                            <X className="h-4 w-4" />
-                            {error}
-                          </div>
-                        )}
+                          
+                          {/* Error Message */}
+                          {error && (
+                            <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm arabic flex items-center gap-2">
+                              <X className="h-4 w-4" />
+                              {error}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
 
                     {/* المعاينة (عمود ثالث ثابت) */}
                     <aside className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-100 md:sticky md:top-4 md:self-start">
