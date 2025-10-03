@@ -559,7 +559,7 @@ function ProductsPage() {
                           {/* السعر + التصنيف */}
                           <div className="space-y-4 max-w-xl">
                             {/* السعر (مع SAR متوافقة RTL) */}
-                            <div>
+                            <div className="max-w-xl">
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر *</label>
                               <div className="relative">
                                 <input
@@ -573,17 +573,12 @@ function ProductsPage() {
                                   min={0}
                                   step="0.01"
                                 />
-                                <span
-                                  className="absolute inset-y-0 left-0 flex items-center justify-center px-3 text-xs text-gray-600
-                                             bg-gray-50 border-r border-gray-300 rounded-l-lg h-11"
-                                >
-                                  SAR
-                                </span>
+                                
                               </div>
                             </div>
 
                             {/* التصنيف */}
-                            <div>
+                            <div className="max-w-xl">
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">التصنيف</label>
                               <select
                                 value={category}
