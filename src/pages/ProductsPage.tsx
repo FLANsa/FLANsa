@@ -577,46 +577,45 @@ function ProductsPage() {
                                 </div>
                               </div>
 
-                              {/* Price and Category */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-sm font-semibold text-gray-700 arabic mb-3">السعر *</label>
-                                  <div className="relative">
-                                    <input
-                                      type="number"
-                                      autoComplete="off"
-                                      value={price}
-                                      onChange={(e) => setPrice(e.target.value)}
-                                      className={`${inputBase} text-center pr-12`}
-                                      placeholder="25.00"
-                                      dir="ltr"
-                                      min={0}
-                                      step="0.01"
-                                    />
-                                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm font-medium text-gray-500">
-                                      SAR
-                                    </span>
-                                  </div>
+                              {/* Price */}
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 arabic mb-3">السعر *</label>
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    autoComplete="off"
+                                    value={price}
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    className={`${inputBase} text-center pr-12`}
+                                    placeholder="25.00"
+                                    dir="ltr"
+                                    min={0}
+                                    step="0.01"
+                                  />
+                                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm font-medium text-gray-500">
+                                    SAR
+                                  </span>
                                 </div>
+                              </div>
 
-                                <div>
-                                  <label className="block text-sm font-semibold text-gray-700 arabic mb-3">التصنيف</label>
-                                  <select
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className={inputBase}
-                                  >
-                                    <option value="">اختر التصنيف</option>
-                                    <option value="ساندوتشات">ساندوتشات</option>
-                                    <option value="برجر">برجر</option>
-                                    <option value="سلطات">سلطات</option>
-                                    <option value="مشروبات">مشروبات</option>
-                                    <option value="حلويات">حلويات</option>
-                                    <option value="مقبلات">مقبلات</option>
-                                    <option value="وجبات رئيسية">وجبات رئيسية</option>
-                                    <option value="عصائر طبيعية">عصائر طبيعية</option>
-                                  </select>
-                                </div>
+                              {/* Category */}
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 arabic mb-3">التصنيف</label>
+                                <select
+                                  value={category}
+                                  onChange={(e) => setCategory(e.target.value)}
+                                  className={inputBase}
+                                >
+                                  <option value="">اختر التصنيف</option>
+                                  <option value="ساندوتشات">ساندوتشات</option>
+                                  <option value="برجر">برجر</option>
+                                  <option value="سلطات">سلطات</option>
+                                  <option value="مشروبات">مشروبات</option>
+                                  <option value="حلويات">حلويات</option>
+                                  <option value="مقبلات">مقبلات</option>
+                                  <option value="وجبات رئيسية">وجبات رئيسية</option>
+                                  <option value="عصائر طبيعية">عصائر طبيعية</option>
+                                </select>
                               </div>
                             </div>
 
