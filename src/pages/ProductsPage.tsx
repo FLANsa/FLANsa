@@ -557,7 +557,7 @@ function ProductsPage() {
                           </div>
 
                           {/* السعر + التصنيف */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                          <div className="space-y-4 max-w-xl">
                             {/* السعر (مع SAR متوافقة RTL) */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر *</label>
