@@ -299,7 +299,6 @@ const POSEnhanced: React.FC = () => {
                           : 'bg-white/20 text-white hover:bg-white/30'
                       }`}
                     >
-                      <span>{mode.icon}</span>
                       <span className="arabic">{mode.label}</span>
                     </button>
                   ))}
