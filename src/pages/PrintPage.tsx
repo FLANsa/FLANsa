@@ -3,10 +3,12 @@ import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
 import { generateZATCAQR, formatZATCATimestamp, generateUUID } from '../lib/zatca'
 import { authService } from '../lib/authService'
+import { settingsService } from '../lib/firebaseServices'
 
 const PrintPage: React.FC = () => {
   const { orderId } = useParams()
   const [order, setOrder] = React.useState(null)
+  const [restaurantSettings, setRestaurantSettings] = React.useState(null)
 
   const [qrUrl, setQrUrl] = React.useState<string>('')
 
@@ -18,15 +20,37 @@ const PrintPage: React.FC = () => {
     const parsed = JSON.parse(orderData)
     setOrder(parsed)
 
+    // Load restaurant settings from Firebase
+    const loadSettings = async () => {
+      try {
+        const tenantId = authService.getCurrentTenantId()
+        if (tenantId) {
+          const settings = await settingsService.getSettingsByTenant(tenantId)
+          if (settings) {
+            setRestaurantSettings(settings)
+            console.log('Restaurant settings loaded:', settings)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading restaurant settings:', error)
+      }
+    }
+    
+    loadSettings()
+
     // Get current tenant directly to avoid re-renders
     const currentTenant = authService.getCurrentTenant()
 
     // Generate ZATCA QR image
     const buildQR = async () => {
       try {
+        // Use restaurant settings if available, otherwise fallback to tenant data
+        const sellerName = restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'
+        const vatNumber = restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'
+        
         const qr = await generateZATCAQR({
-          sellerName: currentTenant?.name || 'Qayd POS System',
-          vatNumber: currentTenant?.vatNumber || '123456789012345',
+          sellerName: sellerName,
+          vatNumber: vatNumber,
           timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
           total: parsed.total || 0,
           vatTotal: parsed.vat || 0,
@@ -39,7 +63,7 @@ const PrintPage: React.FC = () => {
     }
     buildQR()
     // لاحظ: بدون وضع tenant في dependencies
-  }, [])
+  }, [restaurantSettings])
 
   const handlePrint = () => {
     window.print()
@@ -89,11 +113,11 @@ const PrintPage: React.FC = () => {
         <div className="receipt receipt-58mm bg-white p-4 shadow-lg">
           {/* Header */}
           <div className="text-center mb-4">
-            <h1 className="text-lg font-bold arabic">قيد - نظام الكاشير</h1>
-            <p className="text-sm english">Qayd POS System</p>
-            <p className="text-xs arabic">الرياض، المملكة العربية السعودية</p>
-            <p className="text-xs english">Riyadh, Saudi Arabia</p>
-            <p className="text-xs">+966 11 123 4567</p>
+            <h1 className="text-lg font-bold arabic">{restaurantSettings?.restaurantNameAr || currentTenant?.nameAr || 'قيد - نظام الكاشير'}</h1>
+            <p className="text-sm english">{restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'}</p>
+            <p className="text-xs arabic">{restaurantSettings?.addressAr || currentTenant?.addressAr || 'الرياض، المملكة العربية السعودية'}</p>
+            <p className="text-xs english">{restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia'}</p>
+            <p className="text-xs">{restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567'}</p>
           </div>
 
           <div className="border-t border-b border-gray-300 py-2 my-2">

@@ -5,14 +5,14 @@ import { settingsService, tenantService } from '../lib/firebaseServices'
 
 const SettingsPage: React.FC = () => {
   const [formData, setFormData] = useState({
-    restaurantName: 'قيد - نظام الكاشير',
-    restaurantNameAr: 'قيد - نظام الكاشير',
-    vatNumber: '123456789012345',
-    crNumber: '1010101010',
-    phone: '+966 11 123 4567',
-    address: 'Riyadh, Saudi Arabia',
-    addressAr: 'الرياض، المملكة العربية السعودية',
-    email: 'info@bigdiet.com',
+    restaurantName: '',
+    restaurantNameAr: '',
+    vatNumber: '',
+    crNumber: '',
+    phone: '',
+    address: '',
+    addressAr: '',
+    email: '',
     vatRate: 15,
     language: 'ar'
   })
@@ -158,6 +158,30 @@ const SettingsPage: React.FC = () => {
 
       // Also save to localStorage as backup
       localStorage.setItem('restaurantSettings', JSON.stringify(formData))
+      
+      // Update tenant data in authService to reflect changes immediately
+      const currentTenant = authService.getCurrentTenant()
+      if (currentTenant) {
+        // Update tenant data with new settings
+        const updatedTenant = {
+          ...currentTenant,
+          name: formData.restaurantName,
+          nameAr: formData.restaurantNameAr,
+          vatNumber: formData.vatNumber,
+          crNumber: formData.crNumber,
+          phone: formData.phone,
+          address: formData.address,
+          addressAr: formData.addressAr,
+          email: formData.email
+        }
+        
+        // Update the tenant in authService
+        if (authService.currentUser) {
+          authService.currentUser.tenant = updatedTenant
+        }
+        
+        console.log('Tenant data updated in authService:', updatedTenant)
+      }
       
       setSuccess('تم حفظ الإعدادات بنجاح')
     } catch (error) {
@@ -350,8 +374,8 @@ const SettingsPage: React.FC = () => {
                 </span>
               ) : (
                 <>
-                  <Save className="h-4 w-4 inline mr-2" />
-                  حفظ الإعدادات
+              <Save className="h-4 w-4 inline mr-2" />
+              حفظ الإعدادات
                 </>
               )}
             </button>
