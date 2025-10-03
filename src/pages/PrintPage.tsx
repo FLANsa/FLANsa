@@ -128,8 +128,8 @@ const PrintPage: React.FC = () => {
             {order.items.map((item, index) => (
               <div key={index} className="flex justify-between text-sm mb-1">
                 <div className="flex-1">
-                  <div className="arabic">{item.name}</div>
-                  <div className="english text-xs text-gray-600">{item.nameEn}</div>
+                  <div className="arabic">{item.nameAr || item.name}</div>
+                  <div className="english text-xs text-gray-600">{item.nameEn || item.name}</div>
                 </div>
                 <div className="text-center w-12">{item.quantity}</div>
                 <div className="text-left w-16">{(item.price * item.quantity).toFixed(2)}</div>
