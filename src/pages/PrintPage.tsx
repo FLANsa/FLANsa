@@ -19,112 +19,114 @@ const PrintPage: React.FC = () => {
 
   React.useEffect(() => {
     console.log('PrintPage useEffect started')
-    try {
-      // Get order from localStorage
-      const orderData = localStorage.getItem('lastOrder')
-      console.log('Order data from localStorage:', orderData)
-      
-      if (!orderData) {
-        console.log('No order data found')
-        setError('لا يوجد طلب للطباعة')
-        setLoading(false)
-        return
-      }
-
-      const parsed = JSON.parse(orderData)
-      setOrder(parsed)
-      console.log('Order loaded successfully:', parsed)
-
-    // Load restaurant settings from Firebase
-    const loadSettings = async () => {
+    
+    const initializePrintPage = async () => {
       try {
-        const tenantId = authService.getCurrentTenantId()
-        if (tenantId) {
-          const settings = await settingsService.getSettingsByTenant(tenantId)
-          if (settings) {
-            setRestaurantSettings(settings)
-            console.log('Restaurant settings loaded:', settings)
+        // Get order from localStorage
+        const orderData = localStorage.getItem('lastOrder')
+        console.log('Order data from localStorage:', orderData)
+        
+        if (!orderData) {
+          console.log('No order data found')
+          setError('لا يوجد طلب للطباعة')
+          setLoading(false)
+          return
+        }
+
+        const parsed = JSON.parse(orderData)
+        setOrder(parsed)
+        console.log('Order loaded successfully:', parsed)
+
+        // Load restaurant settings from Firebase
+        try {
+          const tenantId = authService.getCurrentTenantId()
+          if (tenantId) {
+            const settings = await settingsService.getSettingsByTenant(tenantId)
+            if (settings) {
+              setRestaurantSettings(settings)
+              console.log('Restaurant settings loaded:', settings)
+            }
+          }
+        } catch (error) {
+          console.error('Error loading restaurant settings:', error)
+        }
+
+        // Get current tenant directly to avoid re-renders
+        const currentTenant = authService.getCurrentTenant()
+
+        // Generate ZATCA QR image
+        const buildQR = async () => {
+          try {
+            // Use restaurant settings if available, otherwise fallback to tenant data
+            const sellerName = restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'
+            const vatNumber = restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'
+            
+            const qr = await generateZATCAQR({
+              sellerName: sellerName,
+              vatNumber: vatNumber,
+              timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
+              total: parsed.total || 0,
+              vatTotal: parsed.vat || 0,
+              uuid: generateUUID()
+            })
+            setQrUrl(qr)
+            
+            // Generate UBL XML
+            const ublData = {
+              invoiceNumber: parsed.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
+              uuid: parsed.uuid || generateUUID(),
+              issueDate: new Date(parsed.timestamp).toISOString().split('T')[0],
+              issueTime: new Date(parsed.timestamp).toISOString().split('T')[1].split('.')[0],
+              sellerName: sellerName,
+              sellerVatNumber: vatNumber,
+              sellerCrNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
+              sellerAddress: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
+              sellerPhone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
+              items: parsed.items?.map((item: any) => ({
+                nameAr: item.nameAr || item.name,
+                nameEn: item.nameEn || item.name,
+                quantity: item.quantity,
+                price: item.price,
+                vatRate: 15
+              })) || [],
+              subtotal: parsed.subtotal || 0,
+              vatTotal: parsed.vat || 0,
+              total: parsed.total || 0
+            }
+            
+            const xml = generateUBLXML(ublData)
+            setUblXml(xml)
+            
+            // Generate digital signature and CSID
+            const signature = generateDigitalSignature(xml)
+            const csidValue = generateCSID()
+            
+            setDigitalSignature(signature)
+            setCSID(csidValue)
+            
+            console.log('ZATCA compliance data generated:', {
+              qrGenerated: !!qr,
+              ublXmlGenerated: !!xml,
+              digitalSignature: signature,
+              csid: csidValue
+            })
+            
+          } catch (e) {
+            console.error('ZATCA data generation failed', e)
           }
         }
+        
+        await buildQR()
+        setLoading(false)
+        
       } catch (error) {
-        console.error('Error loading restaurant settings:', error)
+        console.error('Error loading print page:', error)
+        setError('حدث خطأ في تحميل صفحة الطباعة')
+        setLoading(false)
       }
     }
     
-    loadSettings()
-
-    // Get current tenant directly to avoid re-renders
-    const currentTenant = authService.getCurrentTenant()
-
-    // Generate ZATCA QR image
-    const buildQR = async () => {
-      try {
-        // Use restaurant settings if available, otherwise fallback to tenant data
-        const sellerName = restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'
-        const vatNumber = restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'
-        
-        const qr = await generateZATCAQR({
-          sellerName: sellerName,
-          vatNumber: vatNumber,
-          timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
-          total: parsed.total || 0,
-          vatTotal: parsed.vat || 0,
-          uuid: generateUUID()
-        })
-        setQrUrl(qr)
-        
-        // Generate UBL XML
-        const ublData = {
-          invoiceNumber: parsed.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
-          uuid: parsed.uuid || generateUUID(),
-          issueDate: new Date(parsed.timestamp).toISOString().split('T')[0],
-          issueTime: new Date(parsed.timestamp).toISOString().split('T')[1].split('.')[0],
-          sellerName: sellerName,
-          sellerVatNumber: vatNumber,
-          sellerCrNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
-          sellerAddress: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
-          sellerPhone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
-          items: parsed.items?.map((item: any) => ({
-            nameAr: item.nameAr || item.name,
-            nameEn: item.nameEn || item.name,
-            quantity: item.quantity,
-            price: item.price,
-            vatRate: 15
-          })) || [],
-          subtotal: parsed.subtotal || 0,
-          vatTotal: parsed.vat || 0,
-          total: parsed.total || 0
-        }
-        
-        const xml = generateUBLXML(ublData)
-        setUblXml(xml)
-        
-        // Generate digital signature and CSID
-        const signature = generateDigitalSignature(xml)
-        const csidValue = generateCSID()
-        
-        setDigitalSignature(signature)
-        setCSID(csidValue)
-        
-        console.log('ZATCA compliance data generated:', {
-          qrGenerated: !!qr,
-          ublXmlGenerated: !!xml,
-          digitalSignature: signature,
-          csid: csidValue
-        })
-        
-      } catch (e) {
-        console.error('ZATCA data generation failed', e)
-      }
-    }
-    buildQR()
-    setLoading(false)
-    // لاحظ: بدون وضع tenant في dependencies
-    } catch (error) {
-      console.error('Error loading print page:', error)
-      setError('حدث خطأ في تحميل صفحة الطباعة')
-      setLoading(false)
-    }
+    initializePrintPage()
   }, [restaurantSettings])
 
   const handlePrint = () => {

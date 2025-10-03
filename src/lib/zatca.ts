@@ -247,8 +247,15 @@ export function generateUBLXML(data: {
 export function generateDigitalSignature(xmlContent: string, privateKey?: string): string {
   // Placeholder for digital signature
   // In real implementation, this would use ZATCA certificates and proper signing
-  const hash = btoa(xmlContent)
-  return `SIGNATURE_PLACEHOLDER_${hash.slice(0, 20)}`
+  try {
+    // Use encodeURIComponent to handle non-Latin characters
+    const encodedContent = encodeURIComponent(xmlContent)
+    const hash = btoa(encodedContent)
+    return `SIGNATURE_PLACEHOLDER_${hash.slice(0, 20)}`
+  } catch (error) {
+    console.error('Error generating digital signature:', error)
+    return `SIGNATURE_PLACEHOLDER_${Date.now().toString(36)}`
+  }
 }
 
 /**
