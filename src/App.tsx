@@ -129,8 +129,8 @@ function PrintPage() {
             <div key={index} className="mb-2">
               <div className="flex justify-between text-sm" dir="rtl">
                 <div className="flex-1">
-                  <div className="arabic font-medium">{item.name}</div>
-                  <div className="english text-xs text-gray-500">{item.nameEn}</div>
+                  <div className="arabic font-medium">{item.nameAr || item.name}</div>
+                  <div className="english text-xs text-gray-500">{item.nameEn || item.name}</div>
                 </div>
                 <span className="text-left">{formatToEnglish(item.quantity)}x</span>
             </div>
