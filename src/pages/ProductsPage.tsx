@@ -281,12 +281,43 @@ function ProductsPage() {
         </button>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6 pb-12">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-4">
-            {/* Title */}
-            <div className="text-right">
+          {/* Header Section */}
+          <div className="mb-6">
+            <div className="text-right mb-4">
               <div className="text-xs/5 uppercase tracking-wider english opacity-80">Products</div>
               <h1 className="mt-0.5 text-2xl sm:text-3xl font-extrabold arabic tracking-tight">المنتجات</h1>
               <p className="mt-0.5 text-sm/6 opacity-90 arabic">إدارة قائمة الأصناف والأسعار</p>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
+              <div className="rounded-xl p-3 bg-white/10 border border-white/15 backdrop-blur-sm">
+                <div className="text-sm opacity-90 arabic">إجمالي المنتجات</div>
+                <div className="mt-1 text-2xl font-bold">{totalItems}</div>
+              </div>
+              <div className="rounded-xl p-3 bg-white/10 border border-white/15 backdrop-blur-sm">
+                <div className="text-sm opacity-90 arabic">التصنيفات</div>
+                <div className="mt-1 text-2xl font-bold">{uniqueCats}</div>
+              </div>
+              <div className="rounded-xl p-3 bg-white/10 border border-white/15 backdrop-blur-sm">
+                <div className="text-sm opacity-90 arabic">متوسط السعر (SAR)</div>
+                <div className="mt-1 text-2xl font-bold">{avgPrice}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls Section */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-6">
+            {/* Search */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/80 pointer-events-none" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="بحث عن منتج..."
+                className="pr-9 pl-3 py-2 w-full rounded-xl bg-white/10 placeholder-white/70 text-white
+                     border border-white/20 backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/60"
+              />
             </div>
 
             {/* Toolbar */}
@@ -309,34 +340,6 @@ function ProductsPage() {
                 <option value="priceDesc">السعر: من الأعلى</option>
                 <option value="name">الاسم</option>
               </select>
-
-              {/* Search */}
-              <div className="relative w-full sm:w-64 md:w-72">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/80 pointer-events-none" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="بحث عن منتج..."
-                  className="pr-9 pl-3 py-2 w-full rounded-xl bg-white/10 placeholder-white/70 text-white
-                       border border-white/20 backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/60"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-            <div className="rounded-xl p-3 bg-white/10 border border-white/15 backdrop-blur-sm">
-              <div className="text-sm opacity-90 arabic">إجمالي المنتجات</div>
-              <div className="mt-1 text-2xl font-bold">{totalItems}</div>
-            </div>
-            <div className="rounded-xl p-3 bg-white/10 border border-white/15 backdrop-blur-sm">
-              <div className="text-sm opacity-90 arabic">التصنيفات</div>
-              <div className="mt-1 text-2xl font-bold">{uniqueCats}</div>
-            </div>
-            <div className="rounded-xl p-3 bg-white/10 border border-white/15 backdrop-blur-sm">
-              <div className="text-sm opacity-90 arabic">متوسط السعر (SAR)</div>
-              <div className="mt-1 text-2xl font-bold">{avgPrice}</div>
             </div>
           </div>
         </div>
