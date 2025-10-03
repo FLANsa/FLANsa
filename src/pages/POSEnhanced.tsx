@@ -158,7 +158,7 @@ const POSEnhanced: React.FC = () => {
         const orderData = {
         tenantId: tenantId,
         items: cart.map(item => ({
-          name: item.nameAr || item.name,
+          nameAr: item.nameAr || item.name,
           nameEn: item.name || item.nameEn,
           price: item.price,
           quantity: item.quantity,
