@@ -522,92 +522,111 @@ function ProductsPage() {
                 </button>
               </div>
 
-                  <form onSubmit={handleAdd} className="p-6 overflow-y-auto flex-1 min-h-0">
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-2xl">
-                        {/* بطاقة: معلومات المنتج + الصورة + المعاينة */}
-                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                          <div className="text-center mb-6">
-                            <h4 className="text-xl font-bold text-gray-800 arabic">معلومات المنتج</h4>
-                            <p className="text-sm text-gray-500 arabic mt-1">أضف منتجاً جديداً إلى قائمة الأصناف</p>
+                  <form onSubmit={handleAdd} className="p-8 overflow-y-auto flex-1 min-h-0">
+                    <div className="max-w-4xl mx-auto">
+                      {/* Header Section */}
+                      <div className="text-center mb-8">
+                        <div className="inline-flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full">
+                            <Plus className="h-6 w-6 text-white" />
                           </div>
+                          <div>
+                            <h3 className="text-2xl font-bold text-gray-800 arabic">إضافة منتج جديد</h3>
+                            <p className="text-sm text-gray-500 arabic">أضف منتجاً جديداً إلى قائمة الأصناف</p>
+                          </div>
+                        </div>
+                      </div>
 
-                          <div className="space-y-6">
-                            {/* الاسم بالعربية */}
-                            <div className="text-center">
-                              <label className="block text-sm font-medium text-gray-700 arabic mb-2">الاسم بالعربية *</label>
-                              <input
-                                type="text"
-                                autoComplete="off"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className={`${inputBase} text-center`}
-                                placeholder="مثل: برجر لحم"
-                              />
-                            </div>
+                      {/* Main Form Card */}
+                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                        {/* Form Header */}
+                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-8 py-6 border-b border-gray-100">
+                          <h4 className="text-xl font-semibold text-gray-800 arabic text-center">معلومات المنتج</h4>
+                        </div>
 
-                            {/* الاسم بالإنجليزية */}
-                            <div className="text-center">
-                              <label className="block text-sm font-medium text-gray-700 english mb-2">Name (English)</label>
-                              <input
-                                type="text"
-                                autoComplete="off"
-                                value={nameEn}
-                                onChange={(e) => setNameEn(e.target.value)}
-                                className={`${inputBase} text-center`}
-                                placeholder="e.g. Beef Burger"
-                                dir="ltr"
-                              />
-                            </div>
-
-                            {/* السعر + التصنيف */}
-                            <div className="space-y-4">
-                              {/* السعر */}
-                              <div className="text-center">
-                                <label className="block text-sm font-medium text-gray-700 arabic mb-2">السعر *</label>
-                                <input
-                                  type="number"
-                                  autoComplete="off"
-                                  value={price}
-                                  onChange={(e) => setPrice(e.target.value)}
-                                  className={`${inputBase} text-center`}
-                                  placeholder="25.00"
-                                  dir="ltr"
-                                  min={0}
-                                  step="0.01"
-                                />
-                              </div>
-
-                              {/* التصنيف */}
-                              <div className="text-center">
-                                <label className="block text-sm font-medium text-gray-700 arabic mb-2">التصنيف</label>
-                                <select
-                                  value={category}
-                                  onChange={(e) => setCategory(e.target.value)}
-                                  className={`${inputBase} text-center`}
-                                >
-                                  <option value="">اختر التصنيف</option>
-                                  <option value="ساندوتشات">ساندوتشات</option>
-                                  <option value="برجر">برجر</option>
-                                  <option value="سلطات">سلطات</option>
-                                  <option value="مشروبات">مشروبات</option>
-                                  <option value="حلويات">حلويات</option>
-                                  <option value="مقبلات">مقبلات</option>
-                                  <option value="وجبات رئيسية">وجبات رئيسية</option>
-                                  <option value="عصائر طبيعية">عصائر طبيعية</option>
-                                </select>
-                              </div>
-                            </div>
-
-                            {/* صورة المنتج */}
-                            <div className="text-center">
-                              <label className="block text-sm font-medium text-gray-700 arabic mb-3">صورة المنتج</label>
-
+                        {/* Form Content */}
+                        <div className="p-8">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Left Column - Basic Info */}
+                            <div className="space-y-6">
+                              {/* Product Names */}
                               <div className="space-y-4">
-                                {/* رفع الملف */}
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 arabic mb-3">الاسم بالعربية *</label>
+                                  <input
+                                    type="text"
+                                    autoComplete="off"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className={`${inputBase} text-right`}
+                                    placeholder="مثل: برجر لحم"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 english mb-3">Name (English)</label>
+                                  <input
+                                    type="text"
+                                    autoComplete="off"
+                                    value={nameEn}
+                                    onChange={(e) => setNameEn(e.target.value)}
+                                    className={`${inputBase} text-left`}
+                                    placeholder="e.g. Beef Burger"
+                                    dir="ltr"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Price and Category */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 arabic mb-3">السعر *</label>
+                                  <div className="relative">
+                                    <input
+                                      type="number"
+                                      autoComplete="off"
+                                      value={price}
+                                      onChange={(e) => setPrice(e.target.value)}
+                                      className={`${inputBase} text-center pr-12`}
+                                      placeholder="25.00"
+                                      dir="ltr"
+                                      min={0}
+                                      step="0.01"
+                                    />
+                                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm font-medium text-gray-500">
+                                      SAR
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="block text-sm font-semibold text-gray-700 arabic mb-3">التصنيف</label>
+                                  <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className={inputBase}
+                                  >
+                                    <option value="">اختر التصنيف</option>
+                                    <option value="ساندوتشات">ساندوتشات</option>
+                                    <option value="برجر">برجر</option>
+                                    <option value="سلطات">سلطات</option>
+                                    <option value="مشروبات">مشروبات</option>
+                                    <option value="حلويات">حلويات</option>
+                                    <option value="مقبلات">مقبلات</option>
+                                    <option value="وجبات رئيسية">وجبات رئيسية</option>
+                                    <option value="عصائر طبيعية">عصائر طبيعية</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right Column - Image and Preview */}
+                            <div className="space-y-6">
+                              {/* Image Upload */}
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 arabic mb-3">صورة المنتج</label>
                                 <div
-                                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center
-                                             hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                  className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50 transition-all duration-200 cursor-pointer group"
                                   onClick={() => fileInputRef.current?.click()}
                                 >
                                   <input
@@ -617,24 +636,24 @@ function ProductsPage() {
                                     onChange={handleImageUpload}
                                     className="hidden"
                                   />
-                                  <div className="flex flex-col items-center gap-2">
-                                    <div className="p-3 bg-emerald-100 rounded-full">
-                                      <Upload className="h-5 w-5 text-emerald-600" />
+                                  <div className="flex flex-col items-center gap-4">
+                                    <div className="p-4 bg-emerald-100 rounded-full group-hover:bg-emerald-200 transition-colors">
+                                      <Upload className="h-8 w-8 text-emerald-600" />
                                     </div>
                                     <div>
-                                      <p className="text-sm font-medium text-gray-700 arabic">اضغط لرفع صورة</p>
-                                      <p className="text-xs text-gray-500 arabic">PNG, JPG, GIF حتى 5MB</p>
+                                      <p className="text-base font-medium text-gray-700 arabic">اضغط لرفع صورة</p>
+                                      <p className="text-sm text-gray-500 arabic mt-1">PNG, JPG, GIF حتى 5MB</p>
                                     </div>
                                   </div>
                                 </div>
 
-                                {/* المعاينة */}
+                                {/* Image Preview */}
                                 {imagePreview && (
-                                  <div className="relative inline-block">
+                                  <div className="mt-4 relative inline-block">
                                     <img
                                       src={imagePreview}
                                       alt="Preview"
-                                      className="w-48 h-32 object-cover rounded-lg border"
+                                      className="w-full max-w-xs h-48 object-cover rounded-2xl border-2 border-gray-200"
                                     />
                                     <button
                                       type="button"
@@ -643,90 +662,90 @@ function ProductsPage() {
                                         setUploadedImage(null);
                                         if (fileInputRef.current) fileInputRef.current.value = '';
                                       }}
-                                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                      className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
                                       aria-label="إزالة الصورة"
                                     >
-                                      <X className="h-3.5 w-3.5" />
+                                      <X className="h-4 w-4" />
                                     </button>
                                   </div>
                                 )}
                               </div>
-                            </div>
 
-                            {/* بطاقة المعاينة المصغرة */}
-                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-                              <h4 className="text-sm font-semibold text-gray-800 arabic mb-3 text-center">معاينة المنتج</h4>
-                              <div className="bg-white rounded-lg shadow-sm border overflow-hidden max-w-xs mx-auto">
-                                <div className="relative overflow-hidden">
-                                  {imagePreview ? (
-                                    <img src={imagePreview} alt={name || 'preview'} className="h-24 w-full object-cover" />
-                                  ) : (
-                                    <div className="h-24 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
-                                      <div className="text-center">
-                                        <ImageIcon className="h-4 w-4 mx-auto mb-1" />
-                                        <p className="text-xs arabic">لا توجد صورة</p>
+                              {/* Product Preview */}
+                              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+                                <h4 className="text-lg font-semibold text-gray-800 arabic mb-4 text-center">معاينة المنتج</h4>
+                                <div className="bg-white rounded-xl shadow-lg border overflow-hidden">
+                                  <div className="relative overflow-hidden">
+                                    {imagePreview ? (
+                                      <img src={imagePreview} alt={name || 'preview'} className="h-32 w-full object-cover" />
+                                    ) : (
+                                      <div className="h-32 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
+                                        <div className="text-center">
+                                          <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                                          <p className="text-sm arabic">لا توجد صورة</p>
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
-                                  <div className="absolute top-1.5 left-1.5">
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold shadow">
-                                      <Star className="h-2.5 w-2.5" />
-                                      {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
-                                    </span>
-                                  </div>
-                                  {category && (
-                                    <div className="absolute top-1.5 right-1.5">
-                                      <span className="inline-block text-[11px] px-1.5 py-0.5 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
-                                        {category}
+                                    )}
+                                    <div className="absolute top-3 left-3">
+                                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
+                                        <Star className="h-3 w-3" />
+                                        {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
                                       </span>
                                     </div>
-                                  )}
-                                </div>
-                                <div className="p-2.5 text-center">
-                                  <h4 className="font-bold text-gray-900 arabic text-sm">{name || 'اسم المنتج'}</h4>
-                                  <p className="text-xs text-gray-500 english mt-1">{nameEn || 'Product name'}</p>
+                                    {category && (
+                                      <div className="absolute top-3 right-3">
+                                        <span className="inline-block text-sm px-3 py-1 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
+                                          {category}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="p-4 text-center">
+                                    <h4 className="font-bold text-gray-900 arabic text-lg">{name || 'اسم المنتج'}</h4>
+                                    <p className="text-sm text-gray-500 english mt-1">{nameEn || 'Product name'}</p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-
-                            {/* رسالة الخطأ */}
-                            {error && (
-                              <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm arabic flex items-center gap-2 justify-center">
-                                <X className="h-4 w-4" />
-                                {error}
-                              </div>
-                            )}
                           </div>
+
+                          {/* Error Message */}
+                          {error && (
+                            <div className="mt-6 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm arabic flex items-center gap-3 justify-center">
+                              <X className="h-5 w-5" />
+                              {error}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
 
-                    {/* الأزرار */}
-                    <div className="flex justify-center gap-3 pt-6 mt-6">
-                      <button
-                        type="button"
-                        onClick={() => { setIsOpen(false); resetForm(); }}
-                        className="px-6 h-11 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors arabic font-medium"
-                      >
-                        إلغاء
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-8 h-11 rounded-lg text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 transition-all duration-200 arabic font-medium shadow-lg hover:shadow-xl"
-                      >
-                        {saving ? (
-                          <span className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                            جاري الحفظ...
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-2">
-                            <Plus className="h-4 w-4" />
-                            إضافة المنتج
-                          </span>
-                        )}
-                      </button>
+                      {/* Action Buttons */}
+                      <div className="flex justify-center gap-4 mt-8">
+                        <button
+                          type="button"
+                          onClick={() => { setIsOpen(false); resetForm(); }}
+                          className="px-8 h-12 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 arabic font-semibold text-base"
+                        >
+                          إلغاء
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="px-10 h-12 rounded-xl text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 transition-all duration-200 arabic font-semibold text-base shadow-lg hover:shadow-xl"
+                        >
+                          {saving ? (
+                            <span className="flex items-center gap-3">
+                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                              جاري الحفظ...
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-3">
+                              <Plus className="h-5 w-5" />
+                              إضافة المنتج
+                            </span>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </form>
             </div>
