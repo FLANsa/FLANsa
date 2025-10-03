@@ -437,7 +437,6 @@ function ProductsPage() {
                     </div>
                   </div>
 
-                  {/* Price badge */}
                   <div className="absolute top-3 left-3">
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
                       <Star className="h-3 w-3" />
