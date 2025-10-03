@@ -26,6 +26,7 @@ function ProductsPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
+  const [previewItem, setPreviewItem] = useState<InventoryItem | null>(null)
 
   // Form fields
   const [name, setName] = useState('')
@@ -88,11 +89,11 @@ function ProductsPage() {
       console.error('Error loading items:', error)
       // Fallback to localStorage
       const data = localStorage.getItem('inventory')
-      try {
-        setItems(data ? JSON.parse(data) : [])
-      } catch {
-        setItems([])
-      }
+    try {
+      setItems(data ? JSON.parse(data) : [])
+    } catch {
+      setItems([])
+    }
     } finally {
       setLoading(false)
     }
@@ -174,7 +175,7 @@ function ProductsPage() {
         tenantId,
         name: nameEn.trim() || trimmedName,
         nameAr: trimmedName,
-        price: Math.round(numericPrice),
+      price: Math.round(numericPrice),
         imageUrl: finalImageUrl,
         category: category.trim() || 'غير مصنف',
         stock: editingItem?.stock || 100,
@@ -212,8 +213,8 @@ function ProductsPage() {
         localStorage.setItem('inventory', JSON.stringify(updatedItems))
       }
       
-      resetForm()
-      setIsOpen(false)
+    resetForm()
+    setIsOpen(false)
     } catch (error) {
       console.error('Error saving item:', error)
       setError(editingItem ? 'حدث خطأ أثناء تعديل المنتج' : 'حدث خطأ أثناء إضافة المنتج')
@@ -254,6 +255,10 @@ function ProductsPage() {
     
     // Open modal
     setIsOpen(true)
+  }
+
+  function handlePreview(item: InventoryItem) {
+    setPreviewItem(item)
   }
 
   // Categories + counts
@@ -454,7 +459,10 @@ function ProductsPage() {
                   {/* Overlay with actions */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <div className="flex gap-2">
-                      <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+                      <button 
+                        onClick={() => handlePreview(item)}
+                        className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
+                      >
                         <Eye className="h-4 w-4 text-gray-700" />
                       </button>
                       <button 
@@ -470,7 +478,7 @@ function ProductsPage() {
                   <div className="absolute top-3 left-3">
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
                       <Star className="h-3 w-3" />
-                      {Math.round(item.price)} SAR
+                        {Math.round(item.price)} SAR
                     </span>
                   </div>
 
@@ -479,7 +487,7 @@ function ProductsPage() {
                     <div className="absolute top-3 right-3">
                       <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
                         {item.category}
-                      </span>
+                    </span>
                     </div>
                   )}
                 </div>
@@ -487,8 +495,8 @@ function ProductsPage() {
                 <div className="p-5">
                   <div className="mb-3">
                     <h3 className="font-bold text-gray-900 arabic text-lg group-hover:text-emerald-700 transition-colors line-clamp-2">
-                      {item.name}
-                    </h3>
+                    {item.name}
+                  </h3>
                     {item.nameEn && (
                       <p className="text-sm text-gray-500 english mt-1 line-clamp-1">{item.nameEn}</p>
                     )}
@@ -515,12 +523,12 @@ function ProductsPage() {
                       <Edit3 className="h-4 w-4" />
                       تعديل
                     </button>
-                    <button
+                  <button
                       onClick={() => handleDelete(item.id)}
                       className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors arabic text-sm font-medium"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                   </div>
                 </div>
               </article>
@@ -582,58 +590,58 @@ function ProductsPage() {
                             {/* Left Column - Basic Info */}
                             <div className="space-y-6">
                               {/* Product Names */}
-                              <div className="space-y-4">
-                                <div>
+                <div className="space-y-4">
+              <div>
                                   <label className="block text-sm font-semibold text-gray-700 arabic mb-3">الاسم بالعربية *</label>
-                                  <input
-                                    type="text"
+                <input
+                  type="text"
                                     autoComplete="off"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                                     className={`${inputBase} text-right`}
-                                    placeholder="مثل: برجر لحم"
-                                  />
-                                </div>
+                      placeholder="مثل: برجر لحم"
+                />
+              </div>
 
-                                <div>
+              <div>
                                   <label className="block text-sm font-semibold text-gray-700 english mb-3">Name (English)</label>
-                                  <input
-                                    type="text"
+                <input
+                  type="text"
                                     autoComplete="off"
-                                    value={nameEn}
-                                    onChange={(e) => setNameEn(e.target.value)}
+                      value={nameEn}
+                      onChange={(e) => setNameEn(e.target.value)}
                                     className={`${inputBase} text-left`}
-                                    placeholder="e.g. Beef Burger"
-                                    dir="ltr"
-                                  />
-                                </div>
+                      placeholder="e.g. Beef Burger"
+                  dir="ltr"
+                />
+              </div>
                               </div>
 
                               {/* Price */}
-                              <div>
+              <div>
                                 <label className="block text-sm font-semibold text-gray-700 arabic mb-3">السعر *</label>
                                 <div className="relative">
-                                  <input
-                                    type="number"
+                      <input
+                        type="number"
                                     autoComplete="off"
-                                    value={price}
-                                    onChange={(e) => setPrice(e.target.value)}
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
                                     className={`${inputBase} `}
                                     placeholder="25.00"
-                                    dir="ltr"
-                                    min={0}
+                        dir="ltr"
+                        min={0}
                                     
-                                  />
+                      />
                                   
                                 </div>
-                              </div>
+              </div>
 
                               {/* Category */}
-                              <div>
+              <div>
                                 <label className="block text-sm font-semibold text-gray-700 arabic mb-3">التصنيف</label>
                                 <select
-                                  value={category}
-                                  onChange={(e) => setCategory(e.target.value)}
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
                                   className={inputBase}
                                 >
                                   <option value="">اختر التصنيف</option>
@@ -646,19 +654,19 @@ function ProductsPage() {
                                   <option value="وجبات رئيسية">وجبات رئيسية</option>
                                   <option value="عصائر طبيعية">عصائر طبيعية</option>
                                 </select>
-                              </div>
-                            </div>
+                    </div>
+                  </div>
 
                             {/* Right Column - Image and Preview */}
                             <div className="space-y-6">
                               {/* Image Upload */}
-                              <div>
+                  <div>
                                 <label className="block text-sm font-semibold text-gray-700 arabic mb-3">صورة المنتج</label>
                                 <div
                                   className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50 transition-all duration-200 cursor-pointer group"
                                   onClick={() => fileInputRef.current?.click()}
                                 >
-                                  <input
+                    <input
                                     ref={fileInputRef}
                                     type="file"
                                     accept="image/*"
@@ -696,9 +704,9 @@ function ProductsPage() {
                                     >
                                       <X className="h-4 w-4" />
                                     </button>
-                                  </div>
-                                )}
-                              </div>
+                  </div>
+                  )}
+              </div>
 
                               {/* Product Preview */}
                               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
@@ -713,19 +721,19 @@ function ProductsPage() {
                                           <ImageIcon className="h-8 w-8 mx-auto mb-2" />
                                           <p className="text-sm arabic">لا توجد صورة</p>
                                         </div>
-                                      </div>
-                                    )}
+                          </div>
+                        )}
                                     <div className="absolute top-3 left-3">
                                       <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
                                         <Star className="h-3 w-3" />
                                         {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
                                       </span>
                                     </div>
-                                    {category && (
+                            {category && (
                                       <div className="absolute top-3 right-3">
                                         <span className="inline-block text-sm px-3 py-1 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
-                                          {category}
-                                        </span>
+                                {category}
+                              </span>
                                       </div>
                                     )}
                                   </div>
@@ -777,6 +785,97 @@ function ProductsPage() {
                       </div>
                     </div>
                   </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Eye className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold arabic">معاينة المنتج</h3>
+                    <p className="text-sm text-white/80 arabic">عرض تفاصيل المنتج</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setPreviewItem(null)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Product Image */}
+              <div className="text-center">
+                {previewItem.imageUrl ? (
+                  <img
+                    src={previewItem.imageUrl}
+                    alt={previewItem.name}
+                    className="h-64 w-full object-cover rounded-xl shadow-lg"
+                  />
+                ) : (
+                  <div className="h-64 w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center text-gray-400">
+                    <div className="text-center">
+                      <ImageIcon className="h-12 w-12 mx-auto mb-3" />
+                      <p className="text-sm arabic">لا توجد صورة</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Product Details */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-2xl font-bold text-gray-900 arabic">{previewItem.name}</h4>
+                  {previewItem.nameEn && (
+                    <p className="text-lg text-gray-600 english mt-1">{previewItem.nameEn}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 arabic">السعر</div>
+                    <div className="text-2xl font-bold text-emerald-600">{previewItem.price} SAR</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 arabic">التصنيف</div>
+                    <div className="text-lg font-semibold text-gray-900 arabic">{previewItem.category || 'غير مصنف'}</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-emerald-100 rounded-lg">
+                      <Package className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 arabic">متوفر في المخزون</div>
+                      <div className="text-sm text-gray-600 arabic">المنتج متاح للبيع</div>
+                    </div>
+                      </div>
+                    </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button
+                onClick={() => setPreviewItem(null)}
+                className="px-6 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 arabic font-semibold transition-colors"
+              >
+                إغلاق
+              </button>
             </div>
           </div>
         </div>
