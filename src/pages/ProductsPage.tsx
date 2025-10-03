@@ -43,6 +43,11 @@ function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortKey, setSortKey] = useState<SortKey>('newest')
 
+  // توحيد نمط حقول الإدخال
+  const inputBase =
+    "w-full h-11 px-3 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 " +
+    "focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm";
+
   // Load items from Firebase
   useEffect(() => {
     loadItems()
@@ -519,12 +524,11 @@ function ProductsPage() {
 
                   <form onSubmit={handleAdd} className="p-6 overflow-y-auto flex-1 min-h-0">
                     <div className="grid grid-cols-1 gap-6">
-                      {/* النموذج */}
-                      <div>
-                        {/* معلومات المنتج */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-                          <h4 className="text-lg font-semibold text-gray-800 arabic">معلومات المنتج</h4>
-                          
+                      {/* بطاقة: معلومات المنتج + الصورة + المعاينة */}
+                      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                        <h4 className="text-lg font-semibold text-gray-800 arabic">معلومات المنتج</h4>
+
+                        <div className="mt-4 grid grid-cols-1 gap-4">
                           {/* الاسم بالعربية */}
                           <div className="max-w-xl">
                             <label className="block text-sm font-medium text-gray-700 arabic mb-1">الاسم بالعربية *</label>
@@ -533,11 +537,11 @@ function ProductsPage() {
                               autoComplete="off"
                               value={name}
                               onChange={(e) => setName(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                              className={inputBase}
                               placeholder="مثل: برجر لحم"
                             />
                           </div>
-                          
+
                           {/* الاسم بالإنجليزية */}
                           <div className="max-w-xl">
                             <label className="block text-sm font-medium text-gray-700 english mb-1">Name (English)</label>
@@ -546,40 +550,45 @@ function ProductsPage() {
                               autoComplete="off"
                               value={nameEn}
                               onChange={(e) => setNameEn(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                              className={inputBase}
                               placeholder="e.g. Beef Burger"
                               dir="ltr"
                             />
                           </div>
-                          
-                          {/* السعر والتصنيف */}
-                          <div className="space-y-3">
-                            {/* السعر */}
-                            <div className="max-w-xl">
-                              <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر (SAR) *</label>
+
+                          {/* السعر + التصنيف */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                            {/* السعر (مع SAR متوافقة RTL) */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر *</label>
                               <div className="relative">
                                 <input
                                   type="number"
                                   autoComplete="off"
                                   value={price}
                                   onChange={(e) => setPrice(e.target.value)}
-                                  className="w-full pr-2 pl-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                                  className={`${inputBase} pr-3 pl-16`}
                                   placeholder="25.00"
                                   dir="ltr"
                                   min={0}
                                   step="0.01"
                                 />
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-2 pr-1 text-xs text-gray-600 border-r bg-gray-50 rounded-l-md">SAR</span>
+                                <span
+                                  className="absolute inset-y-0 left-0 flex items-center justify-center px-3 text-xs text-gray-600
+                                             bg-gray-50 border-r border-gray-300 rounded-l-lg h-11"
+                                >
+                                  SAR
+                                </span>
                               </div>
                             </div>
-                            
+
                             {/* التصنيف */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">التصنيف</label>
                               <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                                className={inputBase}
                               >
                                 <option value="">اختر التصنيف</option>
                                 <option value="ساندوتشات">ساندوتشات</option>
@@ -593,16 +602,16 @@ function ProductsPage() {
                               </select>
                             </div>
                           </div>
-                          
+
                           {/* صورة المنتج */}
-                          <div>
+                          <div className="max-w-3xl">
                             <label className="block text-sm font-medium text-gray-700 arabic mb-2">صورة المنتج</label>
-                            
-                            {/* Upload Area */}
+
                             <div className="space-y-3">
-                              {/* File Upload */}
-                              <div 
-                                className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer"
+                              {/* رفع الملف */}
+                              <div
+                                className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center
+                                           hover:border-emerald-400 hover:bg-emerald-50 transition-colors cursor-pointer"
                                 onClick={() => fileInputRef.current?.click()}
                               >
                                 <input
@@ -613,7 +622,7 @@ function ProductsPage() {
                                   className="hidden"
                                 />
                                 <div className="flex flex-col items-center gap-2">
-                                  <div className="p-2 bg-emerald-100 rounded-full">
+                                  <div className="p-3 bg-emerald-100 rounded-full">
                                     <Upload className="h-5 w-5 text-emerald-600" />
                                   </div>
                                   <div>
@@ -622,72 +631,69 @@ function ProductsPage() {
                                   </div>
                                 </div>
                               </div>
-                              
-                              {/* Image Preview */}
+
+                              {/* المعاينة */}
                               {imagePreview && (
                                 <div className="relative">
                                   <img
                                     src={imagePreview}
                                     alt="Preview"
-                                    className="w-full h-24 object-cover rounded-md border"
+                                    className="w-full h-28 object-cover rounded-lg border"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setImagePreview('')
-                                      setUploadedImage(null)
-                                      if (fileInputRef.current) fileInputRef.current.value = ''
+                                      setImagePreview('');
+                                      setUploadedImage(null);
+                                      if (fileInputRef.current) fileInputRef.current.value = '';
                                     }}
-                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                    aria-label="إزالة الصورة"
                                   >
-                                    <X className="h-3 w-3" />
+                                    <X className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               )}
                             </div>
                           </div>
-                          
-                          {/* معاينة المنتج */}
-                          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-md p-3 border border-gray-200">
+
+                          {/* بطاقة المعاينة المصغرة */}
+                          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border border-gray-200 max-w-xl">
                             <h4 className="text-sm font-semibold text-gray-800 arabic mb-2">معاينة المنتج</h4>
-                            <div className="bg-white rounded-md shadow-sm border overflow-hidden">
+                            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
                               <div className="relative overflow-hidden">
                                 {imagePreview ? (
-                                  <img src={imagePreview} alt={name || 'preview'} className="h-20 w-full object-cover" />
+                                  <img src={imagePreview} alt={name || 'preview'} className="h-24 w-full object-cover" />
                                 ) : (
-                                  <div className="h-20 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
+                                  <div className="h-24 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
                                     <div className="text-center">
                                       <ImageIcon className="h-4 w-4 mx-auto mb-1" />
                                       <p className="text-xs arabic">لا توجد صورة</p>
                                     </div>
                                   </div>
                                 )}
-                                <div className="absolute top-1 left-1">
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-lg">
-                                    <Star className="h-2 w-2" />
+                                <div className="absolute top-1.5 left-1.5">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold shadow">
+                                    <Star className="h-2.5 w-2.5" />
                                     {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
                                   </span>
                                 </div>
                                 {category && (
-                                  <div className="absolute top-1 right-1">
-                                    <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
+                                  <div className="absolute top-1.5 right-1.5">
+                                    <span className="inline-block text-[11px] px-1.5 py-0.5 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
                                       {category}
                                     </span>
                                   </div>
                                 )}
                               </div>
-                              <div className="p-2">
+                              <div className="p-2.5">
                                 <h4 className="font-bold text-gray-900 arabic text-sm">{name || 'اسم المنتج'}</h4>
                                 <p className="text-xs text-gray-500 english mt-1">{nameEn || 'Product name'}</p>
-                                <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
-                                  <div className="flex items-center gap-1"><Package className="h-2 w-2" /><span className="arabic">متوفر</span></div>
-                                  <div className="flex items-center gap-1"><TrendingUp className="h-2 w-2" /><span className="arabic">شائع</span></div>
-                                </div>
                               </div>
                             </div>
                           </div>
-                          
-                          {/* Error Message */}
+
+                          {/* رسالة الخطأ */}
                           {error && (
                             <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm arabic flex items-center gap-2">
                               <X className="h-4 w-4" />
@@ -696,37 +702,36 @@ function ProductsPage() {
                           )}
                         </div>
                       </div>
-
                     </div>
 
-                    {/* Action Buttons */}
+                    {/* الأزرار */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => { setIsOpen(false); resetForm() }}
-                    className="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors arabic font-medium"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-6 py-2 rounded-lg text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 transition-all duration-200 arabic font-medium shadow-lg hover:shadow-xl"
-                  >
-                    {saving ? (
-                      <span className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        جاري الحفظ...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        إضافة المنتج
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </form>
+                      <button
+                        type="button"
+                        onClick={() => { setIsOpen(false); resetForm(); }}
+                        className="px-5 h-11 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors arabic font-medium"
+                      >
+                        إلغاء
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="px-6 h-11 rounded-lg text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 transition-all duration-200 arabic font-medium shadow-lg hover:shadow-xl"
+                      >
+                        {saving ? (
+                          <span className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                            جاري الحفظ...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            إضافة المنتج
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
             </div>
           </div>
         </div>
