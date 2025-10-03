@@ -199,7 +199,7 @@ export function generateUBLXML(data: {
     <cac:TaxTotal>
       <cbc:TaxAmount currencyID="SAR">${((item.price * item.quantity) * (item.vatRate / 100)).toFixed(2)}</cbc:TaxAmount>
       <cac:TaxSubtotal>
-        <cbc:TaxableAmount currencyID="SAR">${(item.price * item.quantity).toFixed(2)}</cbc:TaxableAmount>
+        <cbc:TaxableAmount currencyID="SAR">${((item.price * item.quantity) / (1 + item.vatRate / 100)).toFixed(2)}</cbc:TaxableAmount>
         <cbc:TaxAmount currencyID="SAR">${((item.price * item.quantity) * (item.vatRate / 100)).toFixed(2)}</cbc:TaxAmount>
         <cac:TaxCategory>
           <cbc:ID>S</cbc:ID>

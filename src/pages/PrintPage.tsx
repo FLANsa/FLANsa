@@ -325,7 +325,7 @@ const PrintPage: React.FC = () => {
             <div className="text-xs text-gray-600 mt-1">
               <div className="flex justify-between">
                 <span className="arabic">المبلغ الخاضع للضريبة:</span>
-                <span>{(order.subtotal - order.orderDiscount + order.serviceCharge).toFixed(2)} SAR</span>
+                <span>{((order.subtotal || 0) - (order.orderDiscount || 0) + (order.serviceCharge || 0)).toFixed(2)} SAR</span>
               </div>
               <div className="flex justify-between">
                 <span className="arabic">نسبة الضريبة:</span>
