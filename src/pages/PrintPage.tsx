@@ -12,16 +12,28 @@ const PrintPage: React.FC = () => {
   const [digitalSignature, setDigitalSignature] = React.useState<string>('')
   const [csid, setCSID] = React.useState<string>('')
   const [ublXml, setUblXml] = React.useState<string>('')
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string>('')
 
   const [qrUrl, setQrUrl] = React.useState<string>('')
 
   React.useEffect(() => {
-    // Get order from localStorage
-    const orderData = localStorage.getItem('lastOrder')
-    if (!orderData) return
+    console.log('PrintPage useEffect started')
+    try {
+      // Get order from localStorage
+      const orderData = localStorage.getItem('lastOrder')
+      console.log('Order data from localStorage:', orderData)
+      
+      if (!orderData) {
+        console.log('No order data found')
+        setError('لا يوجد طلب للطباعة')
+        setLoading(false)
+        return
+      }
 
-    const parsed = JSON.parse(orderData)
-    setOrder(parsed)
+      const parsed = JSON.parse(orderData)
+      setOrder(parsed)
+      console.log('Order loaded successfully:', parsed)
 
     // Load restaurant settings from Firebase
     const loadSettings = async () => {
@@ -106,7 +118,13 @@ const PrintPage: React.FC = () => {
       }
     }
     buildQR()
+    setLoading(false)
     // لاحظ: بدون وضع tenant في dependencies
+    } catch (error) {
+      console.error('Error loading print page:', error)
+      setError('حدث خطأ في تحميل صفحة الطباعة')
+      setLoading(false)
+    }
   }, [restaurantSettings])
 
   const handlePrint = () => {
@@ -131,11 +149,43 @@ const PrintPage: React.FC = () => {
     window.history.back()
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center" dir="rtl">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 arabic">جاري تحميل الفاتورة...</h2>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center" dir="rtl">
+          <h2 className="text-xl font-semibold text-red-600 arabic">{error}</h2>
+          <div className="mt-4 flex gap-3 justify-center">
+            <button onClick={() => window.history.back()} className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 arabic">العودة</button>
+            <button onClick={() => window.location.href = '/pos'} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 arabic">نقطة البيع</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // No order state
   if (!order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 arabic">جاري تحميل الفاتورة...</p>
+        <div className="text-center" dir="rtl">
+          <h2 className="text-xl font-semibold text-gray-900 arabic">لا يوجد طلب للطباعة</h2>
+          <div className="mt-4 flex gap-3 justify-center">
+            <button onClick={() => window.history.back()} className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 arabic">العودة</button>
+            <button onClick={() => window.location.href = '/pos'} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 arabic">نقطة البيع</button>
+          </div>
         </div>
       </div>
     )
