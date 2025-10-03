@@ -281,7 +281,7 @@ const POSEnhanced: React.FC = () => {
           {/* Menu Items */}
           <div className="lg:col-span-2">
             {/* Quick Actions */}
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl shadow-lg border border-emerald-200 p-6 mb-6">
+            <div className="bg-gradient-to-r from-emerald-700 to-green-600 rounded-2xl shadow-lg border border-emerald-600 p-6 mb-6">
               <div className="flex flex-wrap gap-3">
                 {/* Mode Selection */}
                 <div className="flex space-x-2">
@@ -295,8 +295,8 @@ const POSEnhanced: React.FC = () => {
                       onClick={() => setSelectedMode(mode.value)}
                       className={`px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2 ${
                         selectedMode === mode.value
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                          ? 'bg-white text-emerald-700'
+                          : 'bg-white/20 text-white hover:bg-white/30'
                       }`}
                     >
                       <span>{mode.icon}</span>
