@@ -223,6 +223,20 @@ function ProductsPage() {
     }
   }
 
+  function handleEdit(item: InventoryItem) {
+    // Fill form with item data
+    setName(item.name)
+    setNameEn(item.nameEn || '')
+    setPrice(item.price.toString())
+    setCategory(item.category || '')
+    setImagePreview(item.imageUrl || '')
+    setUploadedImage(null)
+    setError('')
+    
+    // Open modal
+    setIsOpen(true)
+  }
+
   // Categories + counts
   const { categories, counts } = useMemo(() => {
     const set = new Set<string>()
@@ -424,7 +438,10 @@ function ProductsPage() {
                       <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
                         <Eye className="h-4 w-4 text-gray-700" />
                       </button>
-                      <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+                      <button 
+                        onClick={() => handleEdit(item)}
+                        className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
+                      >
                         <Edit3 className="h-4 w-4 text-blue-700" />
                       </button>
                     </div>
@@ -472,7 +489,10 @@ function ProductsPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors arabic text-sm font-medium">
+                    <button 
+                      onClick={() => handleEdit(item)}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors arabic text-sm font-medium"
+                    >
                       <Edit3 className="h-4 w-4" />
                       تعديل
                     </button>
