@@ -263,36 +263,44 @@ function DashboardPage() {
   ] as const
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100" dir="rtl">
       {/* Main */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 arabic mb-2">لوحة التحكم</h2>
-          <p className="text-gray-600 arabic">
-            مرحباً بك في نظام قيد - {tenant?.nameAr || tenant?.name || 'نظام نقاط البيع السحابي'}
-          </p>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full mb-4">
+                <Home className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 arabic mb-2">مرحباً بك في لوحة التحكم</h2>
+              <p className="text-gray-600 arabic text-lg">
+                نظام قيد - {tenant?.nameAr || tenant?.name || 'نظام نقاط البيع السحابي'}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {menuItems.map((item, index) => {
             const Icon = item.icon
             return (
               <button
                 key={index}
                 onClick={() => navigate(item.href)}
-                className="text-right bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow"
+                className="group text-right bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 hover:border-emerald-200"
               >
                 <div className="flex items-center mb-4">
-                  <div className={`p-3 rounded-lg ${item.color}`}>
-                    <Icon className="h-6 w-6 text-white" />
+                  <div className={`p-4 rounded-xl ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="h-7 w-7 text-white" />
                   </div>
                   <div className="mr-4">
-                    <h3 className="text-lg font-semibold text-gray-900 arabic">{item.name}</h3>
+                    <h3 className="text-lg font-bold text-gray-900 arabic group-hover:text-emerald-700 transition-colors">{item.name}</h3>
                     <p className="text-sm text-gray-500 english">{item.nameEn}</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 arabic">
+                <p className="text-sm text-gray-600 arabic leading-relaxed">
                   {item.name === 'نقطة البيع' && 'إدارة المبيعات والطلبات'}
                   {item.name === 'المنتجات' && 'إدارة المنتجات والأصناف - إضافة وتعديل وحذف'}
                   {item.name === 'التقارير' && 'تقارير المبيعات والتحليلات'}
@@ -304,40 +312,40 @@ function DashboardPage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Receipt className="h-6 w-6 text-green-600" />
+              <div className="p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl">
+                <Receipt className="h-7 w-7 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-3xl font-bold text-gray-900">
                   {loading ? '...' : stats.totalOrders}
                 </p>
                 <p className="text-sm text-gray-500 arabic">إجمالي الطلبات</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <ShoppingCart className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl">
+                <ShoppingCart className="h-7 w-7 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-3xl font-bold text-gray-900">
                   {loading ? '...' : stats.totalSales.toFixed(0)}
                 </p>
                 <p className="text-sm text-gray-500 arabic">ريال سعودي</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Package className="h-6 w-6 text-purple-600" />
+              <div className="p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl">
+                <Package className="h-7 w-7 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-3xl font-bold text-gray-900">
                   {loading ? '...' : stats.totalProducts}
                 </p>
                 <p className="text-sm text-gray-500 arabic">المنتجات المتاحة</p>

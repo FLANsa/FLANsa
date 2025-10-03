@@ -275,13 +275,13 @@ const POSEnhanced: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Menu Items */}
           <div className="lg:col-span-2">
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
               <div className="flex flex-wrap gap-3">
                 {/* Mode Selection */}
                 <div className="flex space-x-2">
