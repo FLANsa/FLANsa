@@ -553,7 +553,7 @@ function ProductsPage() {
                           </div>
                           
                           {/* السعر والتصنيف */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-3">
                             {/* السعر */}
                             <div>
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر (SAR) *</label>
