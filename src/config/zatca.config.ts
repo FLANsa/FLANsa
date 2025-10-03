@@ -29,19 +29,19 @@ export const zatcaConfig = {
     // TODO: Replace with actual certificate files
     walletCert: 'wallet.p12',
     signingCert: 'signing.p12',
-    password: process.env.ZATCA_CERT_PASSWORD || '' // Store securely
+    password: '' // TODO: Store securely from environment
   },
   
   // Business information
   business: {
-    vatNumber: process.env.VAT_NUMBER || '',
-    crNumber: process.env.CR_NUMBER || '',
-    issuingEntity: process.env.ISSUING_ENTITY || ''
+    vatNumber: '', // TODO: Set from environment
+    crNumber: '', // TODO: Set from environment
+    issuingEntity: '' // TODO: Set from environment
   },
   
   // Invoice settings
   invoice: {
-    environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+    environment: 'development', // TODO: Set based on actual environment
     documentType: '0100000', // Simplified invoice
     currency: 'SAR',
     language: 'ar'
