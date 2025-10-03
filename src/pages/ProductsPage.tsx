@@ -437,6 +437,12 @@ function ProductsPage() {
                     </div>
                   </div>
 
+                  {/* Price badge */}
+                  <div className="absolute top-3 left-3">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
+                      <Star className="h-3 w-3" />
+                      {Math.round(item.price)} SAR
+                    </span>
                   </div>
 
                   {/* Category badge */}
@@ -447,7 +453,7 @@ function ProductsPage() {
                       </span>
                     </div>
                   )}
-                
+                </div>
 
                 <div className="p-5">
                   <div className="mb-3">
@@ -666,6 +672,12 @@ function ProductsPage() {
                                     </div>
                                   </div>
                                 )}
+                                <div className="absolute top-1.5 left-1.5">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold shadow">
+                                    <Star className="h-2.5 w-2.5" />
+                                    {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
+                                  </span>
+                                </div>
                                 {category && (
                                   <div className="absolute top-1.5 right-1.5">
                                     <span className="inline-block text-[11px] px-1.5 py-0.5 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
