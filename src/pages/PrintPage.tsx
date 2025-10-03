@@ -2,6 +2,7 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
 import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID } from '../lib/zatca'
+import { invoiceSubmissionService } from '../services/invoiceSubmission'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
 
@@ -156,6 +157,31 @@ const PrintPage: React.FC = () => {
     URL.revokeObjectURL(url)
   }
 
+  const handleSubmitToZATCA = async () => {
+    if (!order) return
+    
+    try {
+      console.log('🚀 Submitting invoice to ZATCA...')
+      
+      const result = await invoiceSubmissionService.submitInvoiceToZATCA({
+        order,
+        restaurantSettings,
+        tenant: currentTenant
+      })
+      
+      if (result.success) {
+        alert('✅ تم إرسال الفاتورة إلى زاتكا بنجاح!')
+        console.log('ZATCA submission successful:', result)
+      } else {
+        alert('❌ فشل في إرسال الفاتورة إلى زاتكا: ' + (result.errors?.join(', ') || 'خطأ غير معروف'))
+        console.error('ZATCA submission failed:', result.errors)
+      }
+    } catch (error) {
+      console.error('Error submitting to ZATCA:', error)
+      alert('❌ خطأ في الاتصال بزاتكا: ' + error)
+    }
+  }
+
   const handleBack = () => {
     window.history.back()
   }
@@ -228,9 +254,15 @@ const PrintPage: React.FC = () => {
                 onClick={handleDownloadUBL}
                 className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic"
               >
-                📄 تحميل UBL XML
+                📄 تحميل UBL XML: للاختبار
               </button>
             )}
+            <button
+              onClick={handleSubmitToZATCA}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 arabic"
+            >
+              🚀 إرسال لزاتكا
+            </button>
           </div>
         </div>
       </div>
