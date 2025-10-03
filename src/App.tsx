@@ -8,7 +8,7 @@ import { formatToEnglish } from './utils/numberUtils'
 import { authService } from './lib/authService'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from './lib/firebase'
-import { getAuth } from 'firebase/auth'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
 // Import login page directly for instant loading
 import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
@@ -383,31 +383,29 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    // Simple auth check
-    const checkAuth = () => {
-      const currentUser = authService.getCurrentUser()
-      const firebaseUser = getAuth().currentUser
+    const auth = getAuth();
+
+    // انتظر أول تغيير حالة من Firebase ثم قرّر
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      console.log('Firebase auth state changed:', fbUser ? 'User logged in' : 'User logged out');
       
-      console.log('Auth check - currentUser:', currentUser?.id)
-      console.log('Auth check - firebaseUser:', firebaseUser?.uid)
+      // إذا كان عندك authService منفصل، تقدر تتأكد من مزامنة المستخدم/التيننت هنا
+      // مثال: authService.syncFromFirebaseUser(fbUser)
       
-      const isAuth = !!(currentUser && firebaseUser)
-      console.log('Setting isLoggedIn to:', isAuth)
-      setIsLoggedIn(isAuth)
-      setIsInitialized(true)
-    }
+      // التحقق من authService إذا كان المستخدم موجود
+      const currentUser = authService.getCurrentUser();
+      const isAuthenticated = !!fbUser && !!currentUser;
+      
+      console.log('Firebase user:', fbUser?.uid);
+      console.log('AuthService user:', currentUser?.id);
+      console.log('Setting isLoggedIn to:', isAuthenticated);
+      
+      setIsLoggedIn(isAuthenticated);      // لا تربطه بفحص آخر لحظي
+      setIsInitialized(true);       // اعتبر التطبيق جاهز بعد أول firing
+    });
 
-    // Check immediately
-    checkAuth()
-
-    // Listen to auth changes
-    const unsubscribe = authService.onAuthStateChange((user) => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
-      setIsLoggedIn(!!user)
-    })
-
-    return unsubscribe
-  }, [])
+    return unsubscribe;
+  }, []);
 
   if (!isInitialized) {
     return (
@@ -429,7 +427,7 @@ function App() {
   // Show dashboard if logged in
   console.log('App: User is logged in, showing dashboard')
   return (
-    <Routes>
+      <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={
         <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
@@ -466,9 +464,9 @@ function App() {
           <SettingsPage />
         </Suspense>
       } />
-      <Route path="/print/:orderId" element={<PrintPage />} />
+        <Route path="/print/:orderId" element={<PrintPage />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+      </Routes>
   )
 }
 
