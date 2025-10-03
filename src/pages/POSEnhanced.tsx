@@ -308,15 +308,6 @@ const POSEnhanced: React.FC = () => {
                 {/* Quick Buttons */}
                 {/* removed quick actions: customer, discount, refresh products, manage products */}
 
-                {cart.length > 0 && (
-                  <button
-                    onClick={() => setShowPaymentModal(true)}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 flex items-center space-x-2"
-                  >
-                    <CreditCard className="h-4 w-4" />
-                    <span className="arabic">دفع</span>
-                  </button>
-                )}
               </div>
             </div>
 
