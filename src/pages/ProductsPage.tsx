@@ -555,7 +555,7 @@ function ProductsPage() {
                           {/* السعر والتصنيف */}
                           <div className="space-y-3">
                             {/* السعر */}
-                            <div className="max-w-sm">
+                            <div className="max-w-xl">
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر (SAR) *</label>
                               <div className="relative">
                                 <input
