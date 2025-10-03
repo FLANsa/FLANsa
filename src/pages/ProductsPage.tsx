@@ -526,7 +526,7 @@ function ProductsPage() {
                           <h4 className="text-lg font-semibold text-gray-800 arabic">معلومات المنتج</h4>
                           
                           {/* الاسم بالعربية */}
-                          <div>
+                          <div className="max-w-xl">
                             <label className="block text-sm font-medium text-gray-700 arabic mb-1">الاسم بالعربية *</label>
                             <input
                               type="text"
@@ -539,7 +539,7 @@ function ProductsPage() {
                           </div>
                           
                           {/* الاسم بالإنجليزية */}
-                          <div>
+                          <div className="max-w-xl">
                             <label className="block text-sm font-medium text-gray-700 english mb-1">Name (English)</label>
                             <input
                               type="text"
