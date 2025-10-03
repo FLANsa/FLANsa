@@ -1,10 +1,8 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import {
-  ShoppingCart, Package, Settings, Receipt, Printer, BarChart3, Home
+  ShoppingCart, Package, Settings, Receipt, BarChart3, Home
 } from 'lucide-react'
-import { generateZATCAQR, formatZATCATimestamp, generateUUID } from './lib/zatca'
-import { formatToEnglish } from './utils/numberUtils'
 import { authService } from './lib/authService'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from './lib/firebase'
@@ -19,154 +17,10 @@ const SalesReportsPageTest = lazy(() => import('./pages/SalesReportsPage'))
 const POSEnhanced = lazy(() => import('./pages/POSEnhanced'))
 const ProductsPage = lazy(() => import('./pages/ProductsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const PrintPage = lazy(() => import('./pages/PrintPage'))
 
 /* Login page now comes from src/pages/LoginPage */
 
-/* =========================
-   Print Page
-========================= */
-function PrintPage() {
-  const navigate = useNavigate()
-  const [order, setOrder] = useState<any>(null)
-  const [qrUrl, setQrUrl] = useState('')
-  const [tenant, setTenant] = useState<any>(null)
-
-  useEffect(() => {
-    const orderData = localStorage.getItem('lastOrder')
-    if (!orderData) return
-    const parsed = JSON.parse(orderData)
-    setOrder(parsed)
-
-    // Get tenant data
-    const currentTenant = authService.getCurrentTenant()
-    setTenant(currentTenant)
-
-    ;(async () => {
-      try {
-        const qr = await generateZATCAQR({
-          sellerName: tenant?.name || 'Qayd POS System',
-          vatNumber: tenant?.vatNumber || '123456789012345',
-          timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
-          total: parsed.total || 0,
-          vatTotal: parsed.vat || 0,
-          uuid: generateUUID(),
-        })
-        setQrUrl(qr)
-      } catch (e) {
-        console.error('QR generation failed', e)
-      }
-    })()
-  }, [tenant])
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center" dir="rtl">
-          <h2 className="text-xl font-semibold text-gray-900 arabic">لا يوجد طلب للطباعة</h2>
-          <div className="mt-4 flex gap-3 justify-center">
-            <button onClick={() => navigate('/pos')} className="bg-blue-600 text-white px-4 py-2 rounded-md arabic">العودة لنقطة البيع</button>
-            <button onClick={() => navigate('/dashboard')} className="bg-green-600 text-white px-4 py-2 rounded-md arabic">🏠 الصفحة الرئيسية</button>
-        </div>
-      </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Print Header */}
-      <div className="bg-white shadow-sm border-b print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 arabic">طباعة الفاتورة</h1>
-              <p className="text-sm text-gray-500 english">Print Receipt</p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => window.print()} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic">
-                <Printer className="h-4 w-4 inline mr-2" />
-                طباعة
-              </button>
-              <button onClick={() => navigate('/dashboard')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 arabic">🏠 الصفحة الرئيسية</button>
-              <button onClick={() => navigate('/pos')} className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 arabic">العودة</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Receipt (58mm) */}
-      <div className="max-w-md mx-auto bg-white p-4 print:p-2 print:max-w-none print:mx-0" style={{ width: '58mm' }}>
-        <div className="text-center mb-4">
-          <h1 className="text-lg font-bold arabic">{tenant?.nameAr || 'قيد'}</h1>
-          <p className="text-sm english">{tenant?.name || 'Qayd - POS System'}</p>
-          <div className="text-xs text-gray-600 mt-2">
-            <p>VAT: {tenant?.vatNumber || '123456789012345'}</p>
-            <p>CR: {tenant?.crNumber || '1010101010'}</p>
-            <p>Tel: {tenant?.phone || '0112345678'}</p>
-          </div>
-        </div>
-
-        <div className="border-t border-b border-gray-300 py-2 my-2" dir="rtl">
-          <div className="flex justify-between text-sm"><span className="arabic">رقم الفاتورة:</span><span>{order.invoiceNumber}</span></div>
-          <div className="flex justify-between text-sm"><span className="arabic">التاريخ:</span><span>{new Date(order.timestamp).toLocaleDateString('ar-SA')}</span></div>
-          <div className="flex justify-between text-sm"><span className="arabic">الوقت:</span><span>{new Date(order.timestamp).toLocaleTimeString('ar-SA')}</span></div>
-          <div className="flex justify-between text-sm">
-            <span className="arabic">النوع:</span>
-            <span className="arabic">
-              {order.mode === 'dine-in' ? 'تناول في المطعم' :
-               order.mode === 'takeaway' ? 'طلب خارجي' : 'توصيل'}
-                      </span>
-          </div>
-          {order.customerPhone && (
-            <div className="flex justify-between text-sm"><span className="arabic">الهاتف:</span><span>{order.customerPhone}</span></div>
-                        )}
-                      </div>
-
-        {/* Items */}
-        <div className="mb-4">
-          <div className="text-center text-sm font-semibold mb-2 arabic">تفاصيل الطلب</div>
-          {order.items.map((item: any, index: number) => (
-            <div key={index} className="mb-2">
-              <div className="flex justify-between text-sm" dir="rtl">
-                <div className="flex-1">
-                  <div className="arabic font-medium">{item.nameAr || item.name}</div>
-                  <div className="english text-xs text-gray-500">{item.nameEn || item.name}</div>
-                </div>
-                <span className="text-left">{formatToEnglish(item.quantity)}x</span>
-            </div>
-              <div className="flex justify-between text-xs text-gray-600">
-                <span></span>
-                <span>{formatToEnglish(item.price)} SAR (شامل الضريبة)</span>
-          </div>
-                  </div>
-                ))}
-              </div>
-
-        {/* Totals */}
-        <div className="border-t border-gray-300 pt-2">
-          <div className="flex justify-between text-sm mb-1"><span className="arabic">المجموع (شامل الضريبة):</span><span>{formatToEnglish(order.subtotal + order.vat)} SAR</span></div>
-          <div className="flex justify-between text-sm mb-1 text-gray-600"><span className="arabic">المجموع الفرعي:</span><span>{formatToEnglish(order.subtotal)} SAR</span></div>
-          <div className="flex justify-between text-sm mb-1 text-gray-600"><span className="arabic">ضريبة القيمة المضافة (15%):</span><span>{formatToEnglish(order.vat)} SAR</span></div>
-          {order.discount > 0 && (
-            <div className="flex justify-between text-sm mb-1 text-red-600"><span className="arabic">خصم:</span><span>-{formatToEnglish(order.discount)} SAR</span></div>
-          )}
-          <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 mt-2"><span className="arabic">المجموع الكلي:</span><span>{formatToEnglish(order.total)} SAR</span></div>
-          </div>
-
-        {/* QR Code */}
-        <div className="text-center mt-4">
-          <div className="text-xs text-gray-600 mb-2 arabic">رمز ZATCA</div>
-          {qrUrl ? <img src={qrUrl} alt="ZATCA QR" className="inline-block w-28 h-28" /> : <div className="bg-gray-100 p-2 rounded text-xs text-gray-500">جاري إنشاء الرمز...</div>}
-            </div>
-
-        <div className="text-center mt-4 text-xs text-gray-600">
-          <p className="arabic">شكراً لزيارتكم</p>
-          <p className="english">Thank you for your visit</p>
-                </div>
-      </div>
-    </div>
-  )
-}
 
 
 /* =========================
