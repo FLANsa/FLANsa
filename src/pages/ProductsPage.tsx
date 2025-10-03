@@ -244,7 +244,7 @@ function ProductsPage() {
 
   function handleEdit(item: InventoryItem) {
     // Fill form with item data
-    setName(item.name)
+    setName(item.nameAr || item.name)
     setNameEn(item.nameEn || '')
     setPrice(item.price.toString())
     setCategory(item.category || '')
