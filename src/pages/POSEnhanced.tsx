@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Minus, Trash2, Phone, CreditCard, CheckCircle, ShoppingCart } from 'lucide-react'
+import { Plus, Minus, Trash2, Phone, CreditCard, CheckCircle, ShoppingCart, X } from 'lucide-react'
 import { parseNumber, formatToEnglish } from '../utils/numberUtils'
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
