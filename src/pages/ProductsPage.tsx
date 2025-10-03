@@ -25,6 +25,7 @@ function ProductsPage() {
   // Modal
   const [isOpen, setIsOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
 
   // Form fields
   const [name, setName] = useState('')
@@ -99,7 +100,7 @@ function ProductsPage() {
 
   function resetForm() {
     setName(''); setNameEn(''); setPrice(''); setCategory(''); setError('')
-    setUploadedImage(null); setImagePreview('')
+    setUploadedImage(null); setImagePreview(''); setEditingItem(null)
   }
 
   // Handle image upload
@@ -157,8 +158,8 @@ function ProductsPage() {
         return
       }
 
-      // Handle image - only uploaded file
-      let finalImageUrl = ''
+      // Handle image - use uploaded file or keep existing
+      let finalImageUrl = editingItem?.imageUrl || ''
       if (uploadedImage) {
         try {
           finalImageUrl = await convertImageToBase64(uploadedImage)
@@ -169,36 +170,53 @@ function ProductsPage() {
         }
       }
 
-      const newItem = {
+      const itemData = {
         tenantId,
         name: nameEn.trim() || trimmedName,
         nameAr: trimmedName,
         price: Math.round(numericPrice),
         imageUrl: finalImageUrl,
         category: category.trim() || 'غير مصنف',
-        stock: 100, // Default stock
+        stock: editingItem?.stock || 100,
         isActive: true,
         isAvailable: true,
-        createdAt: new Date(),
+        createdAt: editingItem?.createdAt || new Date(),
         updatedAt: new Date()
       }
 
-      // Add to Firebase
-      const docRef = await addDoc(collection(db, 'items'), newItem)
-      
-      // Add to local state
-      const itemWithId = { id: docRef.id, ...newItem }
-      setItems([itemWithId, ...items])
-      
-      // Update localStorage
-      const updatedItems = [itemWithId, ...items]
-      localStorage.setItem('inventory', JSON.stringify(updatedItems))
+      if (editingItem) {
+        // Update existing item
+        const { updateDoc } = await import('firebase/firestore')
+        await updateDoc(doc(db, 'items', editingItem.id), itemData)
+        
+        // Update local state
+        const updatedItems = items.map(item => 
+          item.id === editingItem.id 
+            ? { ...item, ...itemData }
+            : item
+        )
+        setItems(updatedItems)
+        
+        // Update localStorage
+        localStorage.setItem('inventory', JSON.stringify(updatedItems))
+      } else {
+        // Add new item
+        const docRef = await addDoc(collection(db, 'items'), itemData)
+        
+        // Add to local state
+        const itemWithId = { id: docRef.id, ...itemData }
+        setItems([itemWithId, ...items])
+        
+        // Update localStorage
+        const updatedItems = [itemWithId, ...items]
+        localStorage.setItem('inventory', JSON.stringify(updatedItems))
+      }
       
       resetForm()
       setIsOpen(false)
     } catch (error) {
-      console.error('Error adding item:', error)
-      setError('حدث خطأ أثناء إضافة المنتج')
+      console.error('Error saving item:', error)
+      setError(editingItem ? 'حدث خطأ أثناء تعديل المنتج' : 'حدث خطأ أثناء إضافة المنتج')
     } finally {
       setSaving(false)
     }
@@ -232,6 +250,7 @@ function ProductsPage() {
     setImagePreview(item.imageUrl || '')
     setUploadedImage(null)
     setError('')
+    setEditingItem(item)
     
     // Open modal
     setIsOpen(true)
@@ -522,8 +541,8 @@ function ProductsPage() {
                     <Plus className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold arabic">إضافة منتج جديد</h3>
-                    <p className="text-xs opacity-90 arabic">أضف منتجاً جديداً إلى قائمة الأصناف</p>
+                    <h3 className="text-lg font-bold arabic">{editingItem ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
+                    <p className="text-xs opacity-90 arabic">{editingItem ? 'عدّل بيانات المنتج المحدد' : 'أضف منتجاً جديداً إلى قائمة الأصناف'}</p>
                   </div>
                 </div>
                 <button
@@ -544,8 +563,8 @@ function ProductsPage() {
                             <Plus className="h-6 w-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-2xl font-bold text-gray-800 arabic">إضافة منتج جديد</h3>
-                            <p className="text-sm text-gray-500 arabic">أضف منتجاً جديداً إلى قائمة الأصناف</p>
+                            <h3 className="text-2xl font-bold text-gray-800 arabic">{editingItem ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
+                            <p className="text-sm text-gray-500 arabic">{editingItem ? 'عدّل بيانات المنتج المحدد' : 'أضف منتجاً جديداً إلى قائمة الأصناف'}</p>
                           </div>
                         </div>
                       </div>
@@ -751,7 +770,7 @@ function ProductsPage() {
                           ) : (
                             <span className="flex items-center gap-3">
                               <Plus className="h-5 w-5" />
-                              إضافة المنتج
+                              {editingItem ? 'حفظ التعديلات' : 'إضافة المنتج'}
                             </span>
                           )}
                         </button>
