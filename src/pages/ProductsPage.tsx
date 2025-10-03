@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Plus, Search, Tag, Image as ImageIcon, X, Trash2, Layers, Home } from 'lucide-react'
+import { Plus, Search, Tag, Image as ImageIcon, X, Trash2, Layers, Home, Edit3, Eye, Package, TrendingUp, Star } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -343,55 +343,92 @@ function ProductsPage() {
                   </div>
                 </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((item) => (
               <article
                 key={item.id}
-                className="group bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-md transition-all"
+                className="group bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="relative">
+                <div className="relative overflow-hidden">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.name}
-                      className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
-                    <div className="h-44 w-full bg-gray-100 flex items-center justify-center text-gray-400">
-                      <ImageIcon className="h-7 w-7" />
+                    <div className="h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                        <p className="text-xs arabic">لا توجد صورة</p>
+                      </div>
                     </div>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 p-2">
-                    <div className="flex items-end gap-2">
-                      {item.category && (
-                        <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-white/90 text-emerald-700 border border-emerald-100 arabic">
-                          {item.category}
-                    </span>
-                      )}
-                      <span className="ml-auto text-white text-sm font-bold bg-emerald-600/95 px-2.5 py-1 rounded-md shadow-sm">
-                        {Math.round(item.price)} SAR
-                    </span>
+                  
+                  {/* Overlay with actions */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="flex gap-2">
+                      <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+                        <Eye className="h-4 w-4 text-gray-700" />
+                      </button>
+                      <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+                        <Edit3 className="h-4 w-4 text-blue-700" />
+                      </button>
                     </div>
                   </div>
+
+                  {/* Price badge */}
+                  <div className="absolute top-3 left-3">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
+                      <Star className="h-3 w-3" />
+                      {Math.round(item.price)} SAR
+                    </span>
+                  </div>
+
+                  {/* Category badge */}
+                  {item.category && (
+                    <div className="absolute top-3 right-3">
+                      <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
+                        {item.category}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 arabic group-hover:text-emerald-700 transition-colors">
-                    {item.name}
-                  </h3>
-                  {item.nameEn && <p className="text-sm text-gray-500 english">{item.nameEn}</p>}
+                <div className="p-5">
+                  <div className="mb-3">
+                    <h3 className="font-bold text-gray-900 arabic text-lg group-hover:text-emerald-700 transition-colors line-clamp-2">
+                      {item.name}
+                    </h3>
+                    {item.nameEn && (
+                      <p className="text-sm text-gray-500 english mt-1 line-clamp-1">{item.nameEn}</p>
+                    )}
+                  </div>
 
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="text-xs text-gray-500">
-                      {item.category ? <span className="arabic">{item.category}</span> : <span className="text-gray-400 arabic">غير مصنف</span>}
+                  {/* Stats */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Package className="h-3 w-3" />
+                      <span className="arabic">متوفر</span>
                     </div>
-                  <button
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3" />
+                      <span className="arabic">شائع</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors arabic text-sm font-medium">
+                      <Edit3 className="h-4 w-4" />
+                      تعديل
+                    </button>
+                    <button
                       onClick={() => handleDelete(item.id)}
-                      className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200 arabic"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                      حذف
-                  </button>
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors arabic text-sm font-medium"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </article>
@@ -403,141 +440,185 @@ function ProductsPage() {
       {/* Modal: Add Product */}
       {isOpen && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => { setIsOpen(false); resetForm() }} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setIsOpen(false); resetForm() }} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl border overflow-hidden">
-              <div className="px-6 py-4 bg-gradient-to-l from-emerald-600 to-green-600 text-white flex items-center justify-between">
-                <h3 className="text-lg font-semibold arabic">إضافة منتج</h3>
+            <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border overflow-hidden transform transition-all duration-300 scale-100">
+              <div className="px-8 py-6 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Plus className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold arabic">إضافة منتج جديد</h3>
+                    <p className="text-sm opacity-90 arabic">أضف منتجاً جديداً إلى قائمة الأصناف</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => { setIsOpen(false); resetForm() }}
-                  className="text-white/90 hover:text-white"
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   aria-label="إغلاق"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-6 w-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleAdd} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-4">
-              <div>
-                    <label className="block text-sm text-gray-700 arabic mb-1">الاسم (عربي)</label>
-                <input
-                  type="text"
-                  autoComplete="off"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder="مثل: برجر لحم"
-                />
-              </div>
-              <div>
-                    <label className="block text-sm text-gray-700 english mb-1">Name (English)</label>
-                <input
-                  type="text"
-                  autoComplete="off"
-                      value={nameEn}
-                      onChange={(e) => setNameEn(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder="e.g. Beef Burger"
-                  dir="ltr"
-                />
-              </div>
-                  <div className="grid grid-cols-2 gap-4">
-              <div>
-                      <label className="block text-sm text-gray-700 arabic mb-1">السعر (SAR)</label>
-                      <input
-                        type="number"
-                        autoComplete="off"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        placeholder="مثال: 25"
-                        dir="ltr"
-                        min={0}
-                        step="0.01"
-                      />
-              </div>
-              <div>
-                      <label className="block text-sm text-gray-700 arabic mb-1">التصنيف</label>
-                <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      >
-                        <option value="">اختر التصنيف</option>
-                        <option value="ساندوتشات">ساندوتشات</option>
-                        <option value="برجر">برجر</option>
-                        <option value="سلطات">سلطات</option>
-                        <option value="مشروبات">مشروبات</option>
-                        <option value="حلويات">حلويات</option>
-                        <option value="مقبلات">مقبلات</option>
-                        <option value="وجبات رئيسية">وجبات رئيسية</option>
-                        <option value="عصائر طبيعية">عصائر طبيعية</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-700 english mb-1">Image URL</label>
-                    <input
-                      type="url"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder="https://..."
-                  dir="ltr"
-                />
-                  </div>
-                  {error && (
-                    <div className="rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm arabic">{error}</div>
-                  )}
-              </div>
-
-                {/* Live Preview */}
-                <div className="border rounded-xl overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-2 border-b text-sm text-gray-600 arabic">معاينة</div>
-                  <div className="p-4">
-                    <div className="group bg-white rounded-xl shadow-sm border overflow-hidden">
-                      <div className="relative">
-                        {imageUrl ? (
-                          <img src={imageUrl} alt={name || 'preview'} className="h-44 w-full object-cover" />
-                        ) : (
-                          <div className="h-44 w-full bg-gray-100 flex items-center justify-center text-gray-400">
-                            <ImageIcon className="h-7 w-7" />
+              <form onSubmit={handleAdd} className="p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Form Fields */}
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 rounded-2xl p-6">
+                      <h4 className="text-lg font-semibold text-gray-800 arabic mb-4">معلومات المنتج</h4>
+                      
+                      <div className="space-y-5">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 arabic mb-2">الاسم بالعربية *</label>
+                          <input
+                            type="text"
+                            autoComplete="off"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                            placeholder="مثل: برجر لحم"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 english mb-2">Name (English)</label>
+                          <input
+                            type="text"
+                            autoComplete="off"
+                            value={nameEn}
+                            onChange={(e) => setNameEn(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                            placeholder="e.g. Beef Burger"
+                            dir="ltr"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 arabic mb-2">السعر (SAR) *</label>
+                            <input
+                              type="number"
+                              autoComplete="off"
+                              value={price}
+                              onChange={(e) => setPrice(e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                              placeholder="مثال: 25"
+                              dir="ltr"
+                              min={0}
+                              step="0.01"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 arabic mb-2">التصنيف</label>
+                            <select
+                              value={category}
+                              onChange={(e) => setCategory(e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                            >
+                              <option value="">اختر التصنيف</option>
+                              <option value="ساندوتشات">ساندوتشات</option>
+                              <option value="برجر">برجر</option>
+                              <option value="سلطات">سلطات</option>
+                              <option value="مشروبات">مشروبات</option>
+                              <option value="حلويات">حلويات</option>
+                              <option value="مقبلات">مقبلات</option>
+                              <option value="وجبات رئيسية">وجبات رئيسية</option>
+                              <option value="عصائر طبيعية">عصائر طبيعية</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 english mb-2">رابط الصورة</label>
+                          <input
+                            type="url"
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                            placeholder="https://example.com/image.jpg"
+                            dir="ltr"
+                          />
+                        </div>
+                        
+                        {error && (
+                          <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm arabic flex items-center gap-2">
+                            <X className="h-4 w-4" />
+                            {error}
                           </div>
                         )}
-                        <div className="absolute inset-x-0 bottom-0 p-2">
-                          <div className="flex items-end gap-2">
-                            {category && (
-                              <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-white/90 text-emerald-700 border border-emerald-100 arabic">
-                                {category}
-                              </span>
-                            )}
-                            <span className="ml-auto text-white text-sm font-bold bg-emerald-600/95 px-2.5 py-1 rounded-md shadow-sm">
-                              {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live Preview */}
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6">
+                    <h4 className="text-lg font-semibold text-gray-800 arabic mb-4">معاينة المنتج</h4>
+                    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                      <div className="relative overflow-hidden">
+                        {imageUrl ? (
+                          <img src={imageUrl} alt={name || 'preview'} className="h-48 w-full object-cover" />
+                        ) : (
+                          <div className="h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
+                            <div className="text-center">
+                              <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                              <p className="text-xs arabic">لا توجد صورة</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Price badge */}
+                        <div className="absolute top-3 left-3">
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-lg">
+                            <Star className="h-3 w-3" />
+                            {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
+                          </span>
+                        </div>
+
+                        {/* Category badge */}
+                        {category && (
+                          <div className="absolute top-3 right-3">
+                            <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
+                              {category}
                             </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="p-4">
+                        <h4 className="font-bold text-gray-900 arabic text-lg">{name || 'اسم المنتج'}</h4>
+                        <p className="text-sm text-gray-500 english mt-1">{nameEn || 'Product name'}</p>
+                        
+                        <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            <span className="arabic">متوفر</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <TrendingUp className="h-3 w-3" />
+                            <span className="arabic">شائع</span>
                           </div>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h4 className="font-semibold text-gray-900 arabic">{name || 'اسم المنتج'}</h4>
-                        <p className="text-sm text-gray-500 english">{nameEn || 'Product name'}</p>
-                      </div>
                     </div>
-              </div>
-            </div>
+                  </div>
+                </div>
 
-                <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-              <button
+                {/* Action Buttons */}
+                <div className="lg:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-200">
+                  <button
                     type="button"
                     onClick={() => { setIsOpen(false); resetForm() }}
-                    className="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 arabic"
-              >
-                إلغاء
-              </button>
-                <button
+                    className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors arabic font-medium"
+                  >
+                    إلغاء
+                  </button>
+                  <button
                     type="submit"
                     disabled={saving}
-                    className="px-6 py-2 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 arabic"
+                    className="px-8 py-3 rounded-xl text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 transition-all duration-200 arabic font-medium shadow-lg hover:shadow-xl"
                   >
                     {saving ? (
                       <span className="flex items-center gap-2">
@@ -545,9 +626,12 @@ function ProductsPage() {
                         جاري الحفظ...
                       </span>
                     ) : (
-                      'إضافة المنتج'
+                      <span className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        إضافة المنتج
+                      </span>
                     )}
-              </button>
+                  </button>
                 </div>
               </form>
             </div>
