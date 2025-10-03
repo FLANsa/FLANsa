@@ -102,9 +102,9 @@ const Navbar = () => {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center px-3 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-red-500/20 hover:border-red-400/30 border border-transparent rounded-lg transition-all duration-200"
+              className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-white/80 hover:text-white hover:bg-white/10"
             >
-              <LogOut className="h-4 w-4 ml-1 rtl:ml-0 rtl:mr-1" />
+              <LogOut className="h-4 w-4 ml-2 rtl:ml-0 rtl:mr-2" />
               <span className="arabic">تسجيل الخروج</span>
             </button>
           </div>
@@ -172,7 +172,7 @@ const Navbar = () => {
                   handleLogout()
                   setIsMobileMenuOpen(false)
                 }}
-                className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white/90 hover:text-white hover:bg-red-500/20 hover:border-red-400/30 border border-transparent rounded-lg transition-all duration-200 mt-2"
+                className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium transition-all duration-200 text-white/80 hover:text-white hover:bg-white/10 rounded-lg mt-2"
               >
                 <LogOut className="h-4 w-4 ml-2 rtl:ml-0 rtl:mr-2" />
                 <span className="arabic">تسجيل الخروج</span>
