@@ -274,18 +274,6 @@ function DashboardPage() {
               <div className="text-xs/5 uppercase tracking-wider english opacity-80">Dashboard</div>
               <h1 className="mt-0.5 text-2xl sm:text-3xl font-extrabold arabic tracking-tight">لوحة التحكم</h1>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-semibold arabic">{user?.name || 'المستخدم'}</p>
-                <p className="text-[11px] opacity-90">{user?.role || 'مستخدم'}</p>
-                {tenant && (
-                  <p className="text-[10px] opacity-75 arabic">{tenant.nameAr || tenant.name}</p>
-                )}
-              </div>
-              <button onClick={handleLogout} className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white px-3 py-2 rounded-lg text-sm backdrop-blur transition arabic">
-                تسجيل الخروج
-              </button>
-            </div>
           </div>
         </div>
       </header>
