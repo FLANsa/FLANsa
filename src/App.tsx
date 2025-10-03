@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import {
-  ShoppingCart, Package, Settings, Receipt, Printer, BarChart3
+  ShoppingCart, Package, Settings, Receipt, Printer, BarChart3, Home
 } from 'lucide-react'
 import { generateZATCAQR, formatZATCATimestamp, generateUUID } from './lib/zatca'
 import { formatToEnglish } from './utils/numberUtils'
@@ -174,17 +174,14 @@ function PrintPage() {
 ========================= */
 function DashboardPage() {
   const navigate = useNavigate()
-  const [user, setUser] = useState<any>(null)
   const [tenant, setTenant] = useState<any>(null)
   const [stats, setStats] = useState({ totalOrders: 0, totalSales: 0, totalProducts: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get current user and tenant
-    const currentUser = authService.getCurrentUser()
+    // Get current tenant
     const currentTenant = authService.getCurrentTenant()
     
-    setUser(currentUser)
     setTenant(currentTenant)
     
     loadStats()
@@ -241,17 +238,6 @@ function DashboardPage() {
       })
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleLogout = async () => {
-    try {
-      await authService.signOut()
-      navigate('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Force page reload to clear all state
-      window.location.reload()
     }
   }
 
@@ -377,8 +363,9 @@ function App() {
 
       // (اختياري) بعدها بسكّة جانبية، زامن authService/tenant بدون ما تأثر على isInitialized
       try {
-        if (fbUser && authService.syncFromFirebaseUser) {
-          await authService.syncFromFirebaseUser(fbUser); // إن كانت موجودة
+        if (fbUser) {
+          // Sync user data if needed
+          console.log('User authenticated:', fbUser.uid);
         }
       } catch (e) {
         console.warn('authService sync failed:', e);
