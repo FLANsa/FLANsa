@@ -120,3 +120,143 @@ export function generateUUID(): string {
     return v.toString(16)
   })
 }
+
+/**
+ * Generate UBL XML for ZATCA compliance
+ */
+export function generateUBLXML(data: {
+  invoiceNumber: string
+  uuid: string
+  issueDate: string
+  issueTime: string
+  sellerName: string
+  sellerVatNumber: string
+  sellerCrNumber: string
+  sellerAddress: string
+  sellerPhone: string
+  items: Array<{
+    nameAr: string
+    nameEn: string
+    quantity: number
+    price: number
+    vatRate: number
+  }>
+  subtotal: number
+  vatTotal: number
+  total: number
+}): string {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>${data.invoiceNumber}</cbc:ID>
+  <cbc:UUID>${data.uuid}</cbc:UUID>
+  <cbc:IssueDate>${data.issueDate}</cbc:IssueDate>
+  <cbc:IssueTime>${data.issueTime}</cbc:IssueTime>
+  <cbc:InvoiceTypeCode>0100000</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
+  
+  <!-- Seller Information -->
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="CRN">${data.sellerCrNumber}</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>${data.sellerName}</cbc:Name>
+      </cac:PartyName>
+      <cac:PostalAddress>
+        <cbc:StreetName>${data.sellerAddress}</cbc:StreetName>
+        <cbc:Country>
+          <cbc:IdentificationCode>SA</cbc:IdentificationCode>
+        </cbc:Country>
+      </cac:PostalAddress>
+      <cac:Contact>
+        <cbc:Telephone>${data.sellerPhone}</cbc:Telephone>
+      </cac:Contact>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>${data.sellerVatNumber}</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  
+  <!-- Invoice Lines -->
+  ${data.items.map((item, index) => `
+  <cac:InvoiceLine>
+    <cbc:ID>${index + 1}</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="C62">${item.quantity}</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">${(item.price * item.quantity).toFixed(2)}</cbc:LineExtensionAmount>
+    <cac:Item>
+      <cbc:Description>${item.nameAr}</cbc:Description>
+      <cbc:Name>${item.nameEn}</cbc:Name>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">${item.price.toFixed(2)}</cbc:PriceAmount>
+    </cac:Price>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">${((item.price * item.quantity) * (item.vatRate / 100)).toFixed(2)}</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="SAR">${(item.price * item.quantity).toFixed(2)}</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="SAR">${((item.price * item.quantity) * (item.vatRate / 100)).toFixed(2)}</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Percent>${item.vatRate}</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+  </cac:InvoiceLine>`).join('')}
+  
+  <!-- Tax Summary -->
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">${data.vatTotal.toFixed(2)}</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="SAR">${data.subtotal.toFixed(2)}</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="SAR">${data.vatTotal.toFixed(2)}</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  
+  <!-- Legal Monetary Totals -->
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="SAR">${data.subtotal.toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SAR">${data.subtotal.toFixed(2)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SAR">${data.total.toFixed(2)}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="SAR">${data.total.toFixed(2)}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+</Invoice>`
+  
+  return xml
+}
+
+/**
+ * Generate digital signature for ZATCA (Phase 2)
+ * Note: This is a placeholder - real implementation requires ZATCA certificates
+ */
+export function generateDigitalSignature(xmlContent: string, privateKey?: string): string {
+  // Placeholder for digital signature
+  // In real implementation, this would use ZATCA certificates and proper signing
+  const hash = btoa(xmlContent)
+  return `SIGNATURE_PLACEHOLDER_${hash.slice(0, 20)}`
+}
+
+/**
+ * Generate Cryptographic Stamp ID (CSID) for ZATCA
+ * Note: This is a placeholder - real CSID comes from ZATCA API
+ */
+export function generateCSID(): string {
+  // Placeholder for CSID
+  // In real implementation, this would come from ZATCA onboarding
+  return `CSID_PLACEHOLDER_${Date.now().toString(36)}`
+}

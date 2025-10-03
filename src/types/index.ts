@@ -172,6 +172,12 @@ export interface Invoice {
   uuid: string
   zatcaQrBase64: string
   hash: string
+  // ZATCA Digital Signature Fields
+  csid?: string // Cryptographic Stamp ID from ZATCA
+  digitalSignature?: string // Digital signature
+  cryptographicStamp?: string // Cryptographic stamp
+  zatcaStatus?: 'pending' | 'approved' | 'rejected' | 'not_submitted'
+  ublXml?: string // UBL XML content
   createdAt: Date
 }
 

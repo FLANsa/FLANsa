@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
-import { generateZATCAQR, formatZATCATimestamp, generateUUID } from '../lib/zatca'
+import { generateZATCAQR, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID } from '../lib/zatca'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
 
@@ -9,6 +9,9 @@ const PrintPage: React.FC = () => {
   const { orderId } = useParams()
   const [order, setOrder] = React.useState(null)
   const [restaurantSettings, setRestaurantSettings] = React.useState(null)
+  const [digitalSignature, setDigitalSignature] = React.useState<string>('')
+  const [csid, setCSID] = React.useState<string>('')
+  const [ublXml, setUblXml] = React.useState<string>('')
 
   const [qrUrl, setQrUrl] = React.useState<string>('')
 
@@ -57,8 +60,49 @@ const PrintPage: React.FC = () => {
           uuid: generateUUID()
         })
         setQrUrl(qr)
+        
+        // Generate UBL XML
+        const ublData = {
+          invoiceNumber: parsed.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
+          uuid: parsed.uuid || generateUUID(),
+          issueDate: new Date(parsed.timestamp).toISOString().split('T')[0],
+          issueTime: new Date(parsed.timestamp).toISOString().split('T')[1].split('.')[0],
+          sellerName: sellerName,
+          sellerVatNumber: vatNumber,
+          sellerCrNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
+          sellerAddress: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
+          sellerPhone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
+          items: parsed.items?.map((item: any) => ({
+            nameAr: item.nameAr || item.name,
+            nameEn: item.nameEn || item.name,
+            quantity: item.quantity,
+            price: item.price,
+            vatRate: 15
+          })) || [],
+          subtotal: parsed.subtotal || 0,
+          vatTotal: parsed.vat || 0,
+          total: parsed.total || 0
+        }
+        
+        const xml = generateUBLXML(ublData)
+        setUblXml(xml)
+        
+        // Generate digital signature and CSID
+        const signature = generateDigitalSignature(xml)
+        const csidValue = generateCSID()
+        
+        setDigitalSignature(signature)
+        setCSID(csidValue)
+        
+        console.log('ZATCA compliance data generated:', {
+          qrGenerated: !!qr,
+          ublXmlGenerated: !!xml,
+          digitalSignature: signature,
+          csid: csidValue
+        })
+        
       } catch (e) {
-        console.error('QR generation failed', e)
+        console.error('ZATCA data generation failed', e)
       }
     }
     buildQR()
@@ -67,6 +111,20 @@ const PrintPage: React.FC = () => {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleDownloadUBL = () => {
+    if (!ublXml) return
+    
+    const blob = new Blob([ublXml], { type: 'application/xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `invoice_${order?.invoiceNumber || 'unknown'}.xml`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   const handleBack = () => {
@@ -104,6 +162,14 @@ const PrintPage: React.FC = () => {
               <Printer className="h-4 w-4 inline mr-2" />
               طباعة
             </button>
+            {ublXml && (
+              <button
+                onClick={handleDownloadUBL}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic"
+              >
+                📄 تحميل UBL XML
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -243,6 +309,16 @@ const PrintPage: React.FC = () => {
             <p className="text-xs text-gray-500">
               CR: {restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010'}
             </p>
+            
+            {/* ZATCA Digital Signature Info */}
+            {digitalSignature && (
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <p className="text-xs text-gray-500 arabic">التوقيع الرقمي:</p>
+                <p className="text-xs text-gray-400 font-mono">{digitalSignature}</p>
+                <p className="text-xs text-gray-500 arabic mt-1">CSID:</p>
+                <p className="text-xs text-gray-400 font-mono">{csid}</p>
+              </div>
+            )}
           </div>
 
         </div>
