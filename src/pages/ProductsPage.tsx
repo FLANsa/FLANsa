@@ -563,13 +563,13 @@ function ProductsPage() {
                                   autoComplete="off"
                                   value={price}
                                   onChange={(e) => setPrice(e.target.value)}
-                                  className="w-full pr-2 pl-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                                  className="w-full pr-2 pl-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
                                   placeholder="25.00"
                                   dir="ltr"
                                   min={0}
                                   step="0.01"
                                 />
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-2 pr-2 text-xs text-gray-600 border-r bg-gray-50 rounded-l-md">SAR</span>
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-2 pr-1 text-xs text-gray-600 border-r bg-gray-50 rounded-l-md">SAR</span>
                               </div>
                             </div>
                             
