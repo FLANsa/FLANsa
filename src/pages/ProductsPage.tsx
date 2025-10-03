@@ -559,7 +559,7 @@ function ProductsPage() {
                           {/* السعر + التصنيف */}
                           <div className="space-y-4 max-w-xl">
                             {/* السعر (مع SAR متوافقة RTL) */}
-                            <div className="max-w-md">
+                            <div className="max-w-lg">
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر *</label>
                               <div className="relative">
                                 <input
