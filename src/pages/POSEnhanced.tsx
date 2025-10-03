@@ -592,7 +592,7 @@ const POSEnhanced: React.FC = () => {
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white p-6">
               <div className="flex items-center justify-between">
@@ -614,7 +614,7 @@ const POSEnhanced: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
               {/* Total Amount */}
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
                 <div className="flex justify-between items-center">
@@ -673,7 +673,7 @@ const POSEnhanced: React.FC = () => {
                           setReceivedAmount(value)
                         }
                       }}
-                      className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg font-semibold"
+                      className="w-full px-3 py-2 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-base font-medium"
                       placeholder="0.00"
                       dir="ltr"
                     />
