@@ -273,14 +273,18 @@ class AuthService {
   onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
     this.authStateListeners.push(callback)
     
-    // Check Firebase Auth state immediately
+    // Check Firebase Auth state immediately and call callback synchronously
     const firebaseUser = getAuth().currentUser
     if (firebaseUser && this.currentUser) {
       console.log('[onAuthStateChange] Firebase user exists, calling callback immediately')
-      callback(this.currentUser)
+      // Use setTimeout to ensure callback is called after current execution
+      setTimeout(() => callback(this.currentUser), 0)
+    } else if (firebaseUser && !this.currentUser) {
+      console.log('[onAuthStateChange] Firebase user exists but no currentUser, will be set by onAuthStateChanged')
+      // Don't call callback yet, let onAuthStateChanged handle it
     } else {
-      console.log('[onAuthStateChange] No Firebase user or currentUser, calling callback with null')
-      callback(null)
+      console.log('[onAuthStateChange] No Firebase user, calling callback with null')
+      setTimeout(() => callback(null), 0)
     }
     
     // Return unsubscribe function

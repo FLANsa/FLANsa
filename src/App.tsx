@@ -8,13 +8,16 @@ import { formatToEnglish } from './utils/numberUtils'
 import { authService } from './lib/authService'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from './lib/firebase'
+import { getAuth } from 'firebase/auth'
 
-// Lazy load components for better performance
+// Import login page directly for instant loading
+import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
+
+// Lazy load other components for better performance
 const SalesReportsPageTest = lazy(() => import('./pages/SalesReportsPage'))
 const POSEnhanced = lazy(() => import('./pages/POSEnhanced'))
 const ProductsPage = lazy(() => import('./pages/ProductsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
-const LoginPageMultiTenant = lazy(() => import('./pages/LoginPageMultiTenant'))
 
 /* Login page now comes from src/pages/LoginPage */
 
@@ -376,12 +379,18 @@ function DashboardPage() {
    App (Routes)
 ========================= */
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Check initial auth state synchronously
+    const currentUser = authService.getCurrentUser()
+    const firebaseUser = getAuth().currentUser
+    return !!(currentUser && firebaseUser)
+  })
 
   useEffect(() => {
     // Check initial auth state first
     const initialUser = authService.getCurrentUser()
-    if (initialUser) {
+    const firebaseUser = getAuth().currentUser
+    if (initialUser && firebaseUser) {
       console.log('Initial user found:', initialUser.id)
       setIsLoggedIn(true)
     }
@@ -406,13 +415,7 @@ function App() {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={
-          <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>}>
-            <LoginPageMultiTenant />
-          </Suspense>
-        } />
+        <Route path="/login" element={<LoginPageMultiTenant />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
