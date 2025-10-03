@@ -557,9 +557,9 @@ function ProductsPage() {
                           </div>
 
                           {/* السعر + التصنيف */}
-                          <div className="space-y-4 max-w-xl">
+                          <div className="max-w-xl">
                             {/* السعر (مع SAR متوافقة RTL) */}
-                            <div className="max-w-sm">
+                            <div className="max-w-xl">
                               <label className="block text-sm font-medium text-gray-700 arabic mb-1">السعر *</label>
                               <div className="relative">
                                 <input
@@ -567,11 +567,11 @@ function ProductsPage() {
                                   autoComplete="off"
                                   value={price}
                                   onChange={(e) => setPrice(e.target.value)}
-                                  className={`${inputBase} pr-3 pl-16`}
+                                  className={inputBase}
                                   placeholder="25.00"
                                   dir="ltr"
                                   min={0}
-                                  step="0.01"
+                                  
                                 />
                                 
                               </div>
@@ -599,7 +599,7 @@ function ProductsPage() {
                           </div>
 
                           {/* صورة المنتج */}
-                          <div className="max-w-3xl">
+                          <div className="max-w-xl">
                             <label className="block text-sm font-medium text-gray-700 arabic mb-2">صورة المنتج</label>
 
                             <div className="space-y-3">
