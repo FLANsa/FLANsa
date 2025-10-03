@@ -180,10 +180,6 @@ const SettingsPage: React.FC = () => {
               <h1 className="text-2xl sm:text-3xl font-extrabold arabic">الإعدادات</h1>
               <p className="text-sm/6 opacity-90 english">System Settings</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => (window.location.href = '/dashboard')} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm arabic transition">الصفحة الرئيسية</button>
-              <button onClick={() => window.history.back()} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur text-white text-sm arabic transition">العودة</button>
-            </div>
           </div>
         </div>
       </header>
