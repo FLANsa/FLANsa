@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react'
-import { Plus, Search, Tag, Image as ImageIcon, X, Trash2, Layers, Home, Edit3, Eye, Package, TrendingUp, Star, Upload } from 'lucide-react'
+import { Plus, Search, Tag, Image as ImageIcon, X, Trash2, Layers, Edit3, Eye, Package, TrendingUp, Star, Upload } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { collection, addDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -269,16 +269,6 @@ function ProductsPage() {
         {/* decorative light + highlight */}
         <div aria-hidden className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_-10%,rgba(255,255,255,.25),transparent)]" />
-
-        {/* Home button in top-left corner */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="absolute top-3 left-3 sm:top-4 sm:left-4 z-30 inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg text-sm font-semibold bg-white/10 text-white hover:bg-white/20 border border-white/20 arabic"
-          aria-label="الصفحة الرئيسية"
-        >
-          <Home className="h-5 w-5" />
-          الصفحة الرئيسية
-        </button>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6 pb-12">
           {/* Header Section */}
