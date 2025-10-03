@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Minus, Trash2, Phone, CreditCard, CheckCircle, ShoppingCart, X } from 'lucide-react'
+import { generateUUID } from '../lib/zatca'
 import { parseNumber, formatToEnglish } from '../utils/numberUtils'
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -147,7 +148,8 @@ const POSEnhanced: React.FC = () => {
         receivedAmount,
         change,
         timestamp: new Date().toISOString(),
-        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`
+        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+        uuid: generateUUID()
       }
       
       // Try to save to Firebase first
@@ -174,6 +176,7 @@ const POSEnhanced: React.FC = () => {
           receivedAmount,
           change,
           status: 'completed',
+          uuid: generateUUID(),
           createdAt: new Date(),
           updatedAt: new Date(),
           invoiceNumber: order.invoiceNumber,

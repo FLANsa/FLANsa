@@ -118,6 +118,7 @@ const PrintPage: React.FC = () => {
             <p className="text-xs arabic">{restaurantSettings?.addressAr || currentTenant?.addressAr || 'الرياض، المملكة العربية السعودية'}</p>
             <p className="text-xs english">{restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia'}</p>
             <p className="text-xs">{restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567'}</p>
+            <p className="text-xs arabic">السجل التجاري: {restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010'}</p>
           </div>
 
           <div className="border-t border-b border-gray-300 py-2 my-2">
@@ -139,6 +140,14 @@ const PrintPage: React.FC = () => {
                 {order.mode === 'dine-in' ? 'تناول في المطعم' : 
                  order.mode === 'takeaway' ? 'طلب خارجي' : 'توصيل'}
               </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="arabic">نوع الفاتورة:</span>
+              <span className="arabic">فاتورة مبسطة</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="arabic">معرف الفاتورة:</span>
+              <span className="text-xs">{order.uuid || 'N/A'}</span>
             </div>
           </div>
 
@@ -167,11 +176,43 @@ const PrintPage: React.FC = () => {
               <span className="arabic">المجموع الفرعي:</span>
               <span>{order.subtotal.toFixed(2)} SAR</span>
             </div>
+            
+            {/* Discount Section */}
+            {order.orderDiscount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="arabic">
+                  خصم ({order.orderDiscountType === 'percentage' ? `${order.orderDiscount}%` : 'مبلغ ثابت'}):
+                </span>
+                <span>-{order.orderDiscount.toFixed(2)} SAR</span>
+              </div>
+            )}
+            
+            {/* Service Charge */}
+            {order.serviceCharge > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="arabic">رسوم الخدمة:</span>
+                <span>{order.serviceCharge.toFixed(2)} SAR</span>
+              </div>
+            )}
+            
+            {/* VAT Details */}
             <div className="flex justify-between text-sm">
               <span className="arabic">ضريبة القيمة المضافة (15%):</span>
               <span>{order.vat.toFixed(2)} SAR</span>
             </div>
-            {/* removed discount row */}
+            
+            {/* Tax Breakdown */}
+            <div className="text-xs text-gray-600 mt-1">
+              <div className="flex justify-between">
+                <span className="arabic">المبلغ الخاضع للضريبة:</span>
+                <span>{(order.subtotal - order.orderDiscount + order.serviceCharge).toFixed(2)} SAR</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="arabic">نسبة الضريبة:</span>
+                <span>15%</span>
+              </div>
+            </div>
+            
             <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 mt-2">
               <span className="arabic">المجموع الكلي:</span>
               <span>{order.total.toFixed(2)} SAR</span>
@@ -192,12 +233,18 @@ const PrintPage: React.FC = () => {
             <p className="text-xs text-gray-600 mt-2 arabic">رمز ZATCA</p>
           </div>
 
-          {/* Footer */}
-          <div className="text-center mt-4 text-xs text-gray-600">
-            <p className="arabic">شكراً لزيارتكم</p>
-            <p className="english">Thank you for your visit</p>
-            <p className="arabic">نتمنى لكم وجبة شهية</p>
+          {/* Footer Information */}
+          <div className="text-center mt-4 pt-2 border-t border-gray-300">
+            <p className="text-xs text-gray-600 arabic">شكراً لزيارتكم</p>
+            <p className="text-xs text-gray-500 english">Thank you for your visit</p>
+            <p className="text-xs text-gray-500 mt-1">
+              الرقم الضريبي: {restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'}
+            </p>
+            <p className="text-xs text-gray-500">
+              CR: {restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010'}
+            </p>
           </div>
+
         </div>
       </div>
     </div>
