@@ -518,9 +518,9 @@ function ProductsPage() {
               </div>
 
                   <form onSubmit={handleAdd} className="p-6 overflow-y-auto flex-1 min-h-0">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                      {/* النموذج (عمودان) */}
-                      <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 gap-6">
+                      {/* النموذج */}
+                      <div>
                         {/* معلومات المنتج */}
                         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
                           <h4 className="text-lg font-semibold text-gray-800 arabic">معلومات المنتج</h4>
@@ -647,6 +647,46 @@ function ProductsPage() {
                             </div>
                           </div>
                           
+                          {/* معاينة المنتج */}
+                          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-md p-3 border border-gray-200">
+                            <h4 className="text-sm font-semibold text-gray-800 arabic mb-2">معاينة المنتج</h4>
+                            <div className="bg-white rounded-md shadow-sm border overflow-hidden">
+                              <div className="relative overflow-hidden">
+                                {imagePreview ? (
+                                  <img src={imagePreview} alt={name || 'preview'} className="h-20 w-full object-cover" />
+                                ) : (
+                                  <div className="h-20 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
+                                    <div className="text-center">
+                                      <ImageIcon className="h-4 w-4 mx-auto mb-1" />
+                                      <p className="text-xs arabic">لا توجد صورة</p>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="absolute top-1 left-1">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-lg">
+                                    <Star className="h-2 w-2" />
+                                    {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
+                                  </span>
+                                </div>
+                                {category && (
+                                  <div className="absolute top-1 right-1">
+                                    <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
+                                      {category}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-2">
+                                <h4 className="font-bold text-gray-900 arabic text-sm">{name || 'اسم المنتج'}</h4>
+                                <p className="text-xs text-gray-500 english mt-1">{nameEn || 'Product name'}</p>
+                                <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                                  <div className="flex items-center gap-1"><Package className="h-2 w-2" /><span className="arabic">متوفر</span></div>
+                                  <div className="flex items-center gap-1"><TrendingUp className="h-2 w-2" /><span className="arabic">شائع</span></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
                           {/* Error Message */}
                           {error && (
                             <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm arabic flex items-center gap-2">
@@ -657,45 +697,6 @@ function ProductsPage() {
                         </div>
                       </div>
 
-                    {/* المعاينة (عمود ثالث ثابت) */}
-                    <aside className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-100 md:sticky md:top-4 md:self-start">
-                      <h4 className="text-base font-semibold text-gray-800 arabic mb-3">معاينة المنتج</h4>
-                      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                        <div className="relative overflow-hidden">
-                          {imagePreview ? (
-                            <img src={imagePreview} alt={name || 'preview'} className="h-32 w-full object-cover" />
-                          ) : (
-                            <div className="h-32 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
-                              <div className="text-center">
-                                <ImageIcon className="h-6 w-6 mx-auto mb-1" />
-                                <p className="text-xs arabic">لا توجد صورة</p>
-                              </div>
-                            </div>
-                          )}
-                          <div className="absolute top-2 left-2">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-lg">
-                              <Star className="h-2 w-2" />
-                              {price ? `${Math.round(Number(price) || 0)} SAR` : '—'}
-                            </span>
-                          </div>
-                          {category && (
-                            <div className="absolute top-2 right-2">
-                              <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white/95 text-emerald-700 border border-emerald-200 arabic font-medium">
-                                {category}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <h4 className="font-bold text-gray-900 arabic text-base">{name || 'اسم المنتج'}</h4>
-                          <p className="text-sm text-gray-500 english mt-1">{nameEn || 'Product name'}</p>
-                          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-                            <div className="flex items-center gap-1"><Package className="h-3 w-3" /><span className="arabic">متوفر</span></div>
-                            <div className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /><span className="arabic">شائع</span></div>
-                          </div>
-                        </div>
-                      </div>
-                    </aside>
                     </div>
 
                     {/* Action Buttons */}
