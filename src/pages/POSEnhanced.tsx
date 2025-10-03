@@ -296,7 +296,7 @@ const POSEnhanced: React.FC = () => {
                       className={`px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2 ${
                         selectedMode === mode.value
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                       }`}
                     >
                       <span>{mode.icon}</span>
