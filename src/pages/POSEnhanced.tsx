@@ -281,7 +281,7 @@ const POSEnhanced: React.FC = () => {
           {/* Menu Items */}
           <div className="lg:col-span-2">
             {/* Quick Actions */}
-            <div className="bg-gradient-to-r from-emerald-700 to-green-600 rounded-2xl shadow-lg border border-emerald-600 p-6 mb-6">
+            <div className="bg-gradient-to-l from-emerald-700 to-green-600 rounded-2xl shadow-lg border border-emerald-600 p-6 mb-6">
               <div className="flex flex-wrap gap-3">
                 {/* Mode Selection */}
                 <div className="flex space-x-2">
