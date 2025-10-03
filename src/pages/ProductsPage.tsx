@@ -586,15 +586,13 @@ function ProductsPage() {
                                     autoComplete="off"
                                     value={price}
                                     onChange={(e) => setPrice(e.target.value)}
-                                    className={`${inputBase} text-center pr-12`}
+                                    className={`${inputBase} `}
                                     placeholder="25.00"
                                     dir="ltr"
                                     min={0}
-                                    step="0.01"
+                                    
                                   />
-                                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm font-medium text-gray-500">
-                                    SAR
-                                  </span>
+                                  
                                 </div>
                               </div>
 

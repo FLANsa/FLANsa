@@ -9,6 +9,7 @@ import { authService } from './lib/authService'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from './lib/firebase'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import Layout from './components/Layout'
 
 // Import login page directly for instant loading
 import LoginPageMultiTenant from './pages/LoginPageMultiTenant'
@@ -422,49 +423,51 @@ function App() {
     return <LoginPageMultiTenant />
   }
 
-  // Show dashboard if logged in
-  console.log('App: User is logged in, showing dashboard')
+        // Show dashboard if logged in
+        console.log('App: User is logged in, showing dashboard')
   return (
+    <Layout>
       <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={
-        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>}>
-          <DashboardPage />
-        </Suspense>
-      } />
-      <Route path="/pos" element={
-        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>}>
-          <POSEnhanced />
-        </Suspense>
-      } />
-      <Route path="/products" element={
-        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>}>
-          <ProductsPage />
-        </Suspense>
-      } />
-      <Route path="/reports" element={
-        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>}>
-          <SalesReportsPageTest />
-        </Suspense>
-      } />
-      <Route path="/settings" element={
-        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>}>
-          <SettingsPage />
-        </Suspense>
-      } />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <DashboardPage />
+                </Suspense>
+              } />
+              <Route path="/pos" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <POSEnhanced />
+                </Suspense>
+              } />
+              <Route path="/products" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <ProductsPage />
+                </Suspense>
+              } />
+              <Route path="/reports" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <SalesReportsPageTest />
+                </Suspense>
+              } />
+              <Route path="/settings" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <SettingsPage />
+                </Suspense>
+              } />
         <Route path="/print/:orderId" element={<PrintPage />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+    </Layout>
   )
 }
 
