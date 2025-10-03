@@ -37,32 +37,32 @@ const SettingsPage: React.FC = () => {
           // Use settings data if available
           setFormData(prev => ({
             ...prev,
-            restaurantName: settings.restaurantName || prev.restaurantName,
-            restaurantNameAr: settings.restaurantNameAr || prev.restaurantNameAr,
-            vatNumber: settings.vatNumber || prev.vatNumber,
-            crNumber: settings.crNumber || prev.crNumber,
-            phone: settings.phone || prev.phone,
-            address: settings.address || prev.address,
-            addressAr: settings.addressAr || prev.addressAr,
-            email: settings.email || prev.email,
-            vatRate: settings.vatRate || prev.vatRate,
-            language: settings.language || prev.language
+            restaurantName: settings.restaurantName || '',
+            restaurantNameAr: settings.restaurantNameAr || '',
+            vatNumber: settings.vatNumber || '',
+            crNumber: settings.crNumber || '',
+            phone: settings.phone || '',
+            address: settings.address || '',
+            addressAr: settings.addressAr || '',
+            email: settings.email || '',
+            vatRate: settings.vatRate || 15,
+            language: settings.language || 'ar'
           }))
           console.log('Settings loaded from Firebase:', settings)
         } else if (tenant) {
           // Use tenant data if no settings found
           setFormData(prev => ({
             ...prev,
-            restaurantName: tenant.name || prev.restaurantName,
-            restaurantNameAr: tenant.nameAr || prev.restaurantNameAr,
-            vatNumber: tenant.vatNumber || prev.vatNumber,
-            crNumber: tenant.crNumber || prev.crNumber,
-            phone: tenant.phone || prev.phone,
-            address: tenant.address || prev.address,
-            addressAr: tenant.addressAr || prev.addressAr,
-            email: tenant.email || prev.email,
-            vatRate: prev.vatRate, // Keep default VAT rate
-            language: prev.language // Keep default language
+            restaurantName: tenant.name || '',
+            restaurantNameAr: tenant.nameAr || '',
+            vatNumber: tenant.vatNumber || '',
+            crNumber: tenant.crNumber || '',
+            phone: tenant.phone || '',
+            address: tenant.address || '',
+            addressAr: tenant.addressAr || '',
+            email: tenant.email || '',
+            vatRate: 15, // Keep default VAT rate
+            language: 'ar' // Keep default language
           }))
           console.log('Tenant data loaded from Firebase:', tenant)
         } else {
@@ -71,16 +71,16 @@ const SettingsPage: React.FC = () => {
           if (currentTenant) {
             setFormData(prev => ({
               ...prev,
-              restaurantName: currentTenant.name || prev.restaurantName,
-              restaurantNameAr: currentTenant.nameAr || prev.restaurantNameAr,
-              vatNumber: currentTenant.vatNumber || prev.vatNumber,
-              crNumber: currentTenant.crNumber || prev.crNumber,
-              phone: currentTenant.phone || prev.phone,
-              address: currentTenant.address || prev.address,
-              addressAr: currentTenant.addressAr || prev.addressAr,
-              email: currentTenant.email || prev.email,
-              vatRate: prev.vatRate, // Keep default VAT rate
-              language: prev.language // Keep default language
+              restaurantName: currentTenant.name || '',
+              restaurantNameAr: currentTenant.nameAr || '',
+              vatNumber: currentTenant.vatNumber || '',
+              crNumber: currentTenant.crNumber || '',
+              phone: currentTenant.phone || '',
+              address: currentTenant.address || '',
+              addressAr: currentTenant.addressAr || '',
+              email: currentTenant.email || '',
+              vatRate: 15, // Keep default VAT rate
+              language: 'ar' // Keep default language
             }))
             console.log('Tenant data loaded from authService:', currentTenant)
           } else {
@@ -184,6 +184,34 @@ const SettingsPage: React.FC = () => {
       }
       
       setSuccess('تم حفظ الإعدادات بنجاح')
+      
+      // Reload settings to ensure display is correct
+      setTimeout(async () => {
+        try {
+          const tenantId = authService.getCurrentTenantId()
+          if (tenantId) {
+            const settings = await settingsService.getSettingsByTenant(tenantId)
+            if (settings) {
+              setFormData(prev => ({
+                ...prev,
+                restaurantName: settings.restaurantName || '',
+                restaurantNameAr: settings.restaurantNameAr || '',
+                vatNumber: settings.vatNumber || '',
+                crNumber: settings.crNumber || '',
+                phone: settings.phone || '',
+                address: settings.address || '',
+                addressAr: settings.addressAr || '',
+                email: settings.email || '',
+                vatRate: settings.vatRate || 15,
+                language: settings.language || 'ar'
+              }))
+              console.log('Settings reloaded after save:', settings)
+            }
+          }
+        } catch (error) {
+          console.error('Error reloading settings:', error)
+        }
+      }, 500)
     } catch (error) {
       console.error('Error saving settings:', error)
       setSubmitError('تعذّر الحفظ. تحقق من اتصال الإنترنت')
