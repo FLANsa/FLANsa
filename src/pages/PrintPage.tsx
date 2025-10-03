@@ -93,7 +93,8 @@ const PrintPage: React.FC = () => {
               })) || [],
               subtotal: parsed.subtotal || 0,
               vatTotal: parsed.vat || 0,
-              total: parsed.total || 0
+              total: parsed.total || 0,
+              qrData: qr // Add QR data to UBL XML
             }
             
             const xml = generateUBLXML(ublData)

@@ -144,6 +144,7 @@ export function generateUBLXML(data: {
   subtotal: number
   vatTotal: number
   total: number
+  qrData?: string
 }): string {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -175,7 +176,7 @@ export function generateUBLXML(data: {
         <cbc:Telephone>${data.sellerPhone}</cbc:Telephone>
       </cac:Contact>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>${data.sellerVatNumber}</cbc:CompanyID>
+        <cbc:CompanyID schemeID="VAT">${data.sellerVatNumber}</cbc:CompanyID>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>
         </cac:TaxScheme>
@@ -183,24 +184,56 @@ export function generateUBLXML(data: {
     </cac:Party>
   </cac:AccountingSupplierParty>
   
+  ${data.qrData ? `
+  <!-- QR Code Reference -->
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>QR</cbc:ID>
+    <cac:Attachment>
+      <cac:EmbeddedDocumentBinaryObject mimeCode="text/plain">
+        ${data.qrData}
+      </cac:EmbeddedDocumentBinaryObject>
+    </cac:Attachment>
+  </cac:AdditionalDocumentReference>
+  ` : ''}
+  
   <!-- Invoice Lines -->
-  ${data.items.map((item, index) => `
+  ${data.items.map((item, index) => {
+    const lineTotalExcludingTax = (item.price * item.quantity) / (1 + item.vatRate / 100)
+    const lineTaxAmount = (item.price * item.quantity) - lineTotalExcludingTax
+    const unitPriceExcludingTax = item.price / (1 + item.vatRate / 100)
+    
+    return `
   <cac:InvoiceLine>
     <cbc:ID>${index + 1}</cbc:ID>
     <cbc:InvoicedQuantity unitCode="C62">${item.quantity}</cbc:InvoicedQuantity>
-    <cbc:LineExtensionAmount currencyID="SAR">${(item.price * item.quantity).toFixed(2)}</cbc:LineExtensionAmount>
+    
+    <!-- صافي السطر (قبل الضريبة) -->
+    <cbc:LineExtensionAmount currencyID="SAR">${lineTotalExcludingTax.toFixed(2)}</cbc:LineExtensionAmount>
+    
     <cac:Item>
       <cbc:Description>${item.nameAr}</cbc:Description>
       <cbc:Name>${item.nameEn}</cbc:Name>
+      <!-- تصنيف الضريبة على مستوى الصنف -->
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>${item.vatRate}</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
     </cac:Item>
+    
+    <!-- سعر الوحدة قبل الضريبة -->
     <cac:Price>
-      <cbc:PriceAmount currencyID="SAR">${item.price.toFixed(2)}</cbc:PriceAmount>
+      <cbc:PriceAmount currencyID="SAR">${unitPriceExcludingTax.toFixed(2)}</cbc:PriceAmount>
     </cac:Price>
+    
+    <!-- ضريبة السطر -->
     <cac:TaxTotal>
-      <cbc:TaxAmount currencyID="SAR">${((item.price * item.quantity) * (item.vatRate / 100) / (1 + item.vatRate / 100)).toFixed(2)}</cbc:TaxAmount>
+      <cbc:TaxAmount currencyID="SAR">${lineTaxAmount.toFixed(2)}</cbc:TaxAmount>
       <cac:TaxSubtotal>
-        <cbc:TaxableAmount currencyID="SAR">${((item.price * item.quantity) / (1 + item.vatRate / 100)).toFixed(2)}</cbc:TaxableAmount>
-        <cbc:TaxAmount currencyID="SAR">${((item.price * item.quantity) * (item.vatRate / 100) / (1 + item.vatRate / 100)).toFixed(2)}</cbc:TaxAmount>
+        <cbc:TaxableAmount currencyID="SAR">${lineTotalExcludingTax.toFixed(2)}</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="SAR">${lineTaxAmount.toFixed(2)}</cbc:TaxAmount>
         <cac:TaxCategory>
           <cbc:ID>S</cbc:ID>
           <cbc:Percent>${item.vatRate}</cbc:Percent>
@@ -210,7 +243,8 @@ export function generateUBLXML(data: {
         </cac:TaxCategory>
       </cac:TaxSubtotal>
     </cac:TaxTotal>
-  </cac:InvoiceLine>`).join('')}
+  </cac:InvoiceLine>`
+  }).join('')}
   
   <!-- Tax Summary -->
   <cac:TaxTotal>
