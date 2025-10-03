@@ -379,21 +379,35 @@ function DashboardPage() {
    App (Routes)
 ========================= */
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    // Check initial auth state synchronously
-    const currentUser = authService.getCurrentUser()
-    const firebaseUser = getAuth().currentUser
-    return !!(currentUser && firebaseUser)
-  })
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     // Check initial auth state first
-    const initialUser = authService.getCurrentUser()
-    const firebaseUser = getAuth().currentUser
-    if (initialUser && firebaseUser) {
-      console.log('Initial user found:', initialUser.id)
-      setIsLoggedIn(true)
+    const checkAuth = async () => {
+      try {
+        const currentUser = authService.getCurrentUser()
+        const firebaseUser = getAuth().currentUser
+        
+        console.log('Initial check - currentUser:', currentUser?.id)
+        console.log('Initial check - firebaseUser:', firebaseUser?.uid)
+        
+        if (currentUser && firebaseUser) {
+          console.log('User is logged in, setting isLoggedIn to true')
+          setIsLoggedIn(true)
+        } else {
+          console.log('User is not logged in, setting isLoggedIn to false')
+          setIsLoggedIn(false)
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsLoggedIn(false)
+      } finally {
+        setIsInitialized(true)
+      }
     }
+
+    checkAuth()
 
     // Listen to auth state changes
     const unsubscribe = authService.onAuthStateChange((user) => {
@@ -409,6 +423,17 @@ function App() {
 
     return unsubscribe
   }, [])
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600 arabic text-sm">جاري التحقق من حالة المصادقة...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!isLoggedIn) {
     console.log('App: User not logged in, redirecting to login')
