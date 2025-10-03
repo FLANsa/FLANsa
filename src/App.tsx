@@ -383,41 +383,26 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    // Check initial auth state first
-    const checkAuth = async () => {
-      try {
-        const currentUser = authService.getCurrentUser()
-        const firebaseUser = getAuth().currentUser
-        
-        console.log('Initial check - currentUser:', currentUser?.id)
-        console.log('Initial check - firebaseUser:', firebaseUser?.uid)
-        
-        if (currentUser && firebaseUser) {
-          console.log('User is logged in, setting isLoggedIn to true')
-          setIsLoggedIn(true)
-        } else {
-          console.log('User is not logged in, setting isLoggedIn to false')
-          setIsLoggedIn(false)
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error)
-        setIsLoggedIn(false)
-      } finally {
-        setIsInitialized(true)
-      }
+    // Simple auth check
+    const checkAuth = () => {
+      const currentUser = authService.getCurrentUser()
+      const firebaseUser = getAuth().currentUser
+      
+      console.log('Auth check - currentUser:', currentUser?.id)
+      console.log('Auth check - firebaseUser:', firebaseUser?.uid)
+      
+      const isAuth = !!(currentUser && firebaseUser)
+      console.log('Setting isLoggedIn to:', isAuth)
+      setIsLoggedIn(isAuth)
+      setIsInitialized(true)
     }
 
+    // Check immediately
     checkAuth()
 
-    // Listen to auth state changes
+    // Listen to auth changes
     const unsubscribe = authService.onAuthStateChange((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out')
-      if (user) {
-        console.log('User ID:', user.id)
-        console.log('User email:', user.email)
-        console.log('User tenantId:', user.tenantId)
-      }
-      console.log('Setting isLoggedIn to:', !!user)
       setIsLoggedIn(!!user)
     })
 
@@ -426,68 +411,64 @@ function App() {
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600 arabic text-sm">جاري التحقق من حالة المصادقة...</p>
+          <p className="mt-2 text-gray-600 arabic">جاري التحميل...</p>
         </div>
       </div>
     )
   }
 
+  // Show login page if not logged in
   if (!isLoggedIn) {
-    console.log('App: User not logged in, redirecting to login')
-    return (
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPageMultiTenant />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    )
+    console.log('App: User not logged in, showing login page')
+    return <LoginPageMultiTenant />
   }
 
-  console.log('App: User is logged in, showing dashboard routes')
+  // Show dashboard if logged in
+  console.log('App: User is logged in, showing dashboard')
   return (
-      <Routes>
+    <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={
-        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>}>
           <DashboardPage />
         </Suspense>
       } />
       <Route path="/pos" element={
-        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>}>
           <POSEnhanced />
         </Suspense>
       } />
       <Route path="/products" element={
-        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>}>
           <ProductsPage />
         </Suspense>
       } />
       <Route path="/reports" element={
-        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>}>
           <SalesReportsPageTest />
         </Suspense>
       } />
       <Route path="/settings" element={
-        <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>}>
           <SettingsPage />
         </Suspense>
       } />
-        <Route path="/print/:orderId" element={<PrintPage />} />
+      <Route path="/print/:orderId" element={<PrintPage />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+    </Routes>
   )
 }
 
