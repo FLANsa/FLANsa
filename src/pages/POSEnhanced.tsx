@@ -668,12 +668,18 @@ const POSEnhanced: React.FC = () => {
                       type="text"
                       value={receivedAmount > 0 ? receivedAmount.toString() : ''}
                       onChange={(e) => {
-                        const value = parseNumber(e.target.value)
-                        if (!isNaN(value) && value >= 0) {
-                          setReceivedAmount(value)
+                        const inputValue = e.target.value
+                        // السماح بمسح الحقل أو إدخال أرقام صحيحة
+                        if (inputValue === '' || inputValue === '0') {
+                          setReceivedAmount(0)
+                        } else {
+                          const value = parseNumber(inputValue)
+                          if (!isNaN(value) && value >= 0) {
+                            setReceivedAmount(value)
+                          }
                         }
                       }}
-                      className="w-full px-3 py-2 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-base font-medium"
+                      className="w-lg px-3 py-2 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-base font-medium"
                       placeholder="0.00"
                       dir="ltr"
                     />
