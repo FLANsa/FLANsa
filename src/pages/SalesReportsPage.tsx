@@ -24,7 +24,7 @@ type DateRange = 'today' | '7d' | '30d' | 'all'
 export default function SalesReportsPageTest() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [dateRange, setDateRange] = useState<DateRange>('today')
+  const [dateRange, setDateRange] = useState<DateRange>('all')
   const [status, setStatus] = useState<'all' | 'completed' | 'pending' | 'preparing' | 'cancelled'>('all')
   const [payment, setPayment] = useState<'all' | 'cash' | 'card' | 'other'>('all')
   const [search, setSearch] = useState('')
@@ -169,6 +169,11 @@ export default function SalesReportsPageTest() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold arabic">تقارير المبيعات</h1>
               <p className="text-sm/6 opacity-90 english">Sales Reports</p>
+              <p className="text-xs/6 opacity-80 arabic mt-1">
+                {dateRange === 'today' ? 'عرض بيانات اليوم فقط' :
+                 dateRange === '7d' ? 'عرض آخر 7 أيام' :
+                 dateRange === '30d' ? 'عرض آخر 30 يوم' : 'عرض جميع البيانات'}
+              </p>
             </div>
           </div>
         </div>
