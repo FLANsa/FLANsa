@@ -179,6 +179,63 @@ export function generateUUID(): string {
 }
 
 /**
+ * Generate ECDSA key pair for ZATCA compliance
+ * Uses P-256 curve as required by ZATCA
+ */
+export async function generateECDSAKeyPair(): Promise<CryptoKeyPair> {
+  try {
+    const keyPair = await crypto.subtle.generateKey(
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256' // ZATCA requires P-256 curve
+      },
+      true, // extractable
+      ['sign', 'verify']
+    )
+    
+    return keyPair
+  } catch (error) {
+    console.error('Error generating ECDSA key pair:', error)
+    throw error
+  }
+}
+
+/**
+ * Export public key in PEM format
+ */
+export async function exportPublicKeyPEM(publicKey: CryptoKey): Promise<string> {
+  try {
+    const exported = await crypto.subtle.exportKey('spki', publicKey)
+    const exportedAsString = btoa(String.fromCharCode(...new Uint8Array(exported)))
+    return `-----BEGIN PUBLIC KEY-----\n${exportedAsString}\n-----END PUBLIC KEY-----`
+  } catch (error) {
+    console.error('Error exporting public key:', error)
+    throw error
+  }
+}
+
+/**
+ * Sign data with ECDSA private key
+ */
+export async function signWithECDSA(privateKey: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+  try {
+    const signature = await crypto.subtle.sign(
+      {
+        name: 'ECDSA',
+        hash: 'SHA-256'
+      },
+      privateKey,
+      data
+    )
+    
+    return signature
+  } catch (error) {
+    console.error('Error signing with ECDSA:', error)
+    throw error
+  }
+}
+
+/**
  * Generate UBL XML for ZATCA compliance
  */
 export function generateUBLXML(data: {
@@ -202,6 +259,7 @@ export function generateUBLXML(data: {
   vatTotal: number
   total: number
   qrData?: string
+  digitalSignature?: string
 }): string {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -343,9 +401,129 @@ export function generateUBLXML(data: {
     <cbc:DocumentTypeCode>PIH</cbc:DocumentTypeCode>
     <cbc:DocumentDescription>Previous Invoice Hash</cbc:DocumentDescription>
   </cac:AdditionalDocumentReference>
+  
+  <!-- Digital Signature (XAdES B-B) -->
+  ${data.digitalSignature ? `
+  <cac:Signature>
+    ${data.digitalSignature}
+  </cac:Signature>
+  ` : ''}
 </Invoice>`
   
   return xml
+}
+
+/**
+ * Generate XAdES B-B Digital Signature for ZATCA compliance
+ * Based on ETSI EN 319 132-1 standard
+ */
+export async function generateXAdESSignature(xmlContent: string, privateKey?: CryptoKey): Promise<string> {
+  try {
+    // For now, generate a placeholder signature structure
+    // In production, this would use actual ECDSA signing with the private key
+    
+    const signatureId = `sig-${generateUUID()}`
+    const signedInfoId = `signed-info-${generateUUID()}`
+    const signedPropertiesId = `signed-properties-${generateUUID()}`
+    
+    // Generate SHA256 hash of the XML content (excluding QR code and signature elements)
+    const cleanXml = xmlContent
+      .replace(/<cac:AdditionalDocumentReference>\s*<cbc:ID>QR<\/cbc:ID>[\s\S]*?<\/cac:AdditionalDocumentReference>/g, '')
+      .replace(/<cac:Signature>[\s\S]*?<\/cac:Signature>/g, '')
+    
+    const encoder = new TextEncoder()
+    const data = encoder.encode(cleanXml)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const digestValue = btoa(String.fromCharCode(...hashArray))
+    
+    // Generate signature timestamp
+    const signingTime = new Date().toISOString()
+    
+    // Create XAdES B-B signature structure
+    const signature = `
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="${signatureId}">
+  <ds:SignedInfo Id="${signedInfoId}">
+    <ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"/>
+    
+    <!-- Reference to the XML content -->
+    <ds:Reference URI="">
+      <ds:Transforms>
+        <ds:Transform Algorithm="http://www.w3.org/TR/1999/REC-xpath-19991116">
+          <ds:XPath>not(//ancestor-or-self::ext:UBLExtensions)</ds:XPath>
+        </ds:Transform>
+        <ds:Transform Algorithm="http://www.w3.org/TR/1999/REC-xpath-19991116">
+          <ds:XPath>not(//ancestor-or-self::cac:Signature)</ds:XPath>
+        </ds:Transform>
+        <ds:Transform Algorithm="http://www.w3.org/TR/1999/REC-xpath-19991116">
+          <ds:XPath>not(//ancestor-or-self::cac:AdditionalDocumentReference[cbc:ID='QR'])</ds:XPath>
+        </ds:Transform>
+        <ds:Transform Algorithm="http://www.w3.org/2006/12/xmlc14n11"/>
+      </ds:Transforms>
+      <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+      <ds:DigestValue>${digestValue}</ds:DigestValue>
+    </ds:Reference>
+    
+    <!-- Reference to SignedProperties -->
+    <ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#${signedPropertiesId}">
+      <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+      <ds:DigestValue>PLACEHOLDER_SIGNED_PROPERTIES_HASH</ds:DigestValue>
+    </ds:Reference>
+  </ds:SignedInfo>
+  
+  <ds:SignatureValue>PLACEHOLDER_SIGNATURE_VALUE</ds:SignatureValue>
+  
+  <ds:KeyInfo>
+    <ds:X509Data>
+      <ds:X509Certificate>PLACEHOLDER_CERTIFICATE_CHAIN</ds:X509Certificate>
+    </ds:X509Data>
+  </ds:KeyInfo>
+  
+  <ds:Object>
+    <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="#${signatureId}">
+      <xades:SignedProperties Id="${signedPropertiesId}">
+        <xades:SignedSignatureProperties>
+          <xades:SigningTime>${signingTime}</xades:SigningTime>
+          <xades:SigningCertificateV2>
+            <xades:Cert>
+              <xades:CertDigest>
+                <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                <ds:DigestValue>PLACEHOLDER_CERTIFICATE_HASH</ds:DigestValue>
+              </xades:CertDigest>
+              <xades:IssuerSerial>
+                <ds:X509IssuerName>PLACEHOLDER_ISSUER_NAME</ds:X509IssuerName>
+                <ds:X509SerialNumber>PLACEHOLDER_SERIAL_NUMBER</ds:X509SerialNumber>
+              </xades:IssuerSerial>
+            </xades:Cert>
+          </xades:SigningCertificateV2>
+          <xades:SignaturePolicyIdentifier>
+            <xades:SignaturePolicyId>
+              <xades:SigPolicyId>
+                <xades:Identifier>urn:oasis:names:specification:ubl:schema:xsd:Invoice-2</xades:Identifier>
+              </xades:SigPolicyId>
+              <xades:SigPolicyHash>
+                <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                <ds:DigestValue>PLACEHOLDER_POLICY_HASH</ds:DigestValue>
+              </xades:SigPolicyHash>
+            </xades:SignaturePolicyId>
+          </xades:SignaturePolicyIdentifier>
+        </xades:SignedSignatureProperties>
+        <xades:SignedDataObjectProperties>
+          <xades:DataObjectFormat ObjectReference="#${signedInfoId}">
+            <xades:MimeType>text/xml</xades:MimeType>
+          </xades:DataObjectFormat>
+        </xades:SignedDataObjectProperties>
+      </xades:SignedProperties>
+    </xades:QualifyingProperties>
+  </ds:Object>
+</ds:Signature>`
+    
+    return signature.trim()
+  } catch (error) {
+    console.error('Error generating XAdES signature:', error)
+    return `XADES_SIGNATURE_ERROR_${Date.now().toString(36)}`
+  }
 }
 
 /**

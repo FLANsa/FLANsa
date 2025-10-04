@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
-import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID, generateXMLHash } from '../lib/zatca'
+import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID, generateXMLHash, generateXAdESSignature } from '../lib/zatca'
 import { invoiceSubmissionService } from '../services/invoiceSubmission'
 import { sendInvoiceToZATCA } from '../lib/zatcaProxy'
 import { authService } from '../lib/authService'
@@ -125,11 +125,20 @@ const PrintPage: React.FC = () => {
               qrData: enhancedQrTlvData
             }
             
-            const finalXml = generateUBLXML(finalUblData)
-            setUblXml(finalXml)
+            // Generate XAdES B-B digital signature
+            const xadesSignature = await generateXAdESSignature(finalXml)
             
-            // Generate digital signature and CSID
-            const signature = generateDigitalSignature(xml)
+            // Generate final UBL XML with digital signature
+            const finalUblDataWithSignature = {
+              ...finalUblData,
+              digitalSignature: xadesSignature
+            }
+            
+            const finalXmlWithSignature = generateUBLXML(finalUblDataWithSignature)
+            setUblXml(finalXmlWithSignature)
+            
+            // Generate legacy digital signature and CSID for display
+            const signature = generateDigitalSignature(finalXmlWithSignature)
             const csidValue = generateCSID()
             
             setDigitalSignature(signature)
