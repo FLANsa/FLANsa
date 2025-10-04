@@ -4,21 +4,26 @@
  */
 
 export const zatcaConfig = {
-  // ZATCA API Endpoints
+  // Official Fatoora Gateway Endpoints
   production: {
-    baseUrl: 'https://zatca-gw-f.pythonanywhere.com', // Placeholder - replace with actual ZATCA URL
+    baseUrl: 'https://gw-fatoora.zatca.gov.sa',
     endpoints: {
-      invoices: '/gw/invoices',
-      qr: '/gw/qr',
-      validation: '/gw/validation'
+      compliance: '/compliance',
+      clearance: '/clearance',
+      reporting: '/reporting', 
+      productionCSID: '/prod/csid',
+      qr: '/qr'
     }
   },
   
   // Sandbox for testing
   sandbox: {
-    baseUrl: 'https://zatca-sandbox.example.com', // Placeholder
+    baseUrl: 'https://gw-fatoora.zatca.gov.sa',
     endpoints: {
-      invoices: '/sandbox/invoices',
+      compliance: '/compliance',
+      clearance: '/clearance',
+      reporting: '/reporting',
+      productionCSID: '/prod/csid', 
       qr: '/sandbox/qr'
     }
   },
@@ -42,7 +47,7 @@ export const zatcaConfig = {
   // Invoice settings
   invoice: {
     environment: 'development', // TODO: Set based on actual environment
-    documentType: '0100000', // Simplified invoice
+    documentType: '1000', // Standard B2B invoices (default for clearance)
     currency: 'SAR',
     language: 'ar'
   },

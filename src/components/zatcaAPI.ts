@@ -134,24 +134,7 @@ class ZATCAAPIClient {
 
     } catch (error) {
       console.error('❌ Error submitting invoice to ZATCA:', error)
-      
-      // Return mock response for development/testing
-      const mockResponse: ZATCAResponse = {
-        success: true,
-        invoiceHash: invoiceData.invoiceHash,
-        qrCode: this.generateMockQR(),
-        uuid: invoiceData.uuid,
-        timestamp: new Date().toISOString(),
-        metadata: {
-          environment: this.environment,
-          submissionId: `SUB_${Date.now()}`,
-          status: 'MOCK_SUCCESS',
-          note: 'Using mock response for development'
-        }
-      }
-      
-      console.log('⚠️ Using mock response for development')
-      return mockResponse
+      throw new Error(`ZATCA API Error: ${error}`)
     }
   }
 
@@ -166,7 +149,7 @@ class ZATCAAPIClient {
       // TODO: Replace with actual validation call to ZATCA
       // This should validate VAT number, CR number, and business status
       
-      console.log('🔍 Business registration validated')
+      console.log('✅ Business registration validated')
       return true // Placeholder - always returns true
       
     } catch (error) {

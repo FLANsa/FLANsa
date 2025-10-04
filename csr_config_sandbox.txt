@@ -1,0 +1,22 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C=Saudi Arabia
+ST=Riyadh
+L=Riyadh
+O=Your Company Name
+OU=IT Department
+CN=PREZATCA-Code-Signing
+emailAddress=admin@yourcompany.com
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = your-domain.com
+DNS.2 = *.your-domain.com
