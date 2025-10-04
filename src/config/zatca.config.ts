@@ -6,24 +6,26 @@
 export const zatcaConfig = {
   // Official Fatoora Gateway Endpoints
   production: {
-    baseUrl: 'https://gw-fatoora.zatca.gov.sa',
+    baseUrl: 'https://gw-fatoora.zatca.gov.sa/e-invoicing',
     endpoints: {
-      compliance: '/compliance',
-      clearance: '/clearance',
-      reporting: '/reporting', 
-      productionCSID: '/prod/csid',
+      compliance: '/core/compliance',
+      complianceInvoices: '/core/compliance/invoices',
+      productionCsid: '/core/production/csids',
+      clearance: '/clearance/invoices',
+      reporting: '/reporting/invoices',
       qr: '/qr'
     }
   },
   
   // Sandbox for testing
   sandbox: {
-    baseUrl: 'https://gw-fatoora.zatca.gov.sa',
+    baseUrl: 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation',
     endpoints: {
       compliance: '/compliance',
-      clearance: '/clearance',
-      reporting: '/reporting',
-      productionCSID: '/prod/csid', 
+      complianceInvoices: '/compliance/invoices',
+      productionCsid: '/production/csids',
+      clearance: '/clearance/invoices',
+      reporting: '/reporting/invoices',
       qr: '/sandbox/qr'
     }
   },

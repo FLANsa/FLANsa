@@ -7,10 +7,10 @@ prompt = no
 C=Saudi Arabia
 ST=Riyadh
 L=Riyadh
-O=Your Company Name
+O=Qayd POS System
 OU=IT Department
 CN=ZATCA-Code-Signing
-emailAddress=admin@yourcompany.com
+emailAddress=admin@qayd-pos.com
 
 [v3_req]
 basicConstraints = CA:FALSE
