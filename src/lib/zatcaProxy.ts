@@ -60,7 +60,27 @@ export async function sendInvoiceToZATCA(params: ZATCAInvoiceSubmission): Promis
       })
     })
 
-    const serverResponse = await response.json()
+    // Check if response is ok before trying to parse JSON
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Server response error:', response.status, errorText)
+      throw new Error(`خطأ في الخادم: ${response.status} - ${errorText}`)
+    }
+
+    // Check if response has content before parsing JSON
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      console.error('❌ Empty response from server')
+      throw new Error('استجابة فارغة من الخادم - تأكد من تشغيل خادم زاتكا')
+    }
+
+    let serverResponse
+    try {
+      serverResponse = JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('❌ Failed to parse server response:', responseText)
+      throw new Error('خطأ في تحليل استجابة الخادم - تأكد من تشغيل خادم زاتكا')
+    }
 
     // Check for server/success errors
     if (!response.ok || !serverResponse.ok) {

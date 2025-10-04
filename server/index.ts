@@ -7,7 +7,11 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import path from 'path';
+import dotenv from 'dotenv';
 import zatcaRoutes from './zatca.routes';
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;

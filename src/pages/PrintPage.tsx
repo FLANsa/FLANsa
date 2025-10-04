@@ -195,7 +195,23 @@ const PrintPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error submitting to ZATCA:', error)
-      alert('❌ خطأ في إرسال الفاتورة إلى زاتكا:\n\n' + error.message)
+      
+      // Provide more specific error messages
+      let errorMessage = 'خطأ غير معروف في إرسال الفاتورة إلى زاتكا'
+      
+      if (error.message) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'خطأ في الاتصال بخادم زاتكا - تأكد من تشغيل الخادم المحلي'
+        } else if (error.message.includes('JSON')) {
+          errorMessage = 'خطأ في تحليل استجابة زاتكا - تأكد من تشغيل الخادم المحلي'
+        } else if (error.message.includes('Empty response')) {
+          errorMessage = 'استجابة فارغة من خادم زاتكا - تأكد من تشغيل الخادم المحلي'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      alert('❌ خطأ في إرسال الفاتورة إلى زاتكا:\n\n' + errorMessage + '\n\n💡 تأكد من تشغيل الخادم المحلي باستخدام: npm run dev:server')
     } finally {
       setSubmittingZATCA(false)
     }
