@@ -4,6 +4,7 @@
  */
 
 import { zatcaConfig } from '../config/zatca.config'
+import { toBase64Utf8 } from '../utils/base64'
 
 /**
  * Utility to base64 encode credentials for HTTP Basic auth.

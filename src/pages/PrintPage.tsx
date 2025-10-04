@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
 import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID } from '../lib/zatca'
 import { invoiceSubmissionService } from '../services/invoiceSubmission'
+import { sendInvoiceToZATCA } from '../lib/zatcaProxy'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
 
@@ -157,28 +158,46 @@ const PrintPage: React.FC = () => {
     URL.revokeObjectURL(url)
   }
 
+  const [submittingZATCA, setSubmittingZATCA] = React.useState(false)
+
   const handleSubmitToZATCA = async () => {
-    if (!order) return
+    if (!order || !ublXml) return
     
     try {
-      console.log('🚀 Submitting invoice to ZATCA...')
+      setSubmittingZATCA(true)
+      console.log('🚀 Submitting invoice to ZATCA via secure proxy...')
       
-      const result = await invoiceSubmissionService.submitInvoiceToZATCA({
-        order,
-        restaurantSettings,
-        tenant: currentTenant
+      // Prepare invoice data
+      const invoiceData = {
+        invoiceXML: ublXml,
+        uuid: order.uuid || generateUUID(),
+        invoiceHash: digitalSignature || `HASH_${Date.now()}`,
+        previousHash: undefined, // TODO: Add PIH tracking
+        counterValue: undefined  // TODO: Add ICV counter
+      }
+
+      console.log('📋 Invoice data:', {
+        uuid: invoiceData.uuid,
+        hasXML: !!invoiceData.invoiceXML,
+        xmlLength: invoiceData.invoiceXML?.length,
+        hashLength: invoiceData.invoiceHash?.length
       })
+
+      // Submit via secure proxy
+      const result = await sendInvoiceToZATCA(invoiceData)
       
       if (result.success) {
-        alert('✅ تم إرسال الفاتورة إلى زاتكا بنجاح!')
+        alert('✅ تم إرسال الفاتورة إلى زاتكا بنجاح!\n\nاستجابة زاتكا: ' + JSON.stringify(result.metadata, null, 2))
         console.log('ZATCA submission successful:', result)
       } else {
         alert('❌ فشل في إرسال الفاتورة إلى زاتكا: ' + (result.errors?.join(', ') || 'خطأ غير معروف'))
         console.error('ZATCA submission failed:', result.errors)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting to ZATCA:', error)
-      alert('❌ خطأ في الاتصال بزاتكا: ' + error)
+      alert('❌ خطأ في إرسال الفاتورة إلى زاتكا:\n\n' + error.message)
+    } finally {
+      setSubmittingZATCA(false)
     }
   }
 
@@ -259,9 +278,17 @@ const PrintPage: React.FC = () => {
             )}
             <button
               onClick={handleSubmitToZATCA}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 arabic"
+              disabled={submittingZATCA || !ublXml}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 arabic disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              🚀 إرسال لزاتكا
+              {submittingZATCA ? (
+                <>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  جاري الإرسال...
+                </>
+              ) : (
+                '🚀 إرسال لزاتكا'
+              )}
             </button>
           </div>
         </div>
