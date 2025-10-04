@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
-import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID } from '../lib/zatca'
+import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID, generateXMLHash } from '../lib/zatca'
 import { invoiceSubmissionService } from '../services/invoiceSubmission'
 import { sendInvoiceToZATCA } from '../lib/zatcaProxy'
 import { authService } from '../lib/authService'
@@ -81,7 +81,7 @@ const PrintPage: React.FC = () => {
             // Generate TLV Base64 for UBL XML
             const qrTlvData = generateZATCAQRData(qrData)
             
-            // Generate UBL XML
+            // Generate UBL XML first (without QR data)
             const ublData = {
               invoiceNumber: parsed.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
               uuid: parsed.uuid || generateUUID(),
@@ -102,11 +102,31 @@ const PrintPage: React.FC = () => {
               subtotal: parsed.subtotal || 0,
               vatTotal: parsed.vat || 0,
               total: parsed.total || 0,
-              qrData: qrTlvData // Add TLV Base64 QR data to UBL XML
+              qrData: undefined // Generate XML first without QR data
             }
             
             const xml = generateUBLXML(ublData)
-            setUblXml(xml)
+            
+            // Generate SHA256 hash of XML for Tag 6
+            const xmlHash = await generateXMLHash(xml)
+            
+            // Update QR data with XML hash
+            const enhancedQrData = {
+              ...qrData,
+              xmlHash: xmlHash
+            }
+            
+            // Generate enhanced QR with XML hash
+            const enhancedQrTlvData = generateZATCAQRData(enhancedQrData)
+            
+            // Generate final UBL XML with QR data
+            const finalUblData = {
+              ...ublData,
+              qrData: enhancedQrTlvData
+            }
+            
+            const finalXml = generateUBLXML(finalUblData)
+            setUblXml(finalXml)
             
             // Generate digital signature and CSID
             const signature = generateDigitalSignature(xml)

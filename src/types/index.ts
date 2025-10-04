@@ -246,6 +246,11 @@ export interface ZATCAQRData {
   total: number
   vatTotal: number
   uuid: string
+  // Additional fields for ZATCA compliance (Tags 6-9)
+  xmlHash?: string        // Tag 6: SHA256 hash of XML invoice
+  xmlSignature?: string   // Tag 7: ECDSA signature of XML Hash
+  publicKey?: string      // Tag 8: ECDSA public key
+  zatcaSignature?: string // Tag 9: ECDSA signature from ZATCA CA
 }
 
 export interface ReceiptData {

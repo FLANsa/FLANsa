@@ -4,19 +4,35 @@ req_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
-C=Saudi Arabia
+# Country Name (ISO 3166 Alpha-2)
+C=SA
+# State/Province
 ST=Riyadh
+# Locality/City
 L=Riyadh
+# Organization Name (Taxpayer Name)
 O=Qayd POS System
-OU=IT Department
-CN=ZATCA-Code-Signing
+# Organizational Unit (Branch Name)
+OU=Main Branch
+# Common Name (Asset Tracking Number)
+CN=ZATCA-Code-Signing-001
+# Email Address
 emailAddress=admin@qayd-pos.com
+# Organization Identifier (VAT Registration Number)
+organizationIdentifier=123456789012345
+# Business Category (Invoice Types: TSCZ where 0=False, 1=True)
+businessCategory=1100
 
 [v3_req]
 basicConstraints = CA:FALSE
-keyUsage = digitalSignature
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1 = your-domain.com
-DNS.2 = *.your-domain.com
+# EGS Serial Number (Manufacturer|Model|SerialNumber)
+otherName.1 = 1.2.840.113549.1.9.2;UTF8:Qayd POS|v1.0|SN001
+# Registered Address (Location of Branch/Device)
+otherName.2 = 1.2.840.113549.1.9.2;UTF8:Riyadh, Saudi Arabia
+# Industry/Sector
+otherName.3 = 1.2.840.113549.1.9.2;UTF8:Retail

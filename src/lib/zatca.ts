@@ -4,31 +4,56 @@ import { ZATCAQRData } from '../types'
 /**
  * Generate ZATCA QR Code TLV (Tag-Length-Value) format
  * Based on Saudi Arabia's ZATCA simplified invoice requirements
+ * Includes all mandatory tags as per ZATCA Security Features Implementation Standards v1.2
  */
 export function generateZATCATLV(data: ZATCAQRData): string {
   const tlvData: string[] = []
   
-  // Tag 1: Seller Name (UTF-8)
+  // Tag 1: Seller Name (UTF-8) - Mandatory from Dec 4, 2021
   const sellerNameBytes = new TextEncoder().encode(data.sellerName)
   tlvData.push(`01${sellerNameBytes.length.toString(16).padStart(2, '0')}${Array.from(sellerNameBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   
-  // Tag 2: VAT Number
+  // Tag 2: VAT Number - Mandatory from Dec 4, 2021
   const vatNumberBytes = new TextEncoder().encode(data.vatNumber)
   tlvData.push(`02${vatNumberBytes.length.toString(16).padStart(2, '0')}${Array.from(vatNumberBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   
-  // Tag 3: Timestamp (ISO 8601)
+  // Tag 3: Timestamp (ISO 8601) - Mandatory from Dec 4, 2021
   const timestampBytes = new TextEncoder().encode(data.timestamp)
   tlvData.push(`03${timestampBytes.length.toString(16).padStart(2, '0')}${Array.from(timestampBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   
-  // Tag 4: Total Amount (with 2 decimal places)
+  // Tag 4: Total Amount (with 2 decimal places) - Mandatory from Dec 4, 2021
   const totalStr = data.total.toFixed(2)
   const totalBytes = new TextEncoder().encode(totalStr)
   tlvData.push(`04${totalBytes.length.toString(16).padStart(2, '0')}${Array.from(totalBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   
-  // Tag 5: VAT Amount (with 2 decimal places)
+  // Tag 5: VAT Amount (with 2 decimal places) - Mandatory from Dec 4, 2021
   const vatTotalStr = data.vatTotal.toFixed(2)
   const vatTotalBytes = new TextEncoder().encode(vatTotalStr)
   tlvData.push(`05${vatTotalBytes.length.toString(16).padStart(2, '0')}${Array.from(vatTotalBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
+  
+  // Tag 6: Hash of XML invoice (SHA256) - Mandatory from Jan 1, 2023
+  if (data.xmlHash) {
+    const hashBytes = new Uint8Array(Buffer.from(data.xmlHash, 'hex'))
+    tlvData.push(`06${hashBytes.length.toString(16).padStart(2, '0')}${Array.from(hashBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
+  }
+  
+  // Tag 7: ECDSA signature of XML Hash - For Simplified Tax Invoices
+  if (data.xmlSignature) {
+    const signatureBytes = new Uint8Array(Buffer.from(data.xmlSignature, 'hex'))
+    tlvData.push(`07${signatureBytes.length.toString(16).padStart(2, '0')}${Array.from(signatureBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
+  }
+  
+  // Tag 8: ECDSA public key - For Simplified Tax Invoices
+  if (data.publicKey) {
+    const publicKeyBytes = new Uint8Array(Buffer.from(data.publicKey, 'hex'))
+    tlvData.push(`08${publicKeyBytes.length.toString(16).padStart(2, '0')}${Array.from(publicKeyBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
+  }
+  
+  // Tag 9: ECDSA signature from ZATCA CA - For Simplified Tax Invoices
+  if (data.zatcaSignature) {
+    const zatcaSignatureBytes = new Uint8Array(Buffer.from(data.zatcaSignature, 'hex'))
+    tlvData.push(`09${zatcaSignatureBytes.length.toString(16).padStart(2, '0')}${Array.from(zatcaSignatureBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
+  }
   
   return tlvData.join('')
 }
@@ -64,6 +89,30 @@ export async function generateZATCAQR(data: ZATCAQRData): Promise<string> {
 export function generateZATCAQRData(data: ZATCAQRData): string {
   const tlvData = generateZATCATLV(data)
   return btoa(tlvData)
+}
+
+/**
+ * Generate SHA256 hash of XML invoice for ZATCA compliance (Tag 6)
+ */
+export async function generateXMLHash(xmlContent: string): Promise<string> {
+  try {
+    // Remove any existing QR code data element before hashing
+    const cleanXml = xmlContent.replace(/<cac:AdditionalDocumentReference>\s*<cbc:ID>QR<\/cbc:ID>[\s\S]*?<\/cac:AdditionalDocumentReference>/g, '')
+    
+    // Convert to UTF-8 bytes
+    const encoder = new TextEncoder()
+    const data = encoder.encode(cleanXml)
+    
+    // Generate SHA256 hash
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    
+    return hashHex
+  } catch (error) {
+    console.error('Error generating XML hash:', error)
+    throw error
+  }
 }
 
 /**
