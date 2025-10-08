@@ -40,7 +40,7 @@ export async function buildAndSendSimplifiedInvoice(ctx: { tenantId: string, inv
   validateSimplifiedInvoiceXml(finalXml)
 
   // 7) report
-  const reportingResult = await reportSimplifiedInvoice(finalXml)
+  const reportingResult = await reportSimplifiedInvoice(finalXml, { uuid: ctx.invoice.uuid, invoiceHash: xmlHashBase64 })
   if (reportingResult.accepted) {
     await setPreviousInvoiceHash(ctx.tenantId, EGS_UNIT_ID, xmlHashBase64)
   }

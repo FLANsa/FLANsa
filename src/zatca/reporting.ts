@@ -1,4 +1,4 @@
-export async function reportSimplifiedInvoice(xml: string): Promise<{ accepted: boolean, statusCode: number, body: any }> {
+export async function reportSimplifiedInvoice(xml: string, args?: { uuid: string, invoiceHash: string }): Promise<{ accepted: boolean, statusCode: number, body: any }> {
   try {
     const endpoint = (typeof window === 'undefined')
       ? (process.env.ZATCA_REPORTING_URL as string)
@@ -6,8 +6,8 @@ export async function reportSimplifiedInvoice(xml: string): Promise<{ accepted: 
 
     const base64Xml = typeof Buffer !== 'undefined' ? Buffer.from(xml, 'utf8').toString('base64') : btoa(xml)
     const payload = {
-      uuid: 'TEMP_UUID',
-      invoiceHash: 'TEMP_HASH',
+      uuid: args?.uuid || 'TEMP_UUID',
+      invoiceHash: args?.invoiceHash || 'TEMP_HASH',
       invoiceXMLBase64: base64Xml
     }
 
