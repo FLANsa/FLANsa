@@ -315,8 +315,32 @@ function App() {
     return <LoginPageMultiTenant />
   }
 
-        // Show dashboard if logged in
-        console.log('App: User is logged in, showing dashboard')
+  const currentUser = authService.getCurrentUser()
+  const fbEmail = getAuth().currentUser?.email?.toLowerCase()
+  const isSuperAdmin = (currentUser?.role === 'owner') || (fbEmail === 'admin@qayd.com')
+
+  // Super Admin: only Admin routes
+  if (isSuperAdmin) {
+    console.log('App: Super admin mode - admin-only routes')
+    return (
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin" element={
+            <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>}>
+              <AdminPanel />
+            </Suspense>
+          } />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      </Layout>
+    )
+  }
+
+  // Tenant users: normal dashboard
+  console.log('App: Tenant user mode - showing dashboard')
   return (
     <Layout>
       <Routes>
@@ -363,13 +387,7 @@ function App() {
                   <ZATCASettingsPage />
                 </Suspense>
               } />
-              <Route path="/admin" element={
-                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>}>
-                  <AdminPanel />
-                </Suspense>
-              } />
+              {/* Admin route is not exposed for tenant users */}
         <Route path="/print/:orderId" element={<PrintPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

@@ -10,10 +10,8 @@ import {
   query, 
   where, 
   orderBy, 
-  limit,
   onSnapshot,
-  serverTimestamp,
-  writeBatch
+  serverTimestamp
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -41,7 +39,7 @@ export interface User {
   tenantId: string
   name: string
   email: string
-  role: 'admin' | 'manager' | 'cashier'
+  role: 'owner' | 'admin' | 'manager' | 'cashier'
   branchId?: string
   terminalId?: string
   isActive: boolean

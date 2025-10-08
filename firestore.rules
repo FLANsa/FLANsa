@@ -3,6 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
     function uid() { return request.auth.uid; }
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'admin@qayd.com' ||
+        request.auth.token.role == 'owner'
+      );
+    }
 
     // قراءة المستأجرين (عامة للجميع):
     match /tenants/{tenantId} {
@@ -13,9 +19,13 @@ service cloud.firestore {
 
     // ملف المستخدم الخاص به:
     match /users/{userId} {
-      allow create: if isSignedIn() && userId == uid();
+      // System admin or owner can manage all users
+      allow read, list: if isSuperAdmin();
+      allow create: if isSuperAdmin() || (isSignedIn() && userId == uid());
+      allow update, delete: if isSuperAdmin();
+
+      // Regular users can access only their own document
       allow read, update: if isSignedIn() && userId == uid();
-      allow delete: if false;
     }
 
     // البيانات الأخرى للمستخدمين المسجلين (مبسطة):

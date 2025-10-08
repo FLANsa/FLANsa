@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Users, UserPlus, UserCheck, UserX, Shield, Settings, BarChart3, Database, Activity, Eye, Edit, Trash2, Lock, Unlock } from 'lucide-react'
+import { Users, UserPlus, UserCheck, UserX, Shield, BarChart3, Database, Activity, Eye, Trash2, Lock, Unlock } from 'lucide-react'
 import { authService } from '../lib/authService'
+import { getAuth } from 'firebase/auth'
 import { userService, tenantService } from '../lib/firebaseServices'
 import { collection, getDocs, query, where, updateDoc, doc, deleteDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -17,18 +18,45 @@ interface User {
 }
 
 const AdminPanel: React.FC = () => {
+  const currentUser = authService.getCurrentUser()
+  const fbEmail = getAuth().currentUser?.email?.toLowerCase()
+  const isOwner = currentUser?.role === 'owner'
+  const isSuperAdminEmail = fbEmail === 'admin@qayd.com'
+  if (!isOwner && !isSuperAdminEmail) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white shadow-sm border rounded-lg p-6 text-center">
+          <p className="text-red-600 arabic font-medium">ليس لديك صلاحية للوصول إلى بوابة المشرف</p>
+        </div>
+      </div>
+    )
+  }
   const [activeTab, setActiveTab] = useState<'users' | 'tenants' | 'stats' | 'logs'>('users')
   const [users, setUsers] = useState<User[]>([])
   const [tenants, setTenants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [showAddTenantModal, setShowAddTenantModal] = useState(false)
+  const [selectedTenant, setSelectedTenant] = useState<any | null>(null)
+  const [selectedTenantStats, setSelectedTenantStats] = useState<{ users: number; orders: number; revenue: number }>({ users: 0, orders: 0, revenue: 0 })
   
   // New user form
   const [newUserEmail, setNewUserEmail] = useState('')
   const [newUserPassword, setNewUserPassword] = useState('')
   const [newUserRole, setNewUserRole] = useState<'owner' | 'admin' | 'manager' | 'cashier'>('cashier')
   const [newUserTenantId, setNewUserTenantId] = useState('')
+  // New tenant form state
+  const [newTenant, setNewTenant] = useState({
+    name: '',
+    nameAr: '',
+    email: '',
+    phone: '',
+    address: '',
+    addressAr: '',
+    vatNumber: '',
+    crNumber: ''
+  })
   
   // Stats
   const [stats, setStats] = useState({
@@ -105,6 +133,51 @@ const AdminPanel: React.FC = () => {
       console.error('Error loading tenants:', error)
     }
   }
+  const openTenantDetails = async (tenant: any) => {
+    setSelectedTenant(tenant)
+    try {
+      const usersQ = query(collection(db, 'users'), where('tenantId', '==', tenant.id))
+      const usersSnap = await getDocs(usersQ)
+      const usersCount = usersSnap.size
+
+      const ordersQ = query(collection(db, 'orders'), where('tenantId', '==', tenant.id))
+      const ordersSnap = await getDocs(ordersQ)
+      const ordersCount = ordersSnap.size
+      const revenue = ordersSnap.docs.reduce((sum, d) => sum + (d.data().total || 0), 0)
+
+      setSelectedTenantStats({ users: usersCount, orders: ordersCount, revenue })
+    } catch (e) {
+      console.error('Failed loading tenant details:', e)
+      setSelectedTenantStats({ users: 0, orders: 0, revenue: 0 })
+    }
+  }
+  const handleCreateTenant = async () => {
+    if (!newTenant.name || !newTenant.nameAr || !newTenant.email) {
+      alert('يرجى تعبئة الاسم العربي والإنجليزي والبريد الإلكتروني')
+      return
+    }
+    try {
+      setLoading(true)
+      const tenantPayload = {
+        ...newTenant,
+        subscriptionPlan: 'basic' as const,
+        subscriptionStatus: 'active' as const,
+        subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        isActive: true
+      }
+      const id = await tenantService.createTenant(tenantPayload)
+      console.log('Tenant created with id:', id)
+      setShowAddTenantModal(false)
+      setNewTenant({ name: '', nameAr: '', email: '', phone: '', address: '', addressAr: '', vatNumber: '', crNumber: '' })
+      await loadTenants()
+      alert('✅ تم إضافة المتجر بنجاح')
+    } catch (error: any) {
+      console.error('Error creating tenant:', error)
+      alert('❌ فشل في إضافة المتجر: ' + (error.message || ''))
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const loadStats = async () => {
     try {
@@ -149,7 +222,10 @@ const AdminPanel: React.FC = () => {
       setLoading(true)
       
       // Create user in Firebase
-      const newUser = await userService.createUser({
+      const generatedId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('user_' + Date.now())
+      await userService.createUser({
+        id: generatedId,
+        name: newUserEmail.split('@')[0] || 'مستخدم',
         email: newUserEmail,
         role: newUserRole,
         tenantId: newUserTenantId,
@@ -224,14 +300,14 @@ const AdminPanel: React.FC = () => {
     setNewUserTenantId('')
   }
 
-  const getRoleBadge = (role: string) => {
-    const colors = {
+  const getRoleBadge = (role: 'owner' | 'admin' | 'manager' | 'cashier') => {
+    const colors: Record<'owner' | 'admin' | 'manager' | 'cashier', string> = {
       owner: 'bg-purple-100 text-purple-800',
       admin: 'bg-blue-100 text-blue-800',
       manager: 'bg-green-100 text-green-800',
       cashier: 'bg-gray-100 text-gray-800'
     }
-    const labels = {
+    const labels: Record<'owner' | 'admin' | 'manager' | 'cashier', string> = {
       owner: 'مالك',
       admin: 'مدير',
       manager: 'مشرف',
@@ -312,8 +388,9 @@ const AdminPanel: React.FC = () => {
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="min-w-[1000px] w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider arabic">البريد الإلكتروني</th>
@@ -401,7 +478,8 @@ const AdminPanel: React.FC = () => {
                     ))
                   )}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -410,7 +488,10 @@ const AdminPanel: React.FC = () => {
         {activeTab === 'tenants' && (
           <div>
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 arabic">المتاجر المسجلة</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold arabic">المتاجر المسجلة</h2>
+                <button onClick={() => setShowAddTenantModal(true)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 arabic">إضافة متجر</button>
+              </div>
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -418,8 +499,8 @@ const AdminPanel: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {tenants.map(tenant => (
-                    <div key={tenant.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
+                    <div key={tenant.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => openTenantDetails(tenant)}>
+                      <div className="flex justify بين items-start mb-2">
                         <div>
                           <h3 className="font-bold arabic">{tenant.nameAr || tenant.name}</h3>
                           <p className="text-sm text-gray-600">{tenant.name}</p>
@@ -434,6 +515,7 @@ const AdminPanel: React.FC = () => {
                         <div>VAT: {tenant.vatNumber || 'N/A'}</div>
                         <div>CR: {tenant.crNumber || 'N/A'}</div>
                         <div className="arabic">الهاتف: {tenant.phone || 'N/A'}</div>
+                        <div className="arabic">البريد: {tenant.email || 'N/A'}</div>
                       </div>
                     </div>
                   ))}
@@ -559,6 +641,81 @@ const AdminPanel: React.FC = () => {
                 إلغاء
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {showAddTenantModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full mx-4">
+            <h2 className="text-2xl font-bold mb-6 arabic">إضافة متجر جديد</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 english">Store Name (EN)</label>
+                <input value={newTenant.name} onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 arabic">اسم المتجر (عربي)</label>
+                <input value={newTenant.nameAr} onChange={(e) => setNewTenant({ ...newTenant, nameAr: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 arabic">البريد الإلكتروني</label>
+                <input type="email" value={newTenant.email} onChange={(e) => setNewTenant({ ...newTenant, email: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 arabic">رقم الهاتف</label>
+                <input value={newTenant.phone} onChange={(e) => setNewTenant({ ...newTenant, phone: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 english">Address (EN)</label>
+                <input value={newTenant.address} onChange={(e) => setNewTenant({ ...newTenant, address: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 arabic">العنوان (عربي)</label>
+                <input value={newTenant.addressAr} onChange={(e) => setNewTenant({ ...newTenant, addressAr: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 english">VAT Number</label>
+                <input value={newTenant.vatNumber} onChange={(e) => setNewTenant({ ...newTenant, vatNumber: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 english">CR Number</label>
+                <input value={newTenant.crNumber} onChange={(e) => setNewTenant({ ...newTenant, crNumber: e.target.value })} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+            </div>
+            <div className="flex gap-4 mt-6">
+              <button onClick={handleCreateTenant} disabled={loading} className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 arabic">{loading ? 'جاري الإضافة...' : 'إضافة المتجر'}</button>
+              <button onClick={() => setShowAddTenantModal(false)} className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 arabic">إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedTenant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full mx-4">
+            <h2 className="text-2xl font-bold mb-6 arabic">تفاصيل المتجر</h2>
+            <div className="space-y-2 text-sm text-gray-700">
+              <div className="arabic"><span className="text-gray-500">الاسم:</span> {selectedTenant.nameAr || selectedTenant.name}</div>
+              <div><span className="text-gray-500">Email:</span> {selectedTenant.email || 'N/A'}</div>
+              <div className="arabic"><span className="text-gray-500">الهاتف:</span> {selectedTenant.phone || 'N/A'}</div>
+              <div className="arabic"><span className="text-gray-500">VAT:</span> {selectedTenant.vatNumber || 'N/A'}</div>
+              <div className="arabic"><span className="text-gray-500">CR:</span> {selectedTenant.crNumber || 'N/A'}</div>
+              <div className="arabic"><span className="text-gray-500">الحالة:</span> {selectedTenant.isActive !== false ? 'نشط' : 'معطل'}</div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-6">
+              <div className="bg-gray-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold">{selectedTenantStats.users}</div>
+                <div className="text-xs text-gray-600 arabic">مستخدمين</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold">{selectedTenantStats.orders}</div>
+                <div className="text-xs text-gray-600 arabic">طلبات</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold">{selectedTenantStats.revenue.toFixed(0)}</div>
+                <div className="text-xs text-gray-600 arabic">التحصيل (SAR)</div>
+              </div>
+            </div>
+            <button onClick={() => setSelectedTenant(null)} className="w-full mt-6 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 arabic">إغلاق</button>
           </div>
         </div>
       )}

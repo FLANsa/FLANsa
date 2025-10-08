@@ -251,11 +251,15 @@ class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.currentUser?.role === 'admin'
+    return this.currentUser?.role === 'admin' || this.currentUser?.role === 'owner'
+  }
+
+  isOwner(): boolean {
+    return this.currentUser?.role === 'owner'
   }
 
   isManager(): boolean {
-    return this.currentUser?.role === 'manager' || this.currentUser?.role === 'admin'
+    return this.currentUser?.role === 'manager' || this.isAdmin()
   }
 
   isCashier(): boolean {

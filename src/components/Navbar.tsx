@@ -18,15 +18,25 @@ const Navbar = () => {
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
-  const navigation = [
+  const navigationBase = [
     { name: 'الرئيسية', href: '/dashboard', icon: Home },
     { name: 'نقطة البيع', href: '/pos', icon: ShoppingCart },
     { name: 'المنتجات', href: '/products', icon: Package },
     { name: 'التقارير', href: '/reports', icon: BarChart3 },
-    { name: 'بوابة المشرف', href: '/admin', icon: Shield },
     { name: 'إعدادات ZATCA', href: '/zatca-settings', icon: FileText },
     { name: 'الإعدادات', href: '/settings', icon: Settings },
-  ]
+  ] as const
+
+  const currentUser = authService.getCurrentUser()
+  const currentTenant = authService.getCurrentTenant()
+  const isOwner = currentUser?.role === 'owner'
+  const isAdminEmail = currentUser?.email === 'admin@qayd.com'
+
+  const navigation = isOwner
+    ? [...navigationBase.slice(0, 4), { name: 'بوابة المشرف', href: '/admin', icon: Shield }, ...navigationBase.slice(4)]
+    : isAdminEmail
+      ? [{ name: 'بوابة المشرف', href: '/admin', icon: Shield }]
+      : navigationBase
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -40,8 +50,7 @@ const Navbar = () => {
     }
   }
 
-  const currentUser = authService.getCurrentUser()
-  const currentTenant = authService.getCurrentTenant()
+  // moved up
 
   return (
     <nav className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-700 to-green-600 text-white shadow-lg mx-4 mt-4">
@@ -92,7 +101,8 @@ const Navbar = () => {
                   {currentUser?.name || 'المستخدم'}
                 </p>
                 <p className="text-xs text-white/80 arabic">
-                  {currentUser?.role === 'admin' ? 'مدير' : 
+                  {currentUser?.role === 'owner' ? 'مشرف النظام' :
+                   currentUser?.role === 'admin' ? 'مدير' : 
                    currentUser?.role === 'manager' ? 'مشرف' : 'كاشير'}
                 </p>
               </div>
@@ -166,7 +176,8 @@ const Navbar = () => {
                     {currentUser?.name || 'المستخدم'}
                   </p>
                   <p className="text-xs text-white/80 arabic">
-                    {currentUser?.role === 'admin' ? 'مدير' : 
+                    {currentUser?.role === 'owner' ? 'مشرف النظام' :
+                     currentUser?.role === 'admin' ? 'مدير' : 
                      currentUser?.role === 'manager' ? 'مشرف' : 'كاشير'}
                   </p>
                 </div>

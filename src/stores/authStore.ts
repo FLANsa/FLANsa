@@ -7,7 +7,7 @@ export interface UserProfile {
   uid: string
   email: string
   name: string
-  role: 'admin' | 'manager' | 'cashier'
+  role: 'owner' | 'admin' | 'manager' | 'cashier'
   branchId: string
   terminalId?: string
   pin?: string
