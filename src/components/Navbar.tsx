@@ -7,6 +7,7 @@ import {
   BarChart3, 
   Settings,
   FileText,
+  Shield,
   LogOut,
   Menu,
   X
@@ -22,6 +23,7 @@ const Navbar = () => {
     { name: 'نقطة البيع', href: '/pos', icon: ShoppingCart },
     { name: 'المنتجات', href: '/products', icon: Package },
     { name: 'التقارير', href: '/reports', icon: BarChart3 },
+    { name: 'بوابة المشرف', href: '/admin', icon: Shield },
     { name: 'إعدادات ZATCA', href: '/zatca-settings', icon: FileText },
     { name: 'الإعدادات', href: '/settings', icon: Settings },
   ]

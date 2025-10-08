@@ -18,6 +18,7 @@ const POSEnhanced = lazy(() => import('./pages/POSEnhanced'))
 const ProductsPage = lazy(() => import('./pages/ProductsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ZATCASettingsPage = lazy(() => import('./pages/ZATCASettingsPage'))
+const AdminPanel = lazy(() => import('./pages/AdminPanel'))
 const PrintPage = lazy(() => import('./pages/PrintPage'))
 
 /* Login page now comes from src/pages/LoginPage */
@@ -360,6 +361,13 @@ function App() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>}>
                   <ZATCASettingsPage />
+                </Suspense>
+              } />
+              <Route path="/admin" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <AdminPanel />
                 </Suspense>
               } />
         <Route path="/print/:orderId" element={<PrintPage />} />

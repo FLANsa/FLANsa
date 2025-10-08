@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../lib/authService'
 import { tenantService, userService } from '../lib/firebaseServices'
-import { createSingleFirebaseUser, createFirebaseAuthUsers } from '../lib/createFirebaseUsers'
+import { createSingleFirebaseUser } from '../lib/createFirebaseUsers'
 
 export default function LoginPageMultiTenant() {
   const [email, setEmail] = useState('')
@@ -10,7 +10,6 @@ export default function LoginPageMultiTenant() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showTenantForm, setShowTenantForm] = useState(false)
-  const [creatingUsers, setCreatingUsers] = useState(false)
   
   const navigate = useNavigate()
 
@@ -73,21 +72,6 @@ export default function LoginPageMultiTenant() {
     }
   }
 
-  const handleCreateDemoUsers = async () => {
-    setCreatingUsers(true)
-    setError('')
-    
-    try {
-      console.log('Creating demo Firebase Auth users...')
-      await createFirebaseAuthUsers()
-      setError('تم إنشاء الحسابات التجريبية بنجاح! يمكنك الآن تسجيل الدخول.')
-    } catch (error: any) {
-      console.error('Error creating demo users:', error)
-      setError(`خطأ في إنشاء الحسابات التجريبية: ${error.message}`)
-    } finally {
-      setCreatingUsers(false)
-    }
-  }
 
   const handleTenantRegistration = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,44 +207,11 @@ export default function LoginPageMultiTenant() {
 
               <div className="text-center space-y-2">
                 <button
-                  onClick={handleCreateDemoUsers}
-                  disabled={creatingUsers}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium arabic mb-2"
-                >
-                  {creatingUsers ? 'جاري إنشاء الحسابات...' : 'إنشاء الحسابات التجريبية'}
-                </button>
-                
-                <button
                   onClick={() => setShowTenantForm(true)}
                   className="text-blue-600 hover:text-blue-500 text-sm font-medium arabic block"
                 >
                   إنشاء حساب جديد للمحل
                 </button>
-              </div>
-
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 arabic mb-2">حسابات تجريبية:</h4>
-                <div className="space-y-2 text-xs text-gray-600">
-                  <div className="border-b pb-2">
-                    <div className="font-medium arabic">مطعم الرشيد</div>
-                    <div className="english">admin@alrashid.com</div>
-                    <div className="english">manager@alrashid.com</div>
-                    <div className="english">cashier@alrashid.com</div>
-                  </div>
-                  <div className="border-b pb-2">
-                    <div className="font-medium arabic">مقهى ديلايت</div>
-                    <div className="english">admin@cafedelight.com</div>
-                    <div className="english">cashier@cafedelight.com</div>
-                  </div>
-                  <div>
-                    <div className="font-medium arabic">سوق سريع</div>
-                    <div className="english">admin@quickmart.com</div>
-                    <div className="english">manager@quickmart.com</div>
-                    <div className="english">cashier@quickmart.com</div>
-                  </div>
-                  <div className="arabic text-gray-500 mt-2">كلمة المرور لجميع الحسابات: 123456</div>
-                </div>
               </div>
             </div>
           </div>
