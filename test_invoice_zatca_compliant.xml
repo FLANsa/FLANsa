@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <!-- ZATCA Compliance Fields (must appear early per UBL order) -->
+  <cbc:CustomizationID>urn:sa:qayd-pos:invoice:1.0</cbc:CustomizationID>
+  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
+
+  <cbc:ID>INV-2024001</cbc:ID>
+  <cbc:UUID>12345678-1234-1234-1234-123456789012</cbc:UUID>
+  <cbc:IssueDate>2024-01-15</cbc:IssueDate>
+  <cbc:IssueTime>14:30:00</cbc:IssueTime>
+  <cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
+  <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
+  
+  <!-- Seller Information -->
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="CRN">1234567890</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>مطعم قيد للوجبات السريعة</cbc:Name>
+      </cac:PartyName>
+      <cac:PostalAddress>
+        <cbc:StreetName>شارع الملك فهد، حي النخيل</cbc:StreetName>
+        <cbc:CityName>الرياض</cbc:CityName>
+        <cbc:PostalZone>12345</cbc:PostalZone>
+        <cbc:Country>
+          <cbc:IdentificationCode>SA</cbc:IdentificationCode>
+        </cbc:Country>
+      </cac:PostalAddress>
+      <cac:Contact>
+        <cbc:Telephone>+966501234567</cbc:Telephone>
+        <cbc:ElectronicMail>info@qayd-restaurant.com</cbc:ElectronicMail>
+      </cac:Contact>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID schemeID="VAT">300000000000003</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  
+  <!-- Buyer Information (for B2B invoices) -->
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="VAT">300000000000004</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>العميل</cbc:Name>
+      </cac:PartyName>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  
+  <!-- QR Code Reference -->
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>QR</cbc:ID>
+    <cac:Attachment>
+      <cac:EmbeddedDocumentBinaryObject mimeCode="text/plain">
+        TLV1:02:INV-2024001:03:300000000000003:04:2024-01-15T14:30:00Z:05:115.00:06:ABCD1234EFGH5678:07:1
+      </cac:EmbeddedDocumentBinaryObject>
+    </cac:Attachment>
+  </cac:AdditionalDocumentReference>
+  
+  <!-- Invoice Lines -->
+  <cac:InvoiceLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="C62">2</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">20.00</cbc:LineExtensionAmount>
+    
+    <cac:Item>
+      <cbc:Description>برجر دجاج</cbc:Description>
+      <cbc:Name>Chicken Burger</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">10.00</cbc:PriceAmount>
+    </cac:Price>
+    
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">3.00</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="SAR">20.00</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="SAR">3.00</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Percent>15</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+  </cac:InvoiceLine>
+  
+  <cac:InvoiceLine>
+    <cbc:ID>2</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="C62">1</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">15.00</cbc:LineExtensionAmount>
+    
+    <cac:Item>
+      <cbc:Description>بطاطس مقلية</cbc:Description>
+      <cbc:Name>French Fries</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">15.00</cbc:PriceAmount>
+    </cac:Price>
+    
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">2.25</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="SAR">15.00</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="SAR">2.25</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Percent>15</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+  </cac:InvoiceLine>
+  
+  <cac:InvoiceLine>
+    <cbc:ID>3</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="C62">1</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">20.00</cbc:LineExtensionAmount>
+    
+    <cac:Item>
+      <cbc:Description>مشروب غازي</cbc:Description>
+      <cbc:Name>Soft Drink</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    
+    <cac:Price>
+      <cbc:PriceAmount currencyID="SAR">20.00</cbc:PriceAmount>
+    </cac:Price>
+    
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="SAR">3.00</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="SAR">20.00</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="SAR">3.00</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Percent>15</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+  </cac:InvoiceLine>
+  
+  <!-- Tax Summary -->
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">8.25</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="SAR">55.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="SAR">8.25</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>15</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  
+  <!-- Legal Monetary Totals -->
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="SAR">55.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SAR">55.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SAR">63.25</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="SAR">63.25</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  
+  <!-- ZATCA Production Fields -->
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>ICV</cbc:ID>
+    <cbc:DocumentTypeCode>ICV</cbc:DocumentTypeCode>
+    <cbc:DocumentDescription>Invoice Counter Value</cbc:DocumentDescription>
+    <cbc:UUID>1</cbc:UUID>
+  </cac:AdditionalDocumentReference>
+  
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>PIH</cbc:ID>
+    <cbc:DocumentTypeCode>PIH</cbc:DocumentTypeCode>
+    <cbc:DocumentDescription>Previous Invoice Hash</cbc:DocumentDescription>
+    <cbc:UUID>0000000000000000000000000000000000000000000000000000000000000000</cbc:UUID>
+  </cac:AdditionalDocumentReference>
+  
+  <!-- Digital Signature (XAdES B-B) -->
+  <cac:Signature>
+    <cbc:ID>urn:oasis:names:specification:ubl:signature:Invoice</cbc:ID>
+    <cac:SignatoryParty>
+      <cac:PartyIdentification>
+        <cbc:ID>300000000000003</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>مطعم قيد للوجبات السريعة</cbc:Name>
+      </cac:PartyName>
+    </cac:SignatoryParty>
+    <cac:DigitalSignatureAttachment>
+      <cac:ExternalReference>
+        <cbc:URI>urn:oasis:names:specification:ubl:signature:Invoice</cbc:URI>
+      </cac:ExternalReference>
+    </cac:DigitalSignatureAttachment>
+  </cac:Signature>
+  
+</Invoice>

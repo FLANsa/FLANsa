@@ -3,15 +3,14 @@
  * Provides secure proxy for ZATCA API calls
  */
 
+import dotenv from 'dotenv';
+// Load environment variables BEFORE other imports use them
+dotenv.config({ path: '.env.local' });
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import path from 'path';
-import dotenv from 'dotenv';
 import zatcaRoutes from './zatca.routes';
-
-// Load environment variables
-dotenv.config({ path: '.env.local' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -43,6 +42,17 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Root info
+app.get('/', (req, res) => {
+  res.json({
+    ok: true,
+    service: 'ZATCA Server',
+    message: 'Server is running',
+    usefulRoutes: ['/health', '/api/zatca/status', '/api/zatca/reporting', '/api/zatca/clearance', '/api/zatca/onboarding', '/api/zatca/production/csids'],
+    timestamp: new Date().toISOString()
   });
 });
 

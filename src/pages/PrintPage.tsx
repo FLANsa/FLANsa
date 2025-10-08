@@ -1,24 +1,25 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { Printer, ArrowLeft } from 'lucide-react'
+import { Printer, ArrowLeft, Download } from 'lucide-react'
 import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID, generateXMLHash, generateXAdESSignature } from '../lib/zatca'
-import { invoiceSubmissionService } from '../services/invoiceSubmission'
 import { sendInvoiceToZATCA } from '../lib/zatcaProxy'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
+// Removed XML upload/viewer in favor of direct XML generation and download
 
 const PrintPage: React.FC = () => {
-  const { orderId } = useParams()
-  const [order, setOrder] = React.useState(null)
-  const [restaurantSettings, setRestaurantSettings] = React.useState(null)
+  const { orderId: _orderId } = useParams()
+  const [order, setOrder] = React.useState<any>(null)
+  const [restaurantSettings, setRestaurantSettings] = React.useState<any>(null)
   const [digitalSignature, setDigitalSignature] = React.useState<string>('')
   const [csid, setCSID] = React.useState<string>('')
   const [ublXml, setUblXml] = React.useState<string>('')
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string>('')
   const [currentTenant, setCurrentTenant] = React.useState<any>(null)
-
   const [qrUrl, setQrUrl] = React.useState<string>('')
+  
+  // Direct XML download (no upload UI)
 
   React.useEffect(() => {
     console.log('PrintPage useEffect started')
@@ -64,14 +65,18 @@ const PrintPage: React.FC = () => {
             // Use restaurant settings if available, otherwise fallback to tenant data
             const sellerName = restaurantSettings?.restaurantName || tenant?.name || 'Qayd POS System'
             const vatNumber = restaurantSettings?.vatNumber || tenant?.vatNumber || '123456789012345'
+            // Ensure a single UUID is used for both QR and XML
+            const invoiceUuid = parsed.uuid || generateUUID()
+            // Ensure timestamp formatted per ZATCA
+            const timestampIso = parsed.timestamp ? new Date(parsed.timestamp).toISOString() : formatZATCATimestamp(new Date())
             
             const qrData = {
               sellerName: sellerName,
               vatNumber: vatNumber,
-              timestamp: parsed.timestamp || formatZATCATimestamp(new Date()),
+              timestamp: timestampIso,
               total: parsed.total || 0,
               vatTotal: parsed.vat || 0,
-              uuid: generateUUID()
+              uuid: invoiceUuid
             }
             
             // Generate QR image for display
@@ -79,12 +84,11 @@ const PrintPage: React.FC = () => {
             setQrUrl(qr)
             
             // Generate TLV Base64 for UBL XML
-            const qrTlvData = generateZATCAQRData(qrData)
-            
+                  
             // Generate UBL XML first (without QR data)
             const ublData = {
               invoiceNumber: parsed.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
-              uuid: parsed.uuid || generateUUID(),
+              uuid: invoiceUuid,
               issueDate: new Date(parsed.timestamp).toISOString().split('T')[0],
               issueTime: new Date(parsed.timestamp).toISOString().split('T')[1].split('.')[0],
               sellerName: sellerName,
@@ -125,6 +129,9 @@ const PrintPage: React.FC = () => {
               qrData: enhancedQrTlvData
             }
             
+            // Build final XML (with QR) before signing
+            const finalXml = generateUBLXML(finalUblData)
+
             // Generate XAdES B-B digital signature
             const xadesSignature = await generateXAdESSignature(finalXml)
             
@@ -136,6 +143,10 @@ const PrintPage: React.FC = () => {
             
             const finalXmlWithSignature = generateUBLXML(finalUblDataWithSignature)
             setUblXml(finalXmlWithSignature)
+            
+            // Regenerate QR image using enhanced data (includes xmlHash)
+            const qrFinal = await generateZATCAQR(enhancedQrData)
+            setQrUrl(qrFinal)
             
             // Generate legacy digital signature and CSID for display
             const signature = generateDigitalSignature(finalXmlWithSignature)
@@ -173,19 +184,72 @@ const PrintPage: React.FC = () => {
     window.print()
   }
 
-  const handleDownloadUBL = () => {
-    if (!ublXml) return
-    
-    const blob = new Blob([ublXml], { type: 'application/xml' })
+  const downloadXml = (xmlContent: string, filename: string) => {
+    const blob = new Blob([xmlContent], { type: 'application/xml' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `invoice_${order?.invoiceNumber || 'unknown'}.xml`
+    a.download = filename
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }
+
+  const handleDownloadUBLSimplified = async () => {
+    let xmlToDownload = ublXml
+    
+    // If no XML exists, generate it
+    if (!xmlToDownload && order) {
+      try {
+        const sellerName = restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'
+        const vatNumber = restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'
+        const invoiceUuid = order.uuid || generateUUID()
+        
+        const ublData = {
+          invoiceNumber: order.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
+          uuid: invoiceUuid,
+          issueDate: new Date(order.timestamp).toISOString().split('T')[0],
+          issueTime: new Date(order.timestamp).toISOString().split('T')[1].split('.')[0],
+          sellerName: sellerName,
+          sellerVatNumber: vatNumber,
+          sellerCrNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
+          sellerAddress: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
+          sellerPhone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
+          items: order.items?.map((item: any) => ({
+            nameAr: item.nameAr || item.name,
+            nameEn: item.nameEn || item.name,
+            quantity: item.quantity,
+            price: item.price,
+            vatRate: 15
+          })) || [],
+          subtotal: order.subtotal || 0,
+          vatTotal: order.vat || 0,
+          total: order.total || 0
+        }
+        
+        xmlToDownload = generateUBLXML(ublData)
+      } catch (error) {
+        console.error('Error generating XML for download:', error)
+        alert('خطأ في توليد XML للتحميل')
+        return
+      }
+    }
+    
+    if (!xmlToDownload) {
+      alert('لا يمكن تحميل XML - لا توجد بيانات فاتورة')
+      return
+    }
+    
+    // Force KSA-2 name to simplified pattern 0200000
+    const modified = xmlToDownload.replace(/<cbc:InvoiceTypeCode(\s+[^>]*)?>\s*([^<]+)\s*<\/cbc:InvoiceTypeCode>/, (_, attrs) => {
+      const attrPart = attrs ? attrs.replace(/name="[^"]*"/, 'name="0200000"') : ' name="0200000"'
+      return `<cbc:InvoiceTypeCode${attrPart}>388<\/cbc:InvoiceTypeCode>`
+    })
+    downloadXml(modified, `invoice_simplified_${order?.invoiceNumber || 'unknown'}.xml`)
+  }
+
+  // Removed handleDownloadUBLStandard in simplified flow
 
   const [submittingZATCA, setSubmittingZATCA] = React.useState(false)
 
@@ -313,31 +377,34 @@ const PrintPage: React.FC = () => {
               <Printer className="h-4 w-4 inline mr-2" />
               طباعة
             </button>
+            <button
+              onClick={handleDownloadUBLSimplified}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic"
+            >
+              <Download className="h-4 w-4 inline mr-2" />
+              تحميل XML
+            </button>
             {ublXml && (
               <button
-                onClick={handleDownloadUBL}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic"
+                onClick={handleSubmitToZATCA}
+                disabled={submittingZATCA}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 arabic disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                📄 تحميل UBL XML: للاختبار
+                {submittingZATCA ? (
+                  <>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    جاري الإرسال...
+                  </>
+                ) : (
+                  '🚀 إرسال لزاتكا'
+                )}
               </button>
             )}
-            <button
-              onClick={handleSubmitToZATCA}
-              disabled={submittingZATCA || !ublXml}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 arabic disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {submittingZATCA ? (
-                <>
-                  <span className="animate-spin inline-block mr-2">⏳</span>
-                  جاري الإرسال...
-                </>
-              ) : (
-                '🚀 إرسال لزاتكا'
-              )}
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Removed XML Upload Section */}
 
       {/* Receipt */}
       <div className="max-w-md mx-auto p-4">
@@ -389,7 +456,7 @@ const PrintPage: React.FC = () => {
               <span className="arabic">الكمية</span>
               <span className="arabic">السعر</span>
             </div>
-            {order.items.map((item, index) => (
+            {order.items.map((item: any, index: number) => (
               <div key={index} className="flex justify-between text-sm mb-1">
                 <div className="flex-1">
                   <div className="arabic">{item.nameAr || item.name}</div>

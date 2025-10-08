@@ -52,6 +52,16 @@ export default defineConfig({
     host: true,
     hmr: {
       overlay: false // Disable error overlay for faster development
+    },
+    proxy: {
+      '/health': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      },
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
     }
   },
   build: {

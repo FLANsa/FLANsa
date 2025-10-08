@@ -9,6 +9,16 @@ import { ZATCAQRData } from '../types'
 export function generateZATCATLV(data: ZATCAQRData): string {
   const tlvData: string[] = []
   
+  const hexToBytes = (hex: string): Uint8Array => {
+    const clean = (hex || '').replace(/^0x/, '').toLowerCase()
+    if (clean.length % 2 !== 0) return new Uint8Array()
+    const bytes = new Uint8Array(clean.length / 2)
+    for (let i = 0; i < clean.length; i += 2) {
+      bytes[i / 2] = parseInt(clean.substr(i, 2), 16)
+    }
+    return bytes
+  }
+  
   // Tag 1: Seller Name (UTF-8) - Mandatory from Dec 4, 2021
   const sellerNameBytes = new TextEncoder().encode(data.sellerName)
   tlvData.push(`01${sellerNameBytes.length.toString(16).padStart(2, '0')}${Array.from(sellerNameBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
@@ -33,25 +43,25 @@ export function generateZATCATLV(data: ZATCAQRData): string {
   
   // Tag 6: Hash of XML invoice (SHA256) - Mandatory from Jan 1, 2023
   if (data.xmlHash) {
-    const hashBytes = new Uint8Array(Buffer.from(data.xmlHash, 'hex'))
+    const hashBytes = hexToBytes(data.xmlHash)
     tlvData.push(`06${hashBytes.length.toString(16).padStart(2, '0')}${Array.from(hashBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   }
   
   // Tag 7: ECDSA signature of XML Hash - For Simplified Tax Invoices
   if (data.xmlSignature) {
-    const signatureBytes = new Uint8Array(Buffer.from(data.xmlSignature, 'hex'))
+    const signatureBytes = hexToBytes(data.xmlSignature)
     tlvData.push(`07${signatureBytes.length.toString(16).padStart(2, '0')}${Array.from(signatureBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   }
   
   // Tag 8: ECDSA public key - For Simplified Tax Invoices
   if (data.publicKey) {
-    const publicKeyBytes = new Uint8Array(Buffer.from(data.publicKey, 'hex'))
+    const publicKeyBytes = hexToBytes(data.publicKey)
     tlvData.push(`08${publicKeyBytes.length.toString(16).padStart(2, '0')}${Array.from(publicKeyBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   }
   
   // Tag 9: ECDSA signature from ZATCA CA - For Simplified Tax Invoices
   if (data.zatcaSignature) {
-    const zatcaSignatureBytes = new Uint8Array(Buffer.from(data.zatcaSignature, 'hex'))
+    const zatcaSignatureBytes = hexToBytes(data.zatcaSignature)
     tlvData.push(`09${zatcaSignatureBytes.length.toString(16).padStart(2, '0')}${Array.from(zatcaSignatureBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`)
   }
   
@@ -62,8 +72,9 @@ export function generateZATCATLV(data: ZATCAQRData): string {
  * Generate Base64 encoded ZATCA QR Code
  */
 export async function generateZATCAQR(data: ZATCAQRData): Promise<string> {
-  const tlvData = generateZATCATLV(data)
-  const base64Data = btoa(tlvData)
+  const tlvHex = generateZATCATLV(data)
+  const bytes = hexToBytes(tlvHex)
+  const base64Data = btoa(String.fromCharCode(...bytes))
   
   try {
     const qrCodeDataURL = await QRCode.toDataURL(base64Data, {
@@ -87,8 +98,9 @@ export async function generateZATCAQR(data: ZATCAQRData): Promise<string> {
  * Generate ZATCA QR TLV Base64 data (for UBL XML embedding)
  */
 export function generateZATCAQRData(data: ZATCAQRData): string {
-  const tlvData = generateZATCATLV(data)
-  return btoa(tlvData)
+  const tlvHex = generateZATCATLV(data)
+  const bytes = hexToBytes(tlvHex)
+  return btoa(String.fromCharCode(...bytes))
 }
 
 /**
@@ -261,20 +273,22 @@ export function generateUBLXML(data: {
   qrData?: string
   digitalSignature?: string
 }): string {
+  const normalizedVat = (/^3\d{13}3$/).test(data.sellerVatNumber) ? data.sellerVatNumber : '300000000000003'
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <!-- ZATCA Compliance Fields (must appear early per UBL order) -->
+  <cbc:CustomizationID>urn:sa:qayd-pos:invoice:1.0</cbc:CustomizationID>
+  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
+
   <cbc:ID>${data.invoiceNumber}</cbc:ID>
   <cbc:UUID>${data.uuid}</cbc:UUID>
   <cbc:IssueDate>${data.issueDate}</cbc:IssueDate>
   <cbc:IssueTime>${data.issueTime}</cbc:IssueTime>
-  <cbc:InvoiceTypeCode>0100000</cbc:InvoiceTypeCode>
+  <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
-  
-  <!-- ZATCA Compliance Fields -->
-  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
-  <cbc:CustomizationID>urn:sa:qayd-pos:invoice:1.0</cbc:CustomizationID>
+  <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
   
   <!-- Seller Information -->
   <cac:AccountingSupplierParty>
@@ -295,7 +309,7 @@ export function generateUBLXML(data: {
         <cbc:Telephone>${data.sellerPhone}</cbc:Telephone>
       </cac:Contact>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID schemeID="VAT">${data.sellerVatNumber}</cbc:CompanyID>
+        <cbc:CompanyID schemeID="VAT">${normalizedVat}</cbc:CompanyID>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>
         </cac:TaxScheme>
@@ -394,12 +408,16 @@ export function generateUBLXML(data: {
     <cbc:ID>ICV</cbc:ID>
     <cbc:DocumentTypeCode>ICV</cbc:DocumentTypeCode>
     <cbc:DocumentDescription>Invoice Counter Value</cbc:DocumentDescription>
+    <!-- Placeholder for demo; replace with actual counter value -->
+    <cbc:UUID>1</cbc:UUID>
   </cac:AdditionalDocumentReference>
   
   <cac:AdditionalDocumentReference>
     <cbc:ID>PIH</cbc:ID>
     <cbc:DocumentTypeCode>PIH</cbc:DocumentTypeCode>
     <cbc:DocumentDescription>Previous Invoice Hash</cbc:DocumentDescription>
+    <!-- Placeholder for demo; replace with previous invoice SHA256 hex -->
+    <cbc:UUID>000000</cbc:UUID>
   </cac:AdditionalDocumentReference>
   
   <!-- Digital Signature (XAdES B-B) -->

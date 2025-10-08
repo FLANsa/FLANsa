@@ -8,10 +8,14 @@ import fetch from 'node-fetch';
 
 const router = express.Router();
 
-// ZATCA Configuration from environment variables
-const BASE_URL = process.env.ZATCA_BASE_URL || 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation';
-const CSID_TOKEN = process.env.ZATCA_CSID_TOKEN || '';
-const CSID_SECRET = process.env.ZATCA_CSID_SECRET || '';
+// helper to read env at call time
+const getEnv = () => ({
+  BASE_URL: process.env.ZATCA_BASE_URL || 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation',
+  CSID_TOKEN: process.env.ZATCA_CSID_TOKEN || '',
+  CSID_SECRET: process.env.ZATCA_CSID_SECRET || '',
+  ONBOARDING_URL: process.env.ZATCA_ONBOARDING_URL || '',
+  PRODUCTION_CSID_URL: process.env.ZATCA_PRODUCTION_CSID_URL || ''
+});
 
 /**
  * POST /api/zatca/clearance
@@ -19,6 +23,7 @@ const CSID_SECRET = process.env.ZATCA_CSID_SECRET || '';
  */
 router.post('/clearance', async (req, res) => {
   try {
+    const { BASE_URL, CSID_TOKEN, CSID_SECRET } = getEnv();
     console.log('📡 Received invoice submission request');
     
     const { uuid, invoiceHash, invoiceXMLBase64, previousHash, counterValue } = req.body;
@@ -86,11 +91,17 @@ router.post('/clearance', async (req, res) => {
     });
 
     if (!zatcaResponse.ok) {
-      return res.status(zatcaResponse.status).json({ 
-        ok: false, 
+      return res.status(zatcaResponse.status).json({
+        ok: false,
         status: zatcaResponse.status,
-        message: responseData?.message || responseData?.error || 'ZATCA API error',
-        data: responseData 
+        errors: [
+          {
+            category: 'Upstream',
+            code: (responseData?.code || responseData?.errorCode || 'ZATCA_API_ERROR'),
+            message: (responseData?.message || responseData?.error || 'ZATCA API error')
+          }
+        ],
+        data: responseData
       });
     }
 
@@ -119,6 +130,7 @@ router.post('/clearance', async (req, res) => {
  */
 router.post('/reporting', async (req, res) => {
   try {
+    const { BASE_URL, CSID_TOKEN, CSID_SECRET } = getEnv();
     console.log('📡 Received simplified invoice submission request');
     
     const { uuid, invoiceHash, invoiceXMLBase64 } = req.body;
@@ -152,11 +164,17 @@ router.post('/reporting', async (req, res) => {
     const responseData = await zatcaResponse.json().catch(() => ({}));
 
     if (!zatcaResponse.ok) {
-      return res.status(zatcaResponse.status).json({ 
-        ok: false, 
+      return res.status(zatcaResponse.status).json({
+        ok: false,
         status: zatcaResponse.status,
-        message: responseData?.message || responseData?.error || 'ZATCA API error',
-        data: responseData 
+        errors: [
+          {
+            category: 'Upstream',
+            code: (responseData?.code || responseData?.errorCode || 'ZATCA_API_ERROR'),
+            message: (responseData?.message || responseData?.error || 'ZATCA API error')
+          }
+        ],
+        data: responseData
       });
     }
 
@@ -184,8 +202,11 @@ router.post('/reporting', async (req, res) => {
  */
 router.get('/status', async (req, res) => {
   try {
+    const { BASE_URL, CSID_TOKEN, CSID_SECRET } = getEnv();
     const hasCredentials = !!(CSID_TOKEN && CSID_SECRET);
-    const environment = process.env.ZATCA_ENVIRONMENT || BASE_URL.includes('simulation') ? 'sandbox' : 'production';
+    const environment = (process.env.ZATCA_ENVIRONMENT
+      ? process.env.ZATCA_ENVIRONMENT
+      : (BASE_URL.includes('simulation') ? 'sandbox' : 'production'));
     
     return res.json({
       ok: true,
@@ -200,6 +221,121 @@ router.get('/status', async (req, res) => {
       ok: false, 
       message: 'Service status check failed' 
     });
+  }
+});
+
+/**
+ * POST /api/zatca/onboarding
+ * Proxies CSR onboarding with OTP header, returns token/secret on success
+ */
+router.post('/onboarding', async (req, res) => {
+  try {
+    const { ONBOARDING_URL } = getEnv();
+    if (!ONBOARDING_URL) {
+      return res.status(500).json({ ok: false, message: 'ZATCA_ONBOARDING_URL not configured' });
+    }
+
+    const { csr } = req.body || {};
+    if (!csr) {
+      return res.status(400).json({ ok: false, message: 'Missing required field: csr' });
+    }
+
+    const otp = req.header('Otp') || req.header('OTP') || req.header('otp');
+    if (!otp) {
+      return res.status(400).json({ ok: false, message: 'Missing OTP header' });
+    }
+
+    console.log('🧾 Onboarding request →', ONBOARDING_URL);
+
+    const resp = await fetch(ONBOARDING_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept-Version': 'V2',
+        'Accept': 'application/json',
+        'Otp': otp
+      },
+      body: JSON.stringify({ csr }),
+      timeout: 30000
+    });
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      return res.status(resp.status).json({
+        ok: false,
+        status: resp.status,
+        errors: [
+          {
+            category: 'Upstream',
+            code: (data?.code || data?.errorCode || 'ONBOARDING_FAILED'),
+            message: (data?.message || 'Onboarding failed')
+          }
+        ],
+        data
+      });
+    }
+
+    // Return the onboarding response as-is (includes token/secret on success)
+    return res.json({ ok: true, status: resp.status, data, timestamp: new Date().toISOString() });
+  } catch (error: any) {
+    console.error('❌ ZATCA onboarding error:', error);
+    return res.status(500).json({ ok: false, message: error?.message || 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/zatca/production/csids
+ * Requests a Production CSID using Basic auth (token:secret) and optional compliance_request_id
+ */
+router.post('/production/csids', async (req, res) => {
+  try {
+    const { PRODUCTION_CSID_URL, CSID_TOKEN, CSID_SECRET } = getEnv();
+    if (!PRODUCTION_CSID_URL) {
+      return res.status(500).json({ ok: false, errors: [{ category: 'Config', code: 'MISSING_URL', message: 'ZATCA_PRODUCTION_CSID_URL not configured' }] });
+    }
+    if (!CSID_TOKEN || !CSID_SECRET) {
+      return res.status(401).json({ ok: false, errors: [{ category: 'Auth', code: 'MISSING_CREDENTIALS', message: 'Missing CSID token/secret in server env' }] });
+    }
+
+    const { compliance_request_id } = req.body || {};
+    const auth = Buffer.from(`${CSID_TOKEN}:${CSID_SECRET}`).toString('base64');
+
+    console.log('🔐 Production CSID request →', PRODUCTION_CSID_URL);
+
+    const resp = await fetch(PRODUCTION_CSID_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Accept-Version': 'V2',
+        'Authorization': `Basic ${auth}`
+      },
+      body: JSON.stringify(compliance_request_id ? { compliance_request_id } : {}),
+      timeout: 30000
+    });
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      return res.status(resp.status).json({
+        ok: false,
+        status: resp.status,
+        errors: [
+          {
+            category: 'Upstream',
+            code: (data?.code || data?.errorCode || 'PRODUCTION_CSID_FAILED'),
+            message: (data?.message || 'Production CSID request failed')
+          }
+        ],
+        data
+      });
+    }
+
+    return res.json({ ok: true, status: resp.status, data, timestamp: new Date().toISOString() });
+  } catch (error: any) {
+    console.error('❌ ZATCA production csid error:', error);
+    return res.status(500).json({ ok: false, errors: [{ category: 'Server', code: 'INTERNAL', message: error?.message || 'Internal server error' }] });
   }
 });
 
