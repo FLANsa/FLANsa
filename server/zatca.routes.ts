@@ -5,6 +5,7 @@
 
 import express from 'express';
 import fetch from 'node-fetch';
+import { signXmlXadesB } from './zatca-signing';
 
 const router = express.Router();
 
@@ -336,6 +337,39 @@ router.post('/production/csids', async (req, res) => {
   } catch (error: any) {
     console.error('❌ ZATCA production csid error:', error);
     return res.status(500).json({ ok: false, errors: [{ category: 'Server', code: 'INTERNAL', message: error?.message || 'Internal server error' }] });
+  }
+});
+
+/**
+ * POST /api/zatca/sign
+ * Signs XML with XAdES B-B using CSID PFX
+ */
+router.post('/sign', async (req, res) => {
+  try {
+    const { xml, pfxBase64, password } = req.body;
+    
+    if (!xml || !pfxBase64 || !password) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Missing required fields: xml, pfxBase64, password'
+      });
+    }
+    
+    const { signedXml, dsigDigestBase64 } = await signXmlXadesB(xml, pfxBase64, password);
+    
+    return res.json({
+      ok: true,
+      signedXml,
+      dsigDigestBase64,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error('❌ XML signing error:', error);
+    return res.status(500).json({
+      ok: false,
+      message: error?.message || 'XML signing failed'
+    });
   }
 });
 
