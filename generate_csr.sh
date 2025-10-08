@@ -1,36 +1,113 @@
 #!/bin/bash
 
-# ZATCA CSR Generation Script
-# This script generates the private key and CSR for ZATCA integration
+# ZATCA CSR Generator Script
+# This script generates a CSR for ZATCA certificate request
 
-echo "🔐 Generating ZATCA CSR for Sandbox Environment..."
+set -e
 
-# Create certs directory if it doesn't exist
-mkdir -p certs
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# Generate elliptic curve private key (secp256k1)
-echo "📝 Generating private key..."
-openssl ecparam -name secp256k1 -genkey -noout -out certs/private_key.pem
+echo -e "${GREEN}🔐 ZATCA CSR Generator${NC}"
+echo "================================"
 
-# Generate CSR using sandbox config
-echo "📝 Generating CSR for sandbox..."
-openssl req -new -key certs/private_key.pem -out certs/csr.pem -config csr_config_sandbox.txt
+# Configuration
+COMPANY_NAME="Qayd POS System"
+ORGANIZATION="مطعم قيد"
+COUNTRY="SA"
+VAT_NUMBER="300000000000003"
+CERT_PASSWORD="ZatcaSecurePass123!"
 
-# Convert CSR to Base64 (single line, no newlines)
-echo "📝 Converting CSR to Base64..."
-openssl base64 -in certs/csr.pem -out certs/csr.b64 -A
+# Create CSR configuration file
+cat > csr_config.txt << EOF
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
 
-echo "✅ CSR generation completed!"
-echo "📁 Files created:"
-echo "   - certs/private_key.pem (Private key - KEEP SECURE!)"
-echo "   - certs/csr.pem (CSR in PEM format)"
-echo "   - certs/csr.b64 (CSR in Base64 format for ZATCA API)"
+[req_distinguished_name]
+CN = ${COMPANY_NAME}
+O = ${ORGANIZATION}
+C = ${COUNTRY}
+serialNumber = ${VAT_NUMBER}
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = qayd-pos.local
+EOF
+
+echo -e "${YELLOW}📝 CSR Configuration created${NC}"
+
+# Generate private key
+echo -e "${YELLOW}🔑 Generating private key...${NC}"
+openssl genrsa -out zatca_private_key.pem 2048
+
+# Generate CSR
+echo -e "${YELLOW}📋 Generating CSR...${NC}"
+openssl req -new -key zatca_private_key.pem -out zatca.csr -config csr_config.txt
+
+# Convert CSR to Base64
+echo -e "${YELLOW}🔄 Converting CSR to Base64...${NC}"
+openssl req -in zatca.csr -outform DER | base64 -w 0 > csr.b64
+
+# Display CSR content
+echo -e "${GREEN}✅ CSR generated successfully!${NC}"
 echo ""
-echo "📋 Next steps:"
-echo "   1. Copy the content of certs/csr.b64"
-echo "   2. Go to ERAD/Fatoora portal"
-echo "   3. Request Compliance CSID using the Base64 CSR"
-echo "   4. Save the binarySecurityToken and secret"
-echo "   5. Set environment variables:"
-echo "      export ZATCA_CSID_TOKEN='your_token_here'"
-echo "      export ZATCA_CSID_SECRET='your_secret_here'"
+echo -e "${YELLOW}📄 CSR Content (Base64):${NC}"
+echo "================================"
+cat csr.b64
+echo ""
+echo "================================"
+
+# Create PFX template (for after certificate is received)
+cat > create_pfx.sh << 'EOF'
+#!/bin/bash
+# Run this script after receiving the certificate from ZATCA
+
+echo "🔐 Creating PFX from ZATCA certificate..."
+
+# Replace these with actual certificate files
+UNIT_CERT="unit_certificate.crt"
+CERT_CHAIN="certificate_chain.crt"
+PRIVATE_KEY="zatca_private_key.pem"
+PFX_OUTPUT="zatca_cert.pfx"
+PFX_PASSWORD="ZatcaSecurePass123!"
+
+# Create PFX
+openssl pkcs12 -export -out ${PFX_OUTPUT} \
+  -inkey ${PRIVATE_KEY} \
+  -in ${UNIT_CERT} \
+  -certfile ${CERT_CHAIN} \
+  -password pass:${PFX_PASSWORD}
+
+# Convert to Base64
+base64 -w 0 ${PFX_OUTPUT} > zatca_cert_base64.txt
+
+echo "✅ PFX created and converted to Base64!"
+echo "📄 Base64 PFX content:"
+cat zatca_cert_base64.txt
+EOF
+
+chmod +x create_pfx.sh
+
+echo ""
+echo -e "${GREEN}📋 Next Steps:${NC}"
+echo "1. Copy the CSR Base64 content above"
+echo "2. Go to https://sandbox.fatoora.sa/"
+echo "3. Submit the CSR for certificate request"
+echo "4. Download the certificate files"
+echo "5. Run: ./create_pfx.sh"
+echo ""
+echo -e "${YELLOW}⚠️  Important:${NC}"
+echo "- Keep zatca_private_key.pem secure"
+echo "- Don't share the private key"
+echo "- Use strong passwords in production"
+echo ""
+echo -e "${GREEN}🎉 CSR generation complete!${NC}"

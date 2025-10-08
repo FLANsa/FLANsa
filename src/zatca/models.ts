@@ -5,7 +5,7 @@ export interface Seller {
   crNumber?: string
   addressAr?: string
   addressEn?: string
-  countryCode: 'SA'
+  country: 'SA'
 }
 
 export interface Buyer {

@@ -7,6 +7,8 @@ import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { authService } from '../lib/authService'
 import { itemService, Item } from '../lib/firebaseServices'
+import { buildAndSendSimplifiedInvoice } from '../zatca'
+import { SimplifiedInvoice, Seller } from '../zatca/models'
 
 // Define cart item type
 interface CartItem extends Item {
@@ -203,6 +205,61 @@ const POSEnhanced: React.FC = () => {
         console.log('Order saved to Firebase:', docRef.id)
       } catch (firebaseError) {
         console.error('Firebase save failed, continuing with localStorage only:', firebaseError)
+      }
+      
+      // Generate ZATCA-compliant invoice
+      try {
+        const tenantId = authService.getCurrentTenantId() || 'default-tenant'
+        
+        // Create seller info from tenant settings
+        const seller: Seller = {
+          vatNumber: '300000000000003', // TODO: Get from tenant settings
+          nameAr: 'مطعم قيد',
+          nameEn: 'Qayd Restaurant',
+          country: 'SA',
+          addressAr: 'الرياض، المملكة العربية السعودية'
+        }
+        
+        // Create simplified invoice
+        const simplifiedInvoice: SimplifiedInvoice = {
+          uuid: order.uuid,
+          issueDateTime: order.timestamp,
+          invoiceNumber: order.invoiceNumber,
+          invoiceTypeCode: 388,
+          currency: 'SAR',
+          lines: cart.map(item => ({
+            nameAr: item.nameAr || item.name,
+            nameEn: item.name || item.nameEn,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            vatRate: 15 // 15% as number not 0.15
+          })),
+          summary: {
+            subtotal: order.subtotal,
+            taxAmount: order.vat,
+            taxInclusiveAmount: order.total
+          },
+          icv: 0, // Will be set by ZATCA pipeline
+          previousInvoiceHash: '', // Will be set by ZATCA pipeline
+          qrBase64: '', // Will be generated
+          signatureAttached: false
+        }
+        
+        // Call ZATCA pipeline
+        const zatcaResult = await buildAndSendSimplifiedInvoice({
+          tenantId,
+          invoice: simplifiedInvoice,
+          seller
+        })
+        
+        // Store ZATCA result with order
+        order.zatcaResult = zatcaResult
+        console.log('✅ ZATCA invoice generated:', zatcaResult)
+        
+      } catch (zatcaError) {
+        console.error('❌ ZATCA generation failed:', zatcaError)
+        // Continue with order even if ZATCA fails
+        order.zatcaError = zatcaError.message
       }
       
       // Store order for printing

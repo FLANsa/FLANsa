@@ -1,0 +1,32 @@
+apiVersion: v2
+name: qayd-pos
+description: Qayd POS System - Multi-tenant Cashier System with ZATCA Integration
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - pos
+  - cashier
+  - zatca
+  - saudi-arabia
+  - e-invoicing
+home: https://github.com/your-repo/qayd-pos
+sources:
+  - https://github.com/your-repo/qayd-pos
+maintainers:
+  - name: Qayd Team
+    email: team@qayd-pos.com
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: nginx-ingress
+    version: "4.x.x"
+    repository: "https://kubernetes.github.io/ingress-nginx"
+    condition: ingress.enabled
+

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { Printer, ArrowLeft, Download } from 'lucide-react'
+import { Printer, ArrowLeft, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID, generateXMLHash, generateXAdESSignature } from '../lib/zatca'
 import { sendInvoiceToZATCA } from '../lib/zatcaProxy'
 import { authService } from '../lib/authService'
@@ -18,6 +18,45 @@ const PrintPage: React.FC = () => {
   const [error, setError] = React.useState<string>('')
   const [currentTenant, setCurrentTenant] = React.useState<any>(null)
   const [qrUrl, setQrUrl] = React.useState<string>('')
+  
+  // ZATCA status badge component
+  const ZATCAStatusBadge = ({ zatcaResult, zatcaError }: { zatcaResult?: any, zatcaError?: string }) => {
+    if (zatcaError) {
+      return (
+        <div className="flex items-center gap-2 bg-red-100 text-red-800 px-3 py-2 rounded-lg">
+          <XCircle className="w-4 h-4" />
+          <span className="text-sm font-medium">فشل ZATCA</span>
+          <span className="text-xs">({zatcaError})</span>
+        </div>
+      )
+    }
+    
+    if (zatcaResult?.reportingResult?.accepted) {
+      return (
+        <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-lg">
+          <CheckCircle className="w-4 h-4" />
+          <span className="text-sm font-medium">تم الإبلاغ ✓</span>
+        </div>
+      )
+    }
+    
+    if (zatcaResult?.reportingResult?.accepted === false) {
+      return (
+        <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg">
+          <AlertCircle className="w-4 h-4" />
+          <span className="text-sm font-medium">رفض الإبلاغ ✗</span>
+          <span className="text-xs">({zatcaResult?.reportingResult?.body?.message || 'سبب غير معروف'})</span>
+        </div>
+      )
+    }
+    
+    return (
+      <div className="flex items-center gap-2 bg-gray-100 text-gray-800 px-3 py-2 rounded-lg">
+        <AlertCircle className="w-4 h-4" />
+        <span className="text-sm font-medium">لم يتم الإبلاغ</span>
+      </div>
+    )
+  }
   
   // Direct XML download (no upload UI)
 
@@ -62,6 +101,27 @@ const PrintPage: React.FC = () => {
         // Generate ZATCA QR image
         const buildQR = async () => {
           try {
+            // Check if ZATCA result is available
+            if (parsed.zatcaResult?.qrBase64) {
+              console.log('Using ZATCA-generated QR')
+              
+              // ZATCA QR is TLV Base64 - need to convert to image
+              const QRCode = (await import('qrcode')).default
+              const qrImageUrl = await QRCode.toDataURL(parsed.zatcaResult.qrBase64)
+              setQrUrl(qrImageUrl)
+              
+              // Use ZATCA-generated XML
+              if (parsed.zatcaResult.finalXml) {
+                setUblXml(parsed.zatcaResult.finalXml)
+              }
+              
+              console.log('ZATCA QR and XML loaded successfully')
+              return
+            }
+            
+            // Fallback: Generate QR manually (legacy behavior)
+            console.log('Generating QR manually (ZATCA not available)')
+            
             // Use restaurant settings if available, otherwise fallback to tenant data
             const sellerName = restaurantSettings?.restaurantName || tenant?.name || 'Qayd POS System'
             const vatNumber = restaurantSettings?.vatNumber || tenant?.vatNumber || '123456789012345'
@@ -360,9 +420,10 @@ const PrintPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Print Controls */}
       <div className="bg-white shadow-sm border-b p-4 no-print">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 arabic">طباعة الفاتورة</h1>
-          <div className="flex space-x-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl font-bold text-gray-900 arabic">طباعة الفاتورة</h1>
+            <div className="flex space-x-4">
             <button
               onClick={handleBack}
               className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 arabic"
@@ -400,6 +461,15 @@ const PrintPage: React.FC = () => {
                 )}
               </button>
             )}
+            </div>
+          </div>
+          
+          {/* ZATCA Status Badge */}
+          <div className="flex justify-center mt-4">
+            <ZATCAStatusBadge 
+              zatcaResult={order?.zatcaResult} 
+              zatcaError={order?.zatcaError} 
+            />
           </div>
         </div>
       </div>

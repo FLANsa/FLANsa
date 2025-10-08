@@ -75,3 +75,4 @@ export async function signXmlXadesB(xml: string, pfxBase64: string, password: st
     throw new Error(`Signing failed: ${error}`)
   }
 }
+

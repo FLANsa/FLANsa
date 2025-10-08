@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qayd-pos
+  labels:
+    app: qayd-pos
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: qayd-pos
+  template:
+    metadata:
+      labels:
+        app: qayd-pos
+    spec:
+      containers:
+      - name: qayd-pos
+        image: qayd-pos:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: qayd-secrets
+              key: database-url
+        - name: ZATCA_CERT_PFX_BASE64
+          valueFrom:
+            secretKeyRef:
+              name: qayd-secrets
+              key: zatca-cert-pfx
+        - name: ZATCA_CERT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: qayd-secrets
+              key: zatca-cert-password
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qayd-pos-service
+spec:
+  selector:
+    app: qayd-pos
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qayd-secrets
+type: Opaque
+data:
+  database-url: <base64-encoded-database-url>
+  zatca-cert-pfx: <base64-encoded-pfx>
+  zatca-cert-password: <base64-encoded-password>
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qayd-pos-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qayd-pos
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qayd-pos-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - qayd-pos.example.com
+    secretName: qayd-pos-tls
+  rules:
+  - host: qayd-pos.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: qayd-pos-service
+            port:
+              number: 80
+

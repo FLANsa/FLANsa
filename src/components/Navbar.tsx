@@ -5,7 +5,8 @@ import {
   ShoppingCart, 
   Package, 
   BarChart3, 
-  Settings, 
+  Settings,
+  FileText,
   LogOut,
   Menu,
   X
@@ -21,6 +22,7 @@ const Navbar = () => {
     { name: 'نقطة البيع', href: '/pos', icon: ShoppingCart },
     { name: 'المنتجات', href: '/products', icon: Package },
     { name: 'التقارير', href: '/reports', icon: BarChart3 },
+    { name: 'إعدادات ZATCA', href: '/zatca-settings', icon: FileText },
     { name: 'الإعدادات', href: '/settings', icon: Settings },
   ]
 

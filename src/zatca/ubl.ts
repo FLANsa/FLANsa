@@ -74,7 +74,7 @@ export function buildSimplifiedInvoiceXML(inv: SimplifiedInvoice, seller: Seller
       <cac:PartyIdentification><cbc:ID schemeID="VAT">${vat}</cbc:ID></cac:PartyIdentification>
       <cac:PartyName><cbc:Name>${sellerName}</cbc:Name></cac:PartyName>
       <cac:PostalAddress>
-        <cbc:Country><cbc:IdentificationCode>${seller.countryCode}</cbc:IdentificationCode></cbc:Country>
+        <cbc:Country><cbc:IdentificationCode>${seller.country}</cbc:IdentificationCode></cbc:Country>
       </cac:PostalAddress>
     </cac:Party>
   </cac:AccountingSupplierParty>

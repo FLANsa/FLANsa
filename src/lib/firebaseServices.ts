@@ -121,6 +121,26 @@ export interface Settings {
   currency: string
   language: string
   updatedAt: any
+  zatca?: {
+    env?: 'sandbox' | 'production'
+    egsUnitId?: string
+    csidCertPfxBase64?: string
+    csidCertPassword?: string
+    otp?: string
+    subscriptionKey?: string
+    orgVatNumber?: string
+    orgNameAr?: string
+    orgNameEn?: string
+    orgCrn?: string
+    orgAddressAr?: string
+    orgAddressEn?: string
+    orgCity?: string
+    orgPostalCode?: string
+    orgPhone?: string
+    orgEmail?: string
+    connectionStatus?: 'disconnected' | 'connected' | 'error'
+    lastSync?: string
+  }
 }
 
 // Collections

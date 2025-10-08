@@ -341,17 +341,94 @@ router.post('/production/csids', async (req, res) => {
 });
 
 /**
+ * POST /api/zatca/test-connection
+ * Test connection to ZATCA portal
+ */
+router.post('/test-connection', async (req, res) => {
+  try {
+    const { env, egsUnitId, otp, subscriptionKey } = req.body
+
+    if (!egsUnitId) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Missing EGS Unit ID'
+      })
+    }
+
+    // Determine URL based on environment
+    const baseUrl = env === 'production'
+      ? 'https://gw-fatoora.zatca.gov.sa/e-invoicing/production'
+      : 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation'
+
+    // Test connection with a simple health check
+    const testUrl = `${baseUrl}/compliance`
+    
+    try {
+      const headers: any = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+
+      if (otp) headers['OTP'] = otp
+      if (subscriptionKey) headers['Subscription-Key'] = subscriptionKey
+
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers
+      })
+
+      const status = response.status
+      const isSuccess = status >= 200 && status < 300
+
+      return res.json({
+        ok: isSuccess,
+        status,
+        message: isSuccess 
+          ? 'نجح الاتصال بزاتكا' 
+          : `فشل الاتصال - Status: ${status}`,
+        environment: env,
+        egsUnitId,
+        timestamp: new Date().toISOString()
+      })
+    } catch (fetchError: any) {
+      return res.json({
+        ok: false,
+        message: `خطأ في الاتصال: ${fetchError.message}`,
+        error: fetchError.message
+      })
+    }
+  } catch (error: any) {
+    console.error('❌ Test connection error:', error)
+    return res.status(500).json({
+      ok: false,
+      message: error?.message || 'Internal server error'
+    })
+  }
+})
+
+/**
  * POST /api/zatca/sign
  * Signs XML with XAdES B-B using CSID PFX
  */
 router.post('/sign', async (req, res) => {
   try {
-    const { xml, pfxBase64, password } = req.body;
+    const { xml } = req.body;
     
-    if (!xml || !pfxBase64 || !password) {
+    if (!xml) {
       return res.status(400).json({
         ok: false,
-        message: 'Missing required fields: xml, pfxBase64, password'
+        message: 'Missing required field: xml'
+      });
+    }
+    
+    // Read PFX from server environment variables (secure)
+    const pfxBase64 = process.env.CSID_CERT_PFX_BASE64 || '';
+    const password = process.env.CSID_CERT_PASSWORD || '';
+    
+    if (!pfxBase64 || !password) {
+      return res.status(500).json({
+        ok: false,
+        message: 'Server CSID certificate not configured. Set CSID_CERT_PFX_BASE64 and CSID_CERT_PASSWORD in .env'
       });
     }
     
