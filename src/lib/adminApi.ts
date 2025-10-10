@@ -1,10 +1,24 @@
 import { auth } from './firebase'
 
+const DEFAULT_FUNCTIONS_BASE = 'https://us-central1-qayd-pos.cloudfunctions.net/adminApi';
+function getAdminApiBase(): string {
+  const envBase = (import.meta as any)?.env?.VITE_ADMIN_API_BASE as string | undefined;
+  if (envBase && envBase.trim()) return envBase.replace(/\/$/, '');
+  // If running on Firebase Hosting, the rewrite works with relative /api/admin/
+  const host = typeof window !== 'undefined' ? window.location.host : '';
+  const isFirebaseHosting = /web\.app$|firebaseapp\.com$/.test(host);
+  if (isFirebaseHosting) return '/api/admin';
+  // Otherwise (e.g., Render/Vercel), call the Cloud Function directly
+  return DEFAULT_FUNCTIONS_BASE;
+}
+
 async function authedFetch(path: string, init?: RequestInit) {
   const user = auth.currentUser
   if (!user) throw new Error('Not authenticated')
   const token = await user.getIdToken()
-  const res = await fetch(`/api/admin/${path.replace(/^\//, '')}`, {
+  const base = getAdminApiBase()
+  const url = `${base}/${path.replace(/^\//, '')}`
+  const res = await fetch(url, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
