@@ -1,43 +1,63 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSignedIn() { return request.auth != null; }
-    function uid() { return request.auth.uid; }
+    function isAuthed() {
+      return request.auth != null;
+    }
+    function userEmail() {
+      return request.auth.token.email != null ? request.auth.token.email.toLowerCase() : "";
+    }
+    function hasOwnerRole() {
+      return request.auth.token.role == "owner";
+    }
+    function isSuperAdmin() {
+      return userEmail() == "admin@qayd.com";
+    }
+    function isAdminDashboard() {
+      return hasOwnerRole() || isSuperAdmin();
+    }
 
-    // قراءة المستأجرين (عامة للجميع):
+    // Users collection
+    match /users/{uid} {
+      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
+      // Only admin dashboard can create/update/delete users
+      allow create, update, delete: if isAdminDashboard();
+    }
+
+    // Tenants collection
     match /tenants/{tenantId} {
-      allow get, list: if true; // أي شخص يمكنه قراءة المستأجرين
-      allow create: if isSignedIn(); // أي مستخدم مسجل يمكنه إنشاء مستأجر جديد
-      allow update, delete: if isSignedIn();
+      allow read: if isAdminDashboard() || (isAuthed() && resource.data.id == request.auth.token.tenantId);
+      allow create, update, delete: if isAdminDashboard();
     }
 
-    // ملف المستخدم الخاص به:
-    match /users/{userId} {
-      allow create: if isSignedIn() && userId == uid();
-      allow read, update: if isSignedIn() && userId == uid();
-      allow delete: if false;
+    // Settings by tenant (doc id = tenantId)
+    match /settings/{tenantId} {
+      allow read: if isAdminDashboard() || (isAuthed() && tenantId == request.auth.token.tenantId);
+      allow create, update: if isAdminDashboard() || (isAuthed() && tenantId == request.auth.token.tenantId);
+      allow delete: if isAdminDashboard();
     }
 
-    // البيانات الأخرى للمستخدمين المسجلين (مبسطة):
-    match /customers/{customerId} {
-      allow read, write: if isSignedIn();
-    }
-
+    // Items
     match /items/{itemId} {
-      allow read, write: if isSignedIn();
+      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
+      allow create, update, delete: if isAdminDashboard() || (isAuthed() && request.resource.data.tenantId == request.auth.token.tenantId);
     }
 
+    // Orders
     match /orders/{orderId} {
-      allow read, write: if isSignedIn();
+      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
+      allow create, update, delete: if isAdminDashboard() || (isAuthed() && request.resource.data.tenantId == request.auth.token.tenantId);
     }
 
-    match /settings/{settingId} {
-      allow read, write: if isSignedIn();
-      allow create: if isSignedIn();
+    // Customers
+    match /customers/{customerId} {
+      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
+      allow create, update, delete: if isAdminDashboard() || (isAuthed() && request.resource.data.tenantId == request.auth.token.tenantId);
     }
 
-    match /categories/{categoryId} {
-      allow read, write: if isSignedIn();
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
