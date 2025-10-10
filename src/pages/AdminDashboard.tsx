@@ -56,31 +56,82 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
   const [name, setName] = useState('')
   const [role, setRole] = useState('cashier')
   const [busy, setBusy] = useState(false)
+  const [tenants, setTenants] = useState<any[]>([])
+  const [users, setUsers] = useState<any[]>([])
 
   async function addUser() {
     try {
       setBusy(true)
       await adminApi.createUser({ email, tenantId, name, role })
-      setEmail(''); setTenantId(''); setName(''); setRole('cashier')
+      setEmail(''); setName(''); setRole('cashier')
+      const list = await adminApi.listUsers(tenantId || undefined)
+      setUsers(list.users||[])
     } catch (e: any) { onError(e.message) } finally { setBusy(false) }
   }
   async function test() { try { await adminApi.testAuth() } catch (e:any){ onError(e.message) } }
+  useEffect(()=>{ (async()=>{ try{ const t = await adminApi.listTenants(); setTenants(t.tenants||[]) } catch(e:any){ onError(e.message) } })() },[])
+  useEffect(()=>{ (async()=>{ try{ const u = await adminApi.listUsers(tenantId || undefined); setUsers(u.users||[]) } catch(e:any){ onError(e.message) } })() },[tenantId])
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2 max-w-xl">
-        <input className="border p-2" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
-        <input className="border p-2" placeholder="Tenant ID" value={tenantId} onChange={e=>setTenantId(e.target.value)} />
-        <input className="border p-2" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
-        <select className="border p-2" value={role} onChange={e=>setRole(e.target.value)}>
+      <div className="grid grid-cols-2 gap-2 max-w-3xl">
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">المتجر</label>
+          <select className="border p-2" value={tenantId} onChange={e=>setTenantId(e.target.value)}>
+            <option value="">جميع المتاجر</option>
+            {tenants.map((t:any)=> (<option key={t.id} value={t.id}>{t.nameAr || t.name}</option>))}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">البريد الإلكتروني</label>
+          <input className="border p-2" placeholder="user@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">الاسم</label>
+          <input className="border p-2" placeholder="اسم المستخدم" value={name} onChange={e=>setName(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">الدور</label>
+          <select className="border p-2" value={role} onChange={e=>setRole(e.target.value)}>
           <option value="owner">owner</option>
           <option value="admin">admin</option>
           <option value="manager">manager</option>
           <option value="cashier">cashier</option>
-        </select>
+          </select>
+        </div>
       </div>
       <div className="flex gap-2">
         <button className="bg-green-600 text-white px-3 py-1 rounded" disabled={busy} onClick={addUser}>Add user</button>
         <button className="bg-indigo-600 text-white px-3 py-1 rounded" onClick={test}>Quick test</button>
+      </div>
+      <div className="mt-4">
+        <h3 className="font-semibold arabic">المستخدمون</h3>
+        <div className="overflow-auto">
+          <table className="min-w-full border">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="p-2 border text-right">الاسم</th>
+                <th className="p-2 border text-right">البريد</th>
+                <th className="p-2 border text-right">الدور</th>
+                <th className="p-2 border text-right">المتجر</th>
+                <th className="p-2 border text-right">الحالة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u:any)=> (
+                <tr key={u.id} className="odd:bg-white even:bg-gray-50">
+                  <td className="p-2 border">{u.name || '-'}</td>
+                  <td className="p-2 border">{u.email}</td>
+                  <td className="p-2 border">{u.role}</td>
+                  <td className="p-2 border">{(tenants.find(t=>t.id===u.tenantId)?.nameAr) || u.tenantId}</td>
+                  <td className="p-2 border">{u.isActive ? 'نشط' : 'موقوف'}</td>
+                </tr>
+              ))}
+              {users.length===0 && (
+                <tr><td className="p-3 text-gray-500 text-center" colSpan={5}>لا يوجد مستخدمون</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -113,36 +164,36 @@ function TenantsTab({ onError }: { onError: (e: string)=>void }) {
       <h3 className="text-lg font-semibold arabic">إضافة متجر جديد</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl">
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 english">Store Name (EN)</label>
-          <input className="border p-2" placeholder="Store Name" value={name} onChange={e=>setName(e.target.value)} />
+          <label className="text-sm text-gray-700 arabic">اسم المطعم (عربي)</label>
+          <input className="border p-2" placeholder="اسم المطعم" value={nameAr} onChange={e=>setNameAr(e.target.value)} />
         </div>
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 arabic">اسم المتجر (عربي)</label>
-          <input className="border p-2" placeholder="اسم المتجر" value={nameAr} onChange={e=>setNameAr(e.target.value)} />
+          <label className="text-sm text-gray-700 arabic">اسم المطعم (إنجليزي)</label>
+          <input className="border p-2" placeholder="Restaurant Name" value={name} onChange={e=>setName(e.target.value)} />
         </div>
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 arabic">البريد الإلكتروني</label>
-          <input className="border p-2" placeholder="store@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
+          <label className="text-sm text-gray-700 arabic">رقم ضريبة القيمة المضافة</label>
+          <input className="border p-2" placeholder="123456789012345" value={vatNumber} onChange={e=>setVatNumber(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">رقم السجل التجاري</label>
+          <input className="border p-2" placeholder="1010101010" value={crNumber} onChange={e=>setCrNumber(e.target.value)} />
         </div>
         <div className="flex flex-col">
           <label className="text-sm text-gray-700 arabic">رقم الهاتف</label>
           <input className="border p-2" placeholder="+966 50 123 4567" value={phone} onChange={e=>setPhone(e.target.value)} />
         </div>
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 english">Address (EN)</label>
-          <input className="border p-2" placeholder="Riyadh, Saudi Arabia" value={address} onChange={e=>setAddress(e.target.value)} />
+          <label className="text-sm text-gray-700 arabic">البريد الإلكتروني</label>
+          <input className="border p-2" placeholder="store@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
         </div>
         <div className="flex flex-col">
           <label className="text-sm text-gray-700 arabic">العنوان (عربي)</label>
           <input className="border p-2" placeholder="الرياض، المملكة العربية السعودية" value={addressAr} onChange={e=>setAddressAr(e.target.value)} />
         </div>
         <div className="flex flex-col">
-          <label className="text-sm text-gray-700 english">VAT Number</label>
-          <input className="border p-2" placeholder="123456789012345" value={vatNumber} onChange={e=>setVatNumber(e.target.value)} />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-700 english">CR Number</label>
-          <input className="border p-2" placeholder="1010101010" value={crNumber} onChange={e=>setCrNumber(e.target.value)} />
+          <label className="text-sm text-gray-700 arabic">العنوان (إنجليزي)</label>
+          <input className="border p-2" placeholder="Riyadh, Saudi Arabia" value={address} onChange={e=>setAddress(e.target.value)} />
         </div>
       </div>
       <div className="flex gap-2">

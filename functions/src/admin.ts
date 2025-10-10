@@ -53,6 +53,17 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       return;
     }
 
+    if (segs[0] === "users" && method === "GET" && segs.length === 1) {
+      // Optional filter by tenantId
+      const tenantId = (req.query?.tenantId as string) || '';
+      const db = getFirestore();
+      const col = db.collection("users");
+      const snap = tenantId ? await col.where("tenantId", "==", tenantId).get() : await col.get();
+      const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      res.json({ ok: true, users });
+      return;
+    }
+
     if (segs[0] === "users" && segs[1] === "test" && method === "POST") {
       const email = `test_${Date.now()}@qayd.com`;
       const password = "123456";

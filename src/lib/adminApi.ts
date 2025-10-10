@@ -38,6 +38,10 @@ export const adminApi = {
   createUser(payload: { email: string; password?: string; name?: string; role?: string; tenantId: string; isActive?: boolean }) {
     return authedFetch('users', { method: 'POST', body: JSON.stringify(payload) })
   },
+  listUsers(tenantId?: string) {
+    const qs = tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : ''
+    return authedFetch(`users${qs}`, { method: 'GET' })
+  },
   updateUser(uid: string, payload: { role?: string; isActive?: boolean }) {
     return authedFetch(`users/${uid}`, { method: 'PATCH', body: JSON.stringify(payload) })
   },
