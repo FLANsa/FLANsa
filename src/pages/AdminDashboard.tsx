@@ -68,7 +68,6 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
       setUsers(list.users||[])
     } catch (e: any) { onError(e.message) } finally { setBusy(false) }
   }
-  async function test() { try { await adminApi.testAuth() } catch (e:any){ onError(e.message) } }
   useEffect(()=>{ (async()=>{ try{ const t = await adminApi.listTenants(); setTenants(t.tenants||[]) } catch(e:any){ onError(e.message) } })() },[])
   useEffect(()=>{ (async()=>{ try{ const u = await adminApi.listUsers(tenantId || undefined); setUsers(u.users||[]) } catch(e:any){ onError(e.message) } })() },[tenantId])
   return (
@@ -101,7 +100,6 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
       </div>
       <div className="flex gap-2">
         <button className="bg-green-600 text-white px-3 py-1 rounded" disabled={busy} onClick={addUser}>Add user</button>
-        <button className="bg-indigo-600 text-white px-3 py-1 rounded" onClick={test}>Quick test</button>
       </div>
       <div className="mt-4">
         <h3 className="font-semibold arabic">المستخدمون</h3>
