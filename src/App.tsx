@@ -19,6 +19,7 @@ const ProductsPage = lazy(() => import('./pages/ProductsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ZATCASettingsPage = lazy(() => import('./pages/ZATCASettingsPage'))
 const PrintPage = lazy(() => import('./pages/PrintPage'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 
 /* Login page now comes from src/pages/LoginPage */
 
@@ -319,6 +320,13 @@ function App() {
   return (
     <Layout>
       <Routes>
+              <Route path="/admin" element={
+                <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>}>
+                  <AdminDashboard />
+                </Suspense>
+              } />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={
                 <Suspense fallback={<div className="min-h-screen bg-blue-50 flex items-center justify-center">

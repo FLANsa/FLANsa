@@ -18,10 +18,8 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/api/admin/**", "function": "adminApi" },
+      { "source": "**", "destination": "/index.html" }
     ],
     "headers": [
       {
