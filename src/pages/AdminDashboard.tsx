@@ -89,23 +89,66 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
 function TenantsTab({ onError }: { onError: (e: string)=>void }) {
   const [name, setName] = useState('')
   const [nameAr, setNameAr] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [addressAr, setAddressAr] = useState('')
+  const [vatNumber, setVatNumber] = useState('')
+  const [crNumber, setCrNumber] = useState('')
+  const [busy, setBusy] = useState(false)
   const [tenants, setTenants] = useState<any[]>([])
   async function createTenant(){
     try {
-      await adminApi.createTenant({ name, nameAr, isActive: true })
-      setName(''); setNameAr('');
+      setBusy(true)
+      await adminApi.createTenant({ name, nameAr, email, phone, address, addressAr, vatNumber, crNumber, isActive: true })
+      setName(''); setNameAr(''); setEmail(''); setPhone(''); setAddress(''); setAddressAr(''); setVatNumber(''); setCrNumber('')
       const list = await adminApi.listTenants()
       setTenants(list.tenants||[])
-    } catch (e:any){ onError(e.message) }
+    } catch (e:any){ onError(e.message) } finally { setBusy(false) }
   }
+  function clearForm(){ setName(''); setNameAr(''); setEmail(''); setPhone(''); setAddress(''); setAddressAr(''); setVatNumber(''); setCrNumber('') }
   useEffect(()=>{ (async()=>{ try{ const list = await adminApi.listTenants(); setTenants(list.tenants||[]) } catch(e:any){ onError(e.message) } })() },[])
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2 max-w-xl">
-        <input className="border p-2" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
-        <input className="border p-2" placeholder="Name (AR)" value={nameAr} onChange={e=>setNameAr(e.target.value)} />
+      <h3 className="text-lg font-semibold arabic">إضافة متجر جديد</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl">
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 english">Store Name (EN)</label>
+          <input className="border p-2" placeholder="Store Name" value={name} onChange={e=>setName(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">اسم المتجر (عربي)</label>
+          <input className="border p-2" placeholder="اسم المتجر" value={nameAr} onChange={e=>setNameAr(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">البريد الإلكتروني</label>
+          <input className="border p-2" placeholder="store@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">رقم الهاتف</label>
+          <input className="border p-2" placeholder="+966 50 123 4567" value={phone} onChange={e=>setPhone(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 english">Address (EN)</label>
+          <input className="border p-2" placeholder="Riyadh, Saudi Arabia" value={address} onChange={e=>setAddress(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 arabic">العنوان (عربي)</label>
+          <input className="border p-2" placeholder="الرياض، المملكة العربية السعودية" value={addressAr} onChange={e=>setAddressAr(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 english">VAT Number</label>
+          <input className="border p-2" placeholder="123456789012345" value={vatNumber} onChange={e=>setVatNumber(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-700 english">CR Number</label>
+          <input className="border p-2" placeholder="1010101010" value={crNumber} onChange={e=>setCrNumber(e.target.value)} />
+        </div>
       </div>
-      <button className="bg-green-600 text-white px-3 py-1 rounded" onClick={createTenant}>Create tenant</button>
+      <div className="flex gap-2">
+        <button className="bg-green-600 text-white px-3 py-1 rounded" disabled={busy} onClick={createTenant}>إضافة المتجر</button>
+        <button className="bg-gray-200 px-3 py-1 rounded" onClick={clearForm}>إلغاء</button>
+      </div>
       <div className="mt-4">
         <h3 className="font-semibold">Tenants</h3>
         <ul className="list-disc ml-6">

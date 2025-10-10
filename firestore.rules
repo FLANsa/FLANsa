@@ -19,14 +19,18 @@ service cloud.firestore {
 
     // Users collection
     match /users/{uid} {
-      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
-      // Only admin dashboard can create/update/delete users
-      allow create, update, delete: if isAdminDashboard();
+      // Allow admin dashboard OR the signed-in user to read their own profile
+      allow read: if isAdminDashboard() || (isAuthed() && (uid == request.auth.uid || resource.data.tenantId == request.auth.token.tenantId));
+      // Allow admin dashboard to CRUD any user; allow a user to create/update their own profile doc (id == uid)
+      allow create: if isAdminDashboard() || (isAuthed() && uid == request.auth.uid);
+      allow update: if isAdminDashboard() || (isAuthed() && uid == request.auth.uid);
+      allow delete: if isAdminDashboard();
     }
 
     // Tenants collection
     match /tenants/{tenantId} {
-      allow read: if isAdminDashboard() || (isAuthed() && resource.data.id == request.auth.token.tenantId);
+      // Allow admin dashboard OR members of the same tenant (by doc id) to read
+      allow read: if isAdminDashboard() || (isAuthed() && tenantId == request.auth.token.tenantId);
       allow create, update, delete: if isAdminDashboard();
     }
 

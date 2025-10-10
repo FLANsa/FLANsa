@@ -19,7 +19,7 @@ Build an admin-only dashboard to manage users and tenants. Backend will run on F
 
 - POST `/admin/users` — create user in Firebase Auth + Firestore profile
 - PATCH `/admin/users/:uid` — update role, isActive (also updates Auth disabled flag and custom claims)
-- DELETE `/admin/users/:uid` — remove from Auth and Firestore
+- DELETE `/admin/users/:uid` — remove from Firebase Auth and Firestore
 - POST `/admin/users:test` — quick connectivity test (create/delete temp user)
 - POST `/admin/tenants` — create tenant (and optional initial admin)
 - GET `/admin/tenants` — list tenants with brief stats

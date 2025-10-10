@@ -49,7 +49,8 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       await db.collection("users").doc(userRecord.uid).set({
         id: userRecord.uid, tenantId, name, email, role, isActive, createdAt: new Date(), updatedAt: new Date()
       });
-      return res.json({ ok: true, uid: userRecord.uid });
+      res.json({ ok: true, uid: userRecord.uid });
+      return;
     }
 
     if (segs[0] === "users" && segs[1] === "test" && method === "POST") {
@@ -57,7 +58,8 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       const password = "123456";
       const user = await auth.createUser({ email, password, disabled: true });
       await auth.deleteUser(user.uid);
-      return res.json({ ok: true });
+      res.json({ ok: true });
+      return;
     }
 
     if (segs[0] === "users" && segs[1] && method === "PATCH") {
@@ -70,14 +72,16 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       await auth.setCustomUserClaims(uid, { ...currentClaims, ...(role ? { role } : {}), ...(typeof isActive === "boolean" ? { isActive } : {}) });
       const userRef = db.collection("users").doc(uid);
       await userRef.set({ ...(role ? { role } : {}), ...(typeof isActive === "boolean" ? { isActive } : {}), updatedAt: new Date() }, { merge: true });
-      return res.json({ ok: true });
+      res.json({ ok: true });
+      return;
     }
 
     if (segs[0] === "users" && segs[1] && method === "DELETE") {
       const uid = segs[1];
       await auth.deleteUser(uid);
       await db.collection("users").doc(uid).delete();
-      return res.json({ ok: true });
+      res.json({ ok: true });
+      return;
     }
 
     // TENANTS
@@ -88,23 +92,29 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       tenant.createdAt = new Date();
       tenant.updatedAt = new Date();
       const ref = await db.collection("tenants").add(tenant);
-      return res.json({ ok: true, id: ref.id });
+      res.json({ ok: true, id: ref.id });
+      return;
     }
 
     if (segs[0] === "tenants" && segs.length === 1 && method === "GET") {
       const snap = await db.collection("tenants").get();
       const tenants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      return res.json({ ok: true, tenants });
+      res.json({ ok: true, tenants });
+      return;
     }
 
     if (segs[0] === "tenants" && segs[1] && segs.length === 2 && method === "GET") {
       const tenantId = segs[1];
       const tDoc = await db.collection("tenants").doc(tenantId).get();
-      if (!tDoc.exists) return res.status(404).json({ ok: false, error: "not-found" });
+      if (!tDoc.exists) {
+        res.status(404).json({ ok: false, error: "not-found" });
+        return;
+      }
       const usersSnap = await db.collection("users").where("tenantId", "==", tenantId).get();
       const ordersSnap = await db.collection("orders").where("tenantId", "==", tenantId).get();
       const revenue = ordersSnap.docs.reduce((sum, d) => sum + (Number((d.data() as any).total) || 0), 0);
-      return res.json({ ok: true, tenant: { id: tDoc.id, ...tDoc.data() }, stats: { users: usersSnap.size, orders: ordersSnap.size, revenue } });
+      res.json({ ok: true, tenant: { id: tDoc.id, ...tDoc.data() }, stats: { users: usersSnap.size, orders: ordersSnap.size, revenue } });
+      return;
     }
 
     // SETTINGS
@@ -112,7 +122,8 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       const tenantId = segs[1];
       const settings = req.body || {};
       await db.collection("settings").doc(tenantId).set({ ...settings, tenantId, updatedAt: new Date() }, { merge: true });
-      return res.json({ ok: true });
+      res.json({ ok: true });
+      return;
     }
 
     // STATS
@@ -129,13 +140,16 @@ export const adminApi = onRequest({ cors: true }, async (req, res) => {
       const totalTenants = tenantsSnap.size;
       const totalOrders = ordersSnap.size;
       const totalRevenue = ordersSnap.docs.reduce((sum, d) => sum + (Number((d.data() as any).total) || 0), 0);
-      return res.json({ ok: true, totals: { totalUsers, activeUsers, inactiveUsers, totalTenants, totalOrders, totalRevenue } });
+      res.json({ ok: true, totals: { totalUsers, activeUsers, inactiveUsers, totalTenants, totalOrders, totalRevenue } });
+      return;
     }
 
-    return res.status(404).json({ ok: false, error: "route-not-found", path: req.path, segs });
+    res.status(404).json({ ok: false, error: "route-not-found", path: req.path, segs });
+    return;
   } catch (err: any) {
     const code = err.code === "permission-denied" ? 403 : err.code === "unauthenticated" ? 401 : 500;
-    return res.status(code).json({ ok: false, error: err.message || String(err) });
+    res.status(code).json({ ok: false, error: err.message || String(err) });
+    return;
   }
 });
 
