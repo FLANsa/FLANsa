@@ -17,7 +17,13 @@ export default function LoginPageMultiTenant() {
     const unsubscribe = authService.onAuthStateChange((user) => {
       if (user) {
         console.log('User already authenticated, navigating to dashboard')
-        navigate('/dashboard')
+        // Check if user is admin@qayd.com and redirect to admin dashboard
+        if (user.email?.toLowerCase() === 'admin@qayd.com') {
+          console.log('Admin user detected, redirecting to admin dashboard...')
+          navigate('/admin')
+        } else {
+          navigate('/dashboard')
+        }
       }
     })
     
@@ -44,7 +50,13 @@ export default function LoginPageMultiTenant() {
       
       if (isAuth) {
         console.log('Navigating to dashboard...')
-        navigate('/dashboard')
+        // Check if user is admin@qayd.com and redirect to admin dashboard
+        if (email.toLowerCase() === 'admin@qayd.com') {
+          console.log('Admin user detected, redirecting to admin dashboard...')
+          navigate('/admin')
+        } else {
+          navigate('/dashboard')
+        }
       } else {
         console.log('Authentication failed, staying on login page')
         setError('فشل في تسجيل الدخول - يرجى المحاولة مرة أخرى')
