@@ -1,22 +1,24 @@
 {
-  "name": "qayd-pos",
+  "name": "big-diet-pos-system",
   "version": "1.0.0",
-  "description": "Qayd POS System - Cashier Web App (PWA) with Firebase",
+  "description": "Big Diet Restaurant POS System - Cashier Web App (PWA) with Firebase",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "tsx server/index.ts",
-    "dev:both": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "vite build",
-    "build:server": "tsc -p server/tsconfig.json",
-    "build:all": "npm run build && npm run build:server",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:e2e": "playwright test",
     "emulators": "firebase emulators:start",
     "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:firestore": "firebase deploy --only firestore",
+    "deploy:storage": "firebase deploy --only storage",
+    "deploy:all": "bash scripts/deploy.sh",
     "seed": "node scripts/seed.js",
-    "purge": "node scripts/purge.js"
+    "purge": "node scripts/purge.js",
+    "setup:firebase": "bash scripts/setup-firebase.sh",
+    "setup:users": "node scripts/setup-users.js",
+    "print-proxy": "node print-proxy-server.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.0",
@@ -36,6 +38,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
     "tailwind-merge": "^2.2.0",
+    "ws": "^8.18.3",
     "xml-crypto": "^6.1.2",
     "xmldom": "^0.6.0",
     "zustand": "^4.4.7"

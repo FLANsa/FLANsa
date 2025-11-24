@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Save, TestTube, CheckCircle, XCircle, AlertCircle, Upload, Download, Key, Building2, FileText } from 'lucide-react'
+import { Save, CheckCircle, XCircle, AlertCircle, Upload, Download, Key, Building2, FileText } from 'lucide-react'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
 
 const ZATCASettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [testing, setTesting] = useState(false)
-  const [testResult, setTestResult] = useState<any>(null)
   
   // ZATCA Configuration
   const [zatcaEnv, setZatcaEnv] = useState<'sandbox' | 'production'>('sandbox')
@@ -119,41 +117,6 @@ const ZATCASettingsPage: React.FC = () => {
     }
   }
 
-  const handleTestConnection = async () => {
-    try {
-      setTesting(true)
-      setTestResult(null)
-
-      // Test connection to ZATCA
-      const response = await fetch('/api/zatca/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          env: zatcaEnv,
-          egsUnitId,
-          otp,
-          subscriptionKey
-        })
-      })
-
-      const result = await response.json()
-      setTestResult(result)
-
-      if (result.ok) {
-        setConnectionStatus('connected')
-        alert('✅ نجح الاتصال بزاتكا!')
-      } else {
-        setConnectionStatus('error')
-        alert('❌ فشل الاتصال: ' + result.message)
-      }
-    } catch (error: any) {
-      setConnectionStatus('error')
-      setTestResult({ ok: false, message: error.message })
-      alert('❌ خطأ في اختبار الاتصال: ' + error.message)
-    } finally {
-      setTesting(false)
-    }
-  }
 
   const handleUploadPFX = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -493,32 +456,9 @@ const ZATCASettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Test Results */}
-        {testResult && (
-          <div className={`rounded-lg shadow-lg p-6 mb-6 ${
-            testResult.ok ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'
-          }`}>
-            <h2 className="text-xl font-bold mb-4 arabic">
-              {testResult.ok ? '✅ نجح الاختبار' : '❌ فشل الاختبار'}
-            </h2>
-            <pre className="bg-white p-4 rounded border overflow-auto text-sm">
-              {JSON.stringify(testResult, null, 2)}
-            </pre>
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={handleTestConnection}
-              disabled={testing || !egsUnitId || !otp}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              <TestTube className="w-5 h-5" />
-              <span className="arabic">{testing ? 'جاري الاختبار...' : 'اختبار الاتصال'}</span>
-            </button>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={handleSave}
               disabled={saving}

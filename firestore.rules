@@ -1,67 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuthed() {
-      return request.auth != null;
-    }
-    function userEmail() {
-      return request.auth.token.email != null ? request.auth.token.email.toLowerCase() : "";
-    }
-    function hasOwnerRole() {
-      return request.auth.token.role == "owner";
-    }
-    function isSuperAdmin() {
-      return userEmail() == "admin@qayd.com";
-    }
-    function isAdminDashboard() {
-      return hasOwnerRole() || isSuperAdmin();
-    }
-
-    // Users collection
-    match /users/{uid} {
-      // Allow admin dashboard OR the signed-in user to read their own profile
-      allow read: if isAdminDashboard() || (isAuthed() && (uid == request.auth.uid || resource.data.tenantId == request.auth.token.tenantId));
-      // Allow admin dashboard to CRUD any user; allow a user to create/update their own profile doc (id == uid)
-      allow create: if isAdminDashboard() || (isAuthed() && uid == request.auth.uid);
-      allow update: if isAdminDashboard() || (isAuthed() && uid == request.auth.uid);
-      allow delete: if isAdminDashboard();
-    }
-
-    // Tenants collection
-    match /tenants/{tenantId} {
-      // Allow admin dashboard OR members of the same tenant (by doc id) to read
-      allow read: if isAdminDashboard() || (isAuthed() && tenantId == request.auth.token.tenantId);
-      allow create, update, delete: if isAdminDashboard();
-    }
-
-    // Settings by tenant (doc id = tenantId)
-    match /settings/{tenantId} {
-      allow read: if isAdminDashboard() || (isAuthed() && tenantId == request.auth.token.tenantId);
-      allow create, update: if isAdminDashboard() || (isAuthed() && tenantId == request.auth.token.tenantId);
-      allow delete: if isAdminDashboard();
-    }
-
-    // Items
-    match /items/{itemId} {
-      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
-      allow create, update, delete: if isAdminDashboard() || (isAuthed() && request.resource.data.tenantId == request.auth.token.tenantId);
-    }
-
-    // Orders
-    match /orders/{orderId} {
-      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
-      allow create, update, delete: if isAdminDashboard() || (isAuthed() && request.resource.data.tenantId == request.auth.token.tenantId);
-    }
-
-    // Customers
-    match /customers/{customerId} {
-      allow read: if isAdminDashboard() || (isAuthed() && resource.data.tenantId == request.auth.token.tenantId);
-      allow create, update, delete: if isAdminDashboard() || (isAuthed() && request.resource.data.tenantId == request.auth.token.tenantId);
-    }
-
-    // Default deny
+    // Allow read and write access to all documents for all authenticated users
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null;
     }
   }
 }

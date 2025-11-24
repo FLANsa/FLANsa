@@ -1,10 +1,12 @@
 import { onRequest } from "firebase-functions/v2/https";
 import { getAuth } from "firebase-admin/auth";
-import { initializeApp } from "firebase-admin/app";
+import { initializeApp, getApps } from "firebase-admin/app";
 import { adminApi } from "./admin";
 
 // Initialize Firebase Admin
-initializeApp();
+if (getApps().length === 0) {
+  initializeApp();
+}
 
 export const setUserRoles = onRequest(async (req, res) => {
   try {
@@ -38,3 +40,4 @@ export const setUserRoles = onRequest(async (req, res) => {
 });
 
 export { adminApi };
+export { printToThermalPrinter } from './print';

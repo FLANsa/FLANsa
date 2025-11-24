@@ -153,31 +153,6 @@ export default function LoginPageMultiTenant() {
                   {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                 </button>
               </form>
-
-              
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 arabic mb-2">حسابات تجريبية:</h4>
-                <div className="space-y-2 text-xs text-gray-600">
-                  <div className="border-b pb-2">
-                    <div className="font-medium arabic">مطعم الرشيد</div>
-                    <div className="english">admin@alrashid.com</div>
-                    <div className="english">manager@alrashid.com</div>
-                    <div className="english">cashier@alrashid.com</div>
-                  </div>
-                  <div className="border-b pb-2">
-                    <div className="font-medium arabic">مقهى ديلايت</div>
-                    <div className="english">admin@cafedelight.com</div>
-                    <div className="english">cashier@cafedelight.com</div>
-                  </div>
-                  <div>
-                    <div className="font-medium arabic">سوق سريع</div>
-                    <div className="english">admin@quickmart.com</div>
-                    <div className="english">manager@quickmart.com</div>
-                    <div className="english">cashier@quickmart.com</div>
-                  </div>
-                  <div className="arabic text-gray-500 mt-2">كلمة المرور لجميع الحسابات: 123456</div>
-                </div>
-              </div>
             </div>
           </div>
         

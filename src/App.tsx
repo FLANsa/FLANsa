@@ -33,10 +33,6 @@ function DashboardPage() {
   const [tenant, setTenant] = useState<any>(null)
   const [stats, setStats] = useState({ totalOrders: 0, totalSales: 0, totalProducts: 0 })
   const [loading, setLoading] = useState(true)
-  const [selfTestRunning, setSelfTestRunning] = useState(false)
-  const [selfTestResult, setSelfTestResult] = useState<null | { ok: boolean; details: any }>(null)
-  const [prodTestRunning, setProdTestRunning] = useState(false)
-  const [prodTestResult, setProdTestResult] = useState<null | { ok: boolean; details: any }>(null)
 
   useEffect(() => {
     // Get current tenant
@@ -101,38 +97,6 @@ function DashboardPage() {
     }
   }
 
-  const runProdCsidTest = async () => {
-    try {
-      setProdTestRunning(true)
-      setProdTestResult(null)
-      const res = await fetch('/api/zatca/production/csids', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      })
-      const json = await res.json().catch(() => ({}))
-      setProdTestResult({ ok: res.ok, details: json })
-    } finally {
-      setProdTestRunning(false)
-    }
-  }
-
-  const runSelfTest = async () => {
-    try {
-      setSelfTestRunning(true)
-      setSelfTestResult(null)
-
-      const [healthRes, statusRes] = await Promise.all([
-        fetch('/health').then(r => r.json()).catch(() => ({ status: 'FAIL' })),
-        fetch('/api/zatca/status').then(r => r.json()).catch(() => ({ ok: false }))
-      ])
-
-      const passed = (healthRes?.status === 'OK') && !!statusRes?.ok
-      setSelfTestResult({ ok: passed, details: { health: healthRes, status: statusRes } })
-    } finally {
-      setSelfTestRunning(false)
-    }
-  }
 
   const menuItems = [
     { name: 'نقطة البيع', nameEn: 'POS',       icon: ShoppingCart, href: '/pos',       color: 'bg-blue-500' },
@@ -156,37 +120,6 @@ function DashboardPage() {
               <p className="text-gray-600 arabic text-lg">
                 نظام قيد - {tenant?.nameAr || tenant?.name || 'نظام نقاط البيع السحابي'}
               </p>
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <button
-                  onClick={runSelfTest}
-                  disabled={selfTestRunning}
-                  className={`px-4 py-2 rounded-lg text-white ${selfTestRunning ? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'} transition-colors`}
-                >
-                  {selfTestRunning ? 'جاري الفحص...' : 'فحص تكامل زاتكا'}
-                </button>
-                <button
-                  onClick={runProdCsidTest}
-                  disabled={prodTestRunning}
-                  className={`px-4 py-2 rounded-lg text-white ${prodTestRunning ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'} transition-colors`}
-                >
-                  {prodTestRunning ? 'جاري اختبار CSID...' : 'اختبار إصدار CSID (إنتاج)'}
-                </button>
-                {selfTestResult && (
-                  <span className={`text-sm font-semibold ${selfTestResult.ok ? 'text-emerald-700' : 'text-red-600'}`}>
-                    {selfTestResult.ok ? 'جاهز ✔' : 'هناك إعدادات ناقصة ✖'}
-                  </span>
-                )}
-              </div>
-              {selfTestResult && (
-                <div className="mt-3 text-xs text-gray-600 text-left rtl:text-right mx-auto max-w-xl">
-                  <pre className="bg-gray-50 rounded-lg p-3 overflow-auto">{JSON.stringify(selfTestResult.details, null, 2)}</pre>
-                </div>
-              )}
-              {prodTestResult && (
-                <div className="mt-3 text-xs text-gray-600 text-left rtl:text-right mx-auto max-w-xl">
-                  <pre className="bg-gray-50 rounded-lg p-3 overflow-auto">{JSON.stringify(prodTestResult.details, null, 2)}</pre>
-                </div>
-              )}
             </div>
           </div>
         </div>

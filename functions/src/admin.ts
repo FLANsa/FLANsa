@@ -15,7 +15,7 @@ async function verifyAccess(req: any) {
   const email = decoded.email || "";
   const role = (decoded as any).role || (decoded as any).claims?.role;
   const isOwner = role === "owner";
-  const isSuperAdmin = email.toLowerCase() === "admin@qayd.com";
+  const isSuperAdmin = email.toLowerCase() === "admin@qayd.com" || email.toLowerCase() === "admin@bigdiet.com";
   if (!isOwner && !isSuperAdmin) {
     throw new HttpsError("permission-denied", "Not authorized");
   }

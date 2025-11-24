@@ -1,10 +1,11 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { Printer, ArrowLeft, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Printer, ArrowLeft } from 'lucide-react'
 import { generateZATCAQR, generateZATCAQRData, formatZATCATimestamp, generateUUID, generateUBLXML, generateDigitalSignature, generateCSID, generateXMLHash, generateXAdESSignature } from '../lib/zatca'
 import { sendInvoiceToZATCA } from '../lib/zatcaProxy'
 import { authService } from '../lib/authService'
 import { settingsService } from '../lib/firebaseServices'
+import { convertReceiptToESCPOS, sendDirectToPrinter } from '../lib/thermalPrinter'
 // Removed XML upload/viewer in favor of direct XML generation and download
 
 const PrintPage: React.FC = () => {
@@ -18,45 +19,11 @@ const PrintPage: React.FC = () => {
   const [error, setError] = React.useState<string>('')
   const [currentTenant, setCurrentTenant] = React.useState<any>(null)
   const [qrUrl, setQrUrl] = React.useState<string>('')
-  
-  // ZATCA status badge component
-  const ZATCAStatusBadge = ({ zatcaResult, zatcaError }: { zatcaResult?: any, zatcaError?: string }) => {
-    if (zatcaError) {
-      return (
-        <div className="flex items-center gap-2 bg-red-100 text-red-800 px-3 py-2 rounded-lg">
-          <XCircle className="w-4 h-4" />
-          <span className="text-sm font-medium">فشل ZATCA</span>
-          <span className="text-xs">({zatcaError})</span>
-        </div>
-      )
-    }
-    
-    if (zatcaResult?.reportingResult?.accepted) {
-      return (
-        <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-lg">
-          <CheckCircle className="w-4 h-4" />
-          <span className="text-sm font-medium">تم الإبلاغ ✓</span>
-        </div>
-      )
-    }
-    
-    if (zatcaResult?.reportingResult?.accepted === false) {
-      return (
-        <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg">
-          <AlertCircle className="w-4 h-4" />
-          <span className="text-sm font-medium">رفض الإبلاغ ✗</span>
-          <span className="text-xs">({zatcaResult?.reportingResult?.body?.message || 'سبب غير معروف'})</span>
-        </div>
-      )
-    }
-    
-    return (
-      <div className="flex items-center gap-2 bg-gray-100 text-gray-800 px-3 py-2 rounded-lg">
-        <AlertCircle className="w-4 h-4" />
-        <span className="text-sm font-medium">لم يتم الإبلاغ</span>
-      </div>
-    )
-  }
+  const [printerIP, setPrinterIP] = React.useState<string>('')
+  const [printerPort, setPrinterPort] = React.useState<number>(9100)
+  const [proxyServerIP, setProxyServerIP] = React.useState<string>('')
+  const [printing, setPrinting] = React.useState(false)
+  const [savingIP, setSavingIP] = React.useState(false)
   
   // Direct XML download (no upload UI)
 
@@ -98,136 +65,33 @@ const PrintPage: React.FC = () => {
         const tenant = authService.getCurrentTenant()
         setCurrentTenant(tenant)
 
-        // Generate ZATCA QR image
-        const buildQR = async () => {
-          try {
-            // Check if ZATCA result is available
-            if (parsed.zatcaResult?.qrBase64) {
-              console.log('Using ZATCA-generated QR')
-              
-              // ZATCA QR is TLV Base64 - need to convert to image
-              const QRCode = (await import('qrcode')).default
-              const qrImageUrl = await QRCode.toDataURL(parsed.zatcaResult.qrBase64)
-              setQrUrl(qrImageUrl)
-              
-              // Use ZATCA-generated XML
-              if (parsed.zatcaResult.finalXml) {
-                setUblXml(parsed.zatcaResult.finalXml)
-              }
-              
-              console.log('ZATCA QR and XML loaded successfully')
-              return
-            }
-            
-            // Fallback: Generate QR manually (legacy behavior)
-            console.log('Generating QR manually (ZATCA not available)')
-            
-            // Use restaurant settings if available, otherwise fallback to tenant data
-            const sellerName = restaurantSettings?.restaurantName || tenant?.name || 'Qayd POS System'
-            const vatNumber = restaurantSettings?.vatNumber || tenant?.vatNumber || '123456789012345'
-            // Ensure a single UUID is used for both QR and XML
-            const invoiceUuid = parsed.uuid || generateUUID()
-            // Ensure timestamp formatted per ZATCA
-            const timestampIso = parsed.timestamp ? new Date(parsed.timestamp).toISOString() : formatZATCATimestamp(new Date())
-            
-            const qrData = {
-              sellerName: sellerName,
-              vatNumber: vatNumber,
-              timestamp: timestampIso,
-              total: parsed.total || 0,
-              vatTotal: parsed.vat || 0,
-              uuid: invoiceUuid
-            }
-            
-            // Generate QR image for display
-            const qr = await generateZATCAQR(qrData)
-            setQrUrl(qr)
-            
-            // Generate TLV Base64 for UBL XML
-                  
-            // Generate UBL XML first (without QR data)
-            const ublData = {
-              invoiceNumber: parsed.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
-              uuid: invoiceUuid,
-              issueDate: new Date(parsed.timestamp).toISOString().split('T')[0],
-              issueTime: new Date(parsed.timestamp).toISOString().split('T')[1].split('.')[0],
-              sellerName: sellerName,
-              sellerVatNumber: vatNumber,
-              sellerCrNumber: restaurantSettings?.crNumber || tenant?.crNumber || '1010101010',
-              sellerAddress: restaurantSettings?.address || tenant?.address || 'Riyadh, Saudi Arabia',
-              sellerPhone: restaurantSettings?.phone || tenant?.phone || '+966 11 123 4567',
-              items: parsed.items?.map((item: any) => ({
-                nameAr: item.nameAr || item.name,
-                nameEn: item.nameEn || item.name,
-                quantity: item.quantity,
-                price: item.price,
-                vatRate: 15
-              })) || [],
-              subtotal: parsed.subtotal || 0,
-              vatTotal: parsed.vat || 0,
-              total: parsed.total || 0,
-              qrData: undefined // Generate XML first without QR data
-            }
-            
-            const xml = generateUBLXML(ublData)
-            
-            // Generate SHA256 hash of XML for Tag 6
-            const xmlHash = await generateXMLHash(xml)
-            
-            // Update QR data with XML hash
-            const enhancedQrData = {
-              ...qrData,
-              xmlHash: xmlHash
-            }
-            
-            // Generate enhanced QR with XML hash
-            const enhancedQrTlvData = generateZATCAQRData(enhancedQrData)
-            
-            // Generate final UBL XML with QR data
-            const finalUblData = {
-              ...ublData,
-              qrData: enhancedQrTlvData
-            }
-            
-            // Build final XML (with QR) before signing
-            const finalXml = generateUBLXML(finalUblData)
-
-            // Generate XAdES B-B digital signature
-            const xadesSignature = await generateXAdESSignature(finalXml)
-            
-            // Generate final UBL XML with digital signature
-            const finalUblDataWithSignature = {
-              ...finalUblData,
-              digitalSignature: xadesSignature
-            }
-            
-            const finalXmlWithSignature = generateUBLXML(finalUblDataWithSignature)
-            setUblXml(finalXmlWithSignature)
-            
-            // Regenerate QR image using enhanced data (includes xmlHash)
-            const qrFinal = await generateZATCAQR(enhancedQrData)
-            setQrUrl(qrFinal)
-            
-            // Generate legacy digital signature and CSID for display
-            const signature = generateDigitalSignature(finalXmlWithSignature)
-            const csidValue = generateCSID()
-            
-            setDigitalSignature(signature)
-            setCSID(csidValue)
-            
-            console.log('ZATCA compliance data generated:', {
-              qrGenerated: !!qr,
-              ublXmlGenerated: !!xml,
-              digitalSignature: signature,
-              csid: csidValue
-            })
-            
-          } catch (e) {
-            console.error('ZATCA data generation failed', e)
+        // Load printer IP from settings or localStorage
+        if (restaurantSettings?.printerIP) {
+          setPrinterIP(restaurantSettings.printerIP)
+        } else {
+          const savedIP = localStorage.getItem('printerIP')
+          if (savedIP) {
+            setPrinterIP(savedIP)
           }
         }
-        
-        await buildQR()
+
+        // Load Print Proxy Server IP from Firebase Settings first, then localStorage
+        if (restaurantSettings?.printProxyServerIP) {
+          setProxyServerIP(restaurantSettings.printProxyServerIP)
+          localStorage.setItem('proxyServerIP', restaurantSettings.printProxyServerIP)
+        } else {
+          const savedProxyIP = localStorage.getItem('proxyServerIP')
+          if (savedProxyIP) {
+            setProxyServerIP(savedProxyIP)
+          } else {
+            // Default to common local IP
+            setProxyServerIP('192.168.8.5')
+          }
+        }
+
+        // QR Code generation disabled - not displaying QR in invoices
+        // const buildQR = async () => { ... }
+        // await buildQR()
         setLoading(false)
         
       } catch (error) {
@@ -244,72 +108,100 @@ const PrintPage: React.FC = () => {
     window.print()
   }
 
-  const downloadXml = (xmlContent: string, filename: string) => {
-    const blob = new Blob([xmlContent], { type: 'application/xml' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+  const handleThermalPrint = async () => {
+    if (!order) {
+      alert('لا يوجد طلب للطباعة')
+      return
+    }
 
-  const handleDownloadUBLSimplified = async () => {
-    let xmlToDownload = ublXml
-    
-    // If no XML exists, generate it
-    if (!xmlToDownload && order) {
-      try {
-        const sellerName = restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'
-        const vatNumber = restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'
-        const invoiceUuid = order.uuid || generateUUID()
-        
-        const ublData = {
+    if (!printerIP || printerIP.trim() === '') {
+      alert('يرجى إدخال IP address الطابعة')
+      return
+    }
+
+    setPrinting(true)
+    try {
+      // Prepare receipt data for ESC/POS conversion
+      const receiptData = {
+        logoUrl: restaurantSettings?.logoUrl || currentTenant?.logoUrl,
+        restaurantNameAr: restaurantSettings?.restaurantNameAr || currentTenant?.nameAr || 'قيد - نظام الكاشير',
+        restaurantName: restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System',
+        addressAr: restaurantSettings?.addressAr || currentTenant?.addressAr || 'الرياض، المملكة العربية السعودية',
+        address: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
+        phone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
+        crNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
           invoiceNumber: order.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
-          uuid: invoiceUuid,
-          issueDate: new Date(order.timestamp).toISOString().split('T')[0],
-          issueTime: new Date(order.timestamp).toISOString().split('T')[1].split('.')[0],
-          sellerName: sellerName,
-          sellerVatNumber: vatNumber,
-          sellerCrNumber: restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010',
-          sellerAddress: restaurantSettings?.address || currentTenant?.address || 'Riyadh, Saudi Arabia',
-          sellerPhone: restaurantSettings?.phone || currentTenant?.phone || '+966 11 123 4567',
+        date: new Date(order.timestamp).toLocaleDateString('ar-SA'),
+        time: new Date(order.timestamp).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+        mode: order.mode === 'dine-in' ? 'تناول في المطعم' : 
+              order.mode === 'takeaway' ? 'طلب خارجي' : 'توصيل',
+        uuid: order.uuid || generateUUID(),
           items: order.items?.map((item: any) => ({
             nameAr: item.nameAr || item.name,
             nameEn: item.nameEn || item.name,
             quantity: item.quantity,
-            price: item.price,
-            vatRate: 15
+          price: item.price
           })) || [],
           subtotal: order.subtotal || 0,
-          vatTotal: order.vat || 0,
+        discount: order.orderDiscount || 0,
+        discountType: order.orderDiscountType || 'percentage',
+        serviceCharge: order.serviceCharge || 0,
+        vat: order.vat || 0,
           total: order.total || 0
         }
-        
-        xmlToDownload = generateUBLXML(ublData)
-      } catch (error) {
-        console.error('Error generating XML for download:', error)
-        alert('خطأ في توليد XML للتحميل')
-        return
-      }
-    }
-    
-    if (!xmlToDownload) {
-      alert('لا يمكن تحميل XML - لا توجد بيانات فاتورة')
-      return
-    }
-    
-    // Force KSA-2 name to simplified pattern 0200000
-    const modified = xmlToDownload.replace(/<cbc:InvoiceTypeCode(\s+[^>]*)?>\s*([^<]+)\s*<\/cbc:InvoiceTypeCode>/, (_, attrs) => {
-      const attrPart = attrs ? attrs.replace(/name="[^"]*"/, 'name="0200000"') : ' name="0200000"'
-      return `<cbc:InvoiceTypeCode${attrPart}>388<\/cbc:InvoiceTypeCode>`
-    })
-    downloadXml(modified, `invoice_simplified_${order?.invoiceNumber || 'unknown'}.xml`)
-  }
 
-  // Removed handleDownloadUBLStandard in simplified flow
+      // Convert to ESC/POS commands
+      const escposData = convertReceiptToESCPOS(receiptData)
+      
+      console.log('📄 Receipt data prepared:', receiptData)
+      console.log('🖨️ ESC/POS data length:', escposData.length, 'characters')
+      console.log('📡 Sending to printer:', printerIP, ':', printerPort)
+
+      // Send to thermal printer
+      // Priority: 1) proxyServerIP from input, 2) restaurantSettings.printProxyServerIP, 3) undefined (auto-detect)
+      const finalProxyIP = proxyServerIP || restaurantSettings?.printProxyServerIP || undefined
+      console.log(`📡 [PrintPage] Using Print Proxy Server IP: ${finalProxyIP || 'auto-detect'}`)
+      console.log(`📡 [PrintPage] Printer IP: ${printerIP}:${printerPort}`)
+      console.log(`📡 [PrintPage] Restaurant Settings printProxyServerIP: ${restaurantSettings?.printProxyServerIP || 'not set'}`)
+      
+      const result = await sendDirectToPrinter(escposData, printerIP, printerPort, finalProxyIP)
+      
+      console.log('📤 [PrintPage] Print result:', result)
+
+      if (result.success) {
+        alert('✅ تم إرسال أمر الطباعة إلى الطابعة بنجاح')
+      } else {
+        console.error('❌ [PrintPage] Print error:', result.error)
+        console.error('❌ [PrintPage] Full error details:', {
+          printerIP,
+          printerPort,
+          proxyServerIP: finalProxyIP,
+          restaurantSettingsProxyIP: restaurantSettings?.printProxyServerIP,
+          localStorageProxyIP: localStorage.getItem('proxyServerIP')
+        })
+        
+        // Show detailed error message
+        alert('❌ فشل في إرسال أمر الطباعة:\n\n' + (result.error || 'خطأ غير معروف'))
+        
+        // Fallback: Try browser print dialog as backup
+        const useBrowserPrint = confirm('فشل الاتصال بالطابعة الحرارية. هل تريد استخدام نافذة الطباعة العادية؟')
+        if (useBrowserPrint) {
+          window.print()
+        }
+      }
+    } catch (error: any) {
+      console.error('Error in handleThermalPrint:', error)
+      alert('❌ حدث خطأ أثناء الطباعة:\n\n' + (error.message || 'خطأ غير معروف'))
+      
+      // Fallback: Try browser print dialog
+      const useBrowserPrint = confirm('حدث خطأ. هل تريد استخدام نافذة الطباعة العادية؟')
+      if (useBrowserPrint) {
+        window.print()
+      }
+    } finally {
+      setPrinting(false)
+    }
+  }
 
   const [submittingZATCA, setSubmittingZATCA] = React.useState(false)
 
@@ -374,6 +266,36 @@ const PrintPage: React.FC = () => {
     window.history.back()
   }
 
+  const handleSavePrinterIP = async () => {
+    if (!printerIP || printerIP.trim() === '') {
+      alert('يرجى إدخال IP address الطابعة أولاً')
+      return
+    }
+
+    setSavingIP(true)
+    try {
+      // Save to localStorage
+      localStorage.setItem('printerIP', printerIP)
+      
+      // Also save to Firebase Settings if available
+      const tenantId = authService.getCurrentTenantId()
+      if (tenantId) {
+        await settingsService.updateSettingsByTenant(tenantId, {
+          printerIP: printerIP
+        })
+        console.log('✅ Printer IP saved to Firebase Settings')
+        alert('✅ تم حفظ IP address الطابعة بنجاح')
+      } else {
+        alert('✅ تم حفظ IP address في الجهاز الحالي')
+      }
+    } catch (error: any) {
+      console.error('Error saving printer IP:', error)
+      alert('❌ فشل في حفظ IP address: ' + (error.message || 'خطأ غير معروف'))
+    } finally {
+      setSavingIP(false)
+    }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -422,7 +344,7 @@ const PrintPage: React.FC = () => {
       <div className="bg-white shadow-sm border-b p-4 no-print">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-bold text-gray-900 arabic">طباعة الفاتورة</h1>
+                  <h1 className="text-xl font-bold text-gray-900 arabic">طباعة الفاتورة</h1>
             <div className="flex space-x-4">
             <button
               onClick={handleBack}
@@ -436,14 +358,24 @@ const PrintPage: React.FC = () => {
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 arabic"
             >
               <Printer className="h-4 w-4 inline mr-2" />
-              طباعة
+              طباعة عادية
             </button>
             <button
-              onClick={handleDownloadUBLSimplified}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic"
+              onClick={handleThermalPrint}
+              disabled={printing}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 arabic disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              <Download className="h-4 w-4 inline mr-2" />
-              تحميل XML
+              {printing ? (
+                <>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  جاري الطباعة...
+                </>
+              ) : (
+                <>
+                  <Printer className="h-4 w-4 inline mr-2" />
+                  طباعة حرارية
+                </>
+              )}
             </button>
             {ublXml && (
               <button
@@ -464,13 +396,81 @@ const PrintPage: React.FC = () => {
             </div>
           </div>
           
-          {/* ZATCA Status Badge */}
-          <div className="flex justify-center mt-4">
-            <ZATCAStatusBadge 
-              zatcaResult={order?.zatcaResult} 
-              zatcaError={order?.zatcaError} 
-            />
+          {/* Printer IP Input */}
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 arabic mb-1">
+                IP address الطابعة:
+              </label>
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={printerIP}
+                      onChange={(e) => setPrinterIP(e.target.value)}
+                      placeholder="192.168.8.190"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      dir="ltr"
+                    />
+                    <input
+                      type="number"
+                      value={printerPort}
+                      onChange={(e) => setPrinterPort(parseInt(e.target.value) || 9100)}
+                      placeholder="9100"
+                      className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      dir="ltr"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 arabic">
+                    أدخل IP address الطابعة الحرارية (مثال: 192.168.8.190) و Port (افتراضي: 9100)
+                  </p>
+                </div>
+                <button
+                  onClick={handleSavePrinterIP}
+                  disabled={savingIP || !printerIP || printerIP.trim() === ''}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 arabic disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {savingIP ? (
+                    <>
+                      <span className="animate-spin inline-block mr-2">⏳</span>
+                      جاري الحفظ...
+                    </>
+                  ) : (
+                    '💾 حفظ IP'
+                  )}
+                </button>
+              </div>
+            </div>
+            
+            {/* Proxy Server IP Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 arabic mb-1">
+                IP address Print Proxy Server (اختياري):
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={proxyServerIP}
+                  onChange={(e) => {
+                    setProxyServerIP(e.target.value)
+                    localStorage.setItem('proxyServerIP', e.target.value)
+                  }}
+                  placeholder={restaurantSettings?.printProxyServerIP || "192.168.8.5"}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  dir="ltr"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1 arabic">
+                {restaurantSettings?.printProxyServerIP ? (
+                  <>IP address المركزي من الإعدادات: <strong className="text-blue-600">{restaurantSettings.printProxyServerIP}</strong>. يمكنك تغييره هنا للاستخدام المحلي فقط.</>
+                ) : (
+                  <>أدخل IP address الكمبيوتر الذي يشغل Print Proxy Server (مثال: 192.168.8.5). اتركه فارغاً للاكتشاف التلقائي. أو احفظه في الإعدادات (Settings) لاستخدامه من جميع الأجهزة.</>
+                )}
+              </p>
+            </div>
           </div>
+          
         </div>
       </div>
 
@@ -481,6 +481,19 @@ const PrintPage: React.FC = () => {
         <div className="receipt receipt-58mm bg-white p-4 shadow-lg">
           {/* Header */}
           <div className="text-center mb-4">
+            {/* Logo */}
+            {(restaurantSettings?.logoUrl || currentTenant?.logoUrl) && (
+              <div className="mb-3 flex justify-center">
+                <img 
+                  src={restaurantSettings?.logoUrl || currentTenant?.logoUrl} 
+                  alt="Logo" 
+                  className="max-w-[120px] max-h-[60px] object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+              </div>
+            )}
             <h1 className="text-lg font-bold arabic">{restaurantSettings?.restaurantNameAr || currentTenant?.nameAr || 'قيد - نظام الكاشير'}</h1>
             <p className="text-sm english">{restaurantSettings?.restaurantName || currentTenant?.name || 'Qayd POS System'}</p>
             <p className="text-xs arabic">{restaurantSettings?.addressAr || currentTenant?.addressAr || 'الرياض، المملكة العربية السعودية'}</p>
@@ -540,11 +553,6 @@ const PrintPage: React.FC = () => {
 
           {/* Totals */}
           <div className="border-t border-gray-300 pt-2">
-            <div className="flex justify-between text-sm">
-              <span className="arabic">المجموع الفرعي:</span>
-              <span>{order.subtotal.toFixed(2)} SAR</span>
-            </div>
-            
             {/* Discount Section */}
             {order.orderDiscount > 0 && (
               <div className="flex justify-between text-sm">
@@ -563,51 +571,16 @@ const PrintPage: React.FC = () => {
               </div>
             )}
             
-            {/* VAT Details */}
-            <div className="flex justify-between text-sm">
-              <span className="arabic">ضريبة القيمة المضافة (15%):</span>
-              <span>{order.vat.toFixed(2)} SAR</span>
-            </div>
-            
-            {/* Tax Breakdown */}
-            <div className="text-xs text-gray-600 mt-1">
-              <div className="flex justify-between">
-                <span className="arabic">المبلغ الخاضع للضريبة:</span>
-                <span>{((order.subtotal || 0) - (order.orderDiscount || 0) + (order.serviceCharge || 0)).toFixed(2)} SAR</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="arabic">نسبة الضريبة:</span>
-                <span>15%</span>
-              </div>
-            </div>
-            
             <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 mt-2">
               <span className="arabic">المجموع الكلي:</span>
               <span>{order.total.toFixed(2)} SAR</span>
             </div>
           </div>
 
-          {/* QR Code */}
-          <div className="text-center mt-4">
-            {qrUrl ? (
-              <img src={qrUrl} alt="ZATCA QR" className="inline-block w-28 h-28" />
-            ) : (
-              <div className="inline-block p-2 border border-gray-300">
-                <div className="w-16 h-16 bg-gray-200 flex items-center justify-center">
-                  <span className="text-xs text-gray-600">QR</span>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-600 mt-2 arabic">رمز ZATCA</p>
-          </div>
-
           {/* Footer Information */}
           <div className="text-center mt-4 pt-2 border-t border-gray-300">
             <p className="text-xs text-gray-600 arabic">شكراً لزيارتكم</p>
             <p className="text-xs text-gray-500 english">Thank you for your visit</p>
-            <p className="text-xs text-gray-500 mt-1">
-              الرقم الضريبي: {restaurantSettings?.vatNumber || currentTenant?.vatNumber || '123456789012345'}
-            </p>
             <p className="text-xs text-gray-500">
               CR: {restaurantSettings?.crNumber || currentTenant?.crNumber || '1010101010'}
             </p>

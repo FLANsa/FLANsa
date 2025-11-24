@@ -310,9 +310,6 @@ const POSEnhanced: React.FC = () => {
       setChange(0)
       setShowPaymentModal(false)
       
-      // Show success message
-      alert('تم إتمام البيع بنجاح! جاري فتح صفحة الطباعة...')
-      
       // Navigate to print page
       navigate(`/print/${order.id}`)
       
@@ -511,20 +508,8 @@ const POSEnhanced: React.FC = () => {
                   
                   {/* Totals */}
                   <div className="border-t pt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="arabic">المجموع (شامل الضريبة):</span>
-                      <span className="font-medium">{formatToEnglish(totalWithVat)} SAR</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span className="arabic">المجموع الفرعي:</span>
-                      <span className="font-medium">{formatToEnglish(subtotal)} SAR</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span className="arabic">ضريبة القيمة المضافة (15%):</span>
-                      <span className="font-medium">{formatToEnglish(vat)} SAR</span>
-                    </div>
                     {/* removed discount row */}
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
+                    <div className="flex justify-between text-lg font-bold">
                       <span className="arabic">المجموع الكلي:</span>
                       <span className="text-green-600">{formatToEnglish(total)} SAR</span>
                     </div>

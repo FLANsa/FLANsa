@@ -97,6 +97,7 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
   const [email, setEmail] = useState('')
   const [tenantId, setTenantId] = useState('')
   const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
   const [role, setRole] = useState('cashier')
   const [busy, setBusy] = useState(false)
   const [tenants, setTenants] = useState<any[]>([])
@@ -104,9 +105,26 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
 
   async function addUser() {
     try {
+      if (!password || password.length < 6) {
+        onError('كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+        return
+      }
       setBusy(true)
-      await adminApi.createUser({ email, tenantId, name, role })
-      setEmail(''); setName(''); setRole('cashier')
+      const result = await adminApi.createUser({ 
+        email, 
+        tenantId, 
+        name, 
+        role, 
+        password
+      })
+      setEmail(''); setName(''); setPassword(''); setRole('cashier')
+      
+      // Show success message if available
+      if (result.message) {
+        alert(result.message)
+      }
+      
+      // Refresh users list
       const list = await adminApi.listUsers(tenantId || undefined)
       setUsers(list.users||[])
     } catch (e: any) { onError(e.message) } finally { setBusy(false) }
@@ -130,6 +148,17 @@ function UsersTab({ onError }: { onError: (e: string)=>void }) {
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 arabic mb-2">الاسم</label>
           <input className="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="اسم المستخدم" value={name} onChange={e=>setName(e.target.value)} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 arabic mb-2">كلمة المرور / الرمز</label>
+          <input 
+            type="password" 
+            className="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            placeholder="أدخل كلمة المرور (6 أحرف على الأقل)" 
+            value={password} 
+            onChange={e=>setPassword(e.target.value)} 
+          />
+          <p className="text-xs text-gray-500 mt-1 arabic">يجب أن تكون 6 أحرف على الأقل</p>
         </div>
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 arabic mb-2">الدور</label>

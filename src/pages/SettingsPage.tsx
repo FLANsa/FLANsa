@@ -14,7 +14,9 @@ const SettingsPage: React.FC = () => {
     addressAr: '',
     email: '',
     vatRate: 15,
-    language: 'ar'
+    language: 'ar',
+    logoUrl: '',
+    printProxyServerIP: ''
   })
 
   // Load settings from Firebase on mount
@@ -45,8 +47,10 @@ const SettingsPage: React.FC = () => {
             address: settings.address || '',
             addressAr: settings.addressAr || '',
             email: settings.email || '',
-            vatRate: settings.vatRate || 15,
-            language: settings.language || 'ar'
+            vatRate: settings.vatRate ?? 15,
+            language: settings.language || 'ar',
+            logoUrl: settings.logoUrl || '',
+            printProxyServerIP: settings.printProxyServerIP || ''
           }))
           console.log('Settings loaded from Firebase:', settings)
         } else if (tenant) {
@@ -143,18 +147,9 @@ const SettingsPage: React.FC = () => {
         throw new Error('No tenant ID found')
       }
 
-      // Get existing settings for this tenant
-      const existingSettings = await settingsService.getSettingsByTenant(tenantId)
-      
-      if (existingSettings) {
-        // Update existing settings
-        await settingsService.updateSettingsByTenant(tenantId, formData)
-        console.log('Settings updated in Firebase')
-      } else {
-        // Create new settings
-        await settingsService.createDefaultSettingsForTenant(tenantId, formData)
-        console.log('New settings created in Firebase')
-      }
+      // Update or create settings (setDoc with merge handles both cases)
+      await settingsService.updateSettingsByTenant(tenantId, formData)
+      console.log('Settings saved in Firebase')
 
       // Also save to localStorage as backup
       localStorage.setItem('restaurantSettings', JSON.stringify(formData))
@@ -202,8 +197,9 @@ const SettingsPage: React.FC = () => {
                 address: settings.address || '',
                 addressAr: settings.addressAr || '',
                 email: settings.email || '',
-                vatRate: settings.vatRate || 15,
-                language: settings.language || 'ar'
+                vatRate: settings.vatRate ?? 15,
+                language: settings.language || 'ar',
+                logoUrl: settings.logoUrl || ''
               }))
               console.log('Settings reloaded after save:', settings)
             }
@@ -383,6 +379,55 @@ const SettingsPage: React.FC = () => {
               {errors.vatRate && <p className="mt-1 text-xs text-red-600 arabic">{errors.vatRate}</p>}
             </div>
             
+            {/* Logo URL */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 arabic mb-2">
+                رابط الشعار (Logo URL)
+              </label>
+              <input
+                type="url"
+                value={formData.logoUrl}
+                onChange={(e) => setFormData({...formData, logoUrl: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://example.com/logo.png"
+                dir="ltr"
+              />
+              <p className="mt-1 text-xs text-gray-500 arabic">أدخل رابط مباشر لصورة الشعار (PNG, JPG, SVG)</p>
+              {formData.logoUrl && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-600 arabic mb-1">معاينة الشعار:</p>
+                  <img 
+                    src={formData.logoUrl} 
+                    alt="Logo preview" 
+                    className="max-w-[120px] max-h-[80px] object-contain border border-gray-200 rounded"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            
+            {/* Print Proxy Server IP */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 arabic mb-2">
+                IP address خادم Print Proxy المركزي
+              </label>
+              <input
+                type="text"
+                value={formData.printProxyServerIP}
+                onChange={(e) => setFormData({...formData, printProxyServerIP: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="192.168.8.5"
+                dir="ltr"
+              />
+              <p className="mt-1 text-xs text-gray-500 arabic">
+                أدخل IP address الكمبيوتر الذي يشغل Print Proxy Server المركزي. سيتم استخدامه من جميع الأجهزة على نفس الشبكة تلقائياً.
+              </p>
+              <p className="mt-1 text-xs text-blue-600 arabic">
+                💡 نصيحة: شغّل Print Proxy Server على جهاز واحد (مثل Raspberry Pi أو كمبيوتر دائم) وادخل IP address هنا. جميع الأجهزة ستستخدمه تلقائياً.
+              </p>
+            </div>
             
           </div>
           

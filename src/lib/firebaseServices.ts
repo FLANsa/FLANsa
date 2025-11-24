@@ -120,6 +120,9 @@ export interface Settings {
   vatRate: number
   currency: string
   language: string
+  logoUrl?: string
+  printerIP?: string
+  printProxyServerIP?: string
   updatedAt: any
   zatca?: {
     env?: 'sandbox' | 'production'
@@ -491,10 +494,12 @@ export const settingsService = {
 
   async updateSettingsByTenant(tenantId: string, settingsData: Partial<Settings>) {
     const settingsRef = doc(db, COLLECTIONS.SETTINGS, tenantId)
-    await updateDoc(settingsRef, {
+    // Use setDoc with merge to create if doesn't exist, or update if exists
+    await setDoc(settingsRef, {
+      tenantId,
       ...settingsData,
       updatedAt: serverTimestamp()
-    })
+    }, { merge: true })
   },
 
   async createDefaultSettings(tenantId: string = 'main') {
@@ -532,10 +537,14 @@ export const settingsService = {
       email: tenantData.email || 'info@qayd.com',
       vatRate: 15,
       currency: 'SAR',
-      language: 'ar'
+      language: 'ar',
+      logoUrl: '',
+      printProxyServerIP: ''
     }
 
-    await addDoc(collection(db, COLLECTIONS.SETTINGS), {
+    // Use setDoc with tenantId as document ID to ensure consistency
+    const settingsRef = doc(db, COLLECTIONS.SETTINGS, tenantId)
+    await setDoc(settingsRef, {
       ...defaultSettings,
       updatedAt: serverTimestamp()
     })
